@@ -16,3 +16,7 @@ dist/
 .impeccable/
 .impeccable-live/
 .claude/
+
+# Archivos de documentos del almacenamiento simulado
+.mock-storage/
+**/.mock-storage/

@@ -5,6 +5,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { audit, orgs, shifts, workerInvites, withSuper, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
 import type { Guards } from '../auth/guards.js';
 import { normalizeCoPhone, maskPhone } from '../phone.js';
+import { docLabel } from '@turnoextra/channels';
 import { shiftFit } from '../services/eligibility.js';
 import { getFile, storageEnabled } from '../storage.js';
 
@@ -127,7 +128,7 @@ export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
     const telegramUrl = deps.telegramBot ? `https://t.me/${deps.telegramBot}?start=I-${token}` : null;
     const whatsappUrl = num ? `https://wa.me/${num}?text=${encodeURIComponent(`ALTA ${found.code}`)}` : null;
     const portal = deps.appUrl ? `${deps.appUrl}/yo` : null;
-    const docs = found.docs.map((d) => d.replace(/_/g, ' '));
+    const docs = found.docs.map(docLabel);
     const mensaje = [
       `Hola ${found.nombre.split(' ')[0]}, ${found.orgNombre} te agregó a su banca de turnos extra.`,
       telegramUrl ? `Para aceptar por Telegram, abre este enlace (es personal y vence en ${INVITE_TTL_DAYS} días): ${telegramUrl}` : null,

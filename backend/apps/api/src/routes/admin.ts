@@ -15,6 +15,9 @@ import type { Guards } from '../auth/guards.js';
 const uuid = z.string().uuid();
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(60);
 
+/** Documento que se pide siempre, además de los propios de cada rol. */
+const CEDULA = 'cedula';
+
 export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; guards: Guards }) {
   const { db, auth, guards } = deps;
   const opts = { preHandler: guards.requireSuperAdmin };
@@ -127,6 +130,7 @@ export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; gu
     return withSuper(db, async (tx) => {
       const [r] = await tx.insert(roles).values(body).onConflictDoNothing().returning();
       if (!r) return reply.status(409).send({ error: 'conflict', message: 'El rol ya existe' });
+      await tx.insert(roleRequirements).values({ roleId: r.id, tipoDocumento: CEDULA, obligatorio: true, vigenciaRequerida: false }).onConflictDoNothing();
       await audit(tx, { orgId: null, actorId: actor(req), accion: 'role.created', entidad: 'role', entidadId: r.id });
       return reply.status(201).send(r);
     });
@@ -154,7 +158,10 @@ export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; gu
         }),
       )
       .max(30)
-      .parse(req.body);
+      .parse(req.body)
+      // La cédula es un requisito fijo de todos los roles: no se puede quitar ni volver opcional.
+      .filter((i) => i.tipoDocumento !== CEDULA);
+    items.unshift({ tipoDocumento: CEDULA, obligatorio: true, vigenciaRequerida: false });
     return withSuper(db, async (tx) => {
       const [r] = await tx.select({ id: roles.id }).from(roles).where(eq(roles.id, id));
       if (!r) return reply.status(404).send({ error: 'not_found', message: 'No encontrado' });

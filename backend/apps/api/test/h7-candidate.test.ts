@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { sql } from 'drizzle-orm';
@@ -256,12 +258,47 @@ describe('documentos del candidato', () => {
     const r = await w.api('GET', '/yo/documentos', { cookie });
     expect(r.statusCode).toBe(200);
     const org = r.json().organizaciones.find((o: { orgId: string }) => o.orgId === w.A.orgId);
-    expect(org.requisitos).toEqual([expect.objectContaining({ tipo: 'carnet_manipulacion_alimentos', obligatorio: true, documento: null })]);
+    expect(org.requisitos).toHaveLength(2);
+    expect(org.requisitos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tipo: 'cedula', obligatorio: true, vigenciaRequerida: false, documento: null }),
+      expect.objectContaining({ tipo: 'carnet_manipulacion_alimentos', obligatorio: true, documento: null }),
+    ]));
     const up = await w.app.inject({
       method: 'POST', url: `/yo/documentos?orgId=${w.A.orgId}&tipo=carnet_manipulacion_alimentos&vence=2030-01-01`,
       headers: { cookie, origin: env.CORS_ORIGINS[0], 'content-type': 'application/pdf' }, payload: Buffer.from('%PDF-1.4 prueba'),
     });
     expect(up.statusCode).toBe(503);
     expect((await w.api('GET', '/yo/documentos', {})).statusCode).toBe(401);
+  });
+
+  it('con almacenamiento simulado sube la cédula (sin vencimiento) y la empresa la ve', async () => {
+    process.env.MOCK_STORAGE = 'true';
+    process.env.MOCK_STORAGE_DIR = join(tmpdir(), `mock-docs-${Date.now()}`);
+    try {
+      const ana = await mkWorker('Ana cédula');
+      const { cookie } = await login(ana);
+      expect((await w.api('GET', '/yo/documentos', { cookie })).json().archivos).toBe(true);
+
+      const send = (tipo: string, body: Buffer) => w.app.inject({
+        method: 'POST', url: `/yo/documentos?orgId=${w.A.orgId}&tipo=${tipo}`,
+        headers: { cookie, origin: env.CORS_ORIGINS[0], 'content-type': 'application/pdf' }, payload: body,
+      });
+      expect((await send('cedula', Buffer.from('no es un pdf'))).statusCode).toBe(415);
+      const up = await send('cedula', Buffer.from('%PDF-1.4 cedula de prueba'));
+      expect(up.statusCode).toBe(201);
+
+      const org = (await w.api('GET', '/yo/documentos', { cookie })).json().organizaciones.find((o: { orgId: string }) => o.orgId === w.A.orgId);
+      const ced = org.requisitos.find((r: { tipo: string }) => r.tipo === 'cedula');
+      expect(ced.documento).toMatchObject({ estado: 'pendiente', tieneArchivo: true });
+
+      // La empresa abre el archivo por la API (nunca por un enlace público).
+      const docId = ced.documento.id as string;
+      const file = await w.app.inject({ method: 'GET', url: `/orgs/${w.A.orgId}/documents/${docId}/archivo`, headers: { cookie: w.A.cookie, origin: env.APP_URL } });
+      expect(file.statusCode).toBe(200);
+      expect(file.rawPayload.toString()).toContain('cedula de prueba');
+    } finally {
+      delete process.env.MOCK_STORAGE;
+      delete process.env.MOCK_STORAGE_DIR;
+    }
   });
 });

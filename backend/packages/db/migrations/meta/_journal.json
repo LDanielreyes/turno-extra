@@ -162,6 +162,13 @@
       "when": 1795002150000,
       "tag": "0022_enlace_personal",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795002160000,
+      "tag": "0023_cedula_fija",
+      "breakpoints": true
     }
   ]
 }

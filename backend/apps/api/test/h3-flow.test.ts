@@ -174,6 +174,7 @@ describe('BAJA y SALIR', () => {
 
   it('BAJA es global: estado baja en todas las orgs, autorizaciones revocadas, canal apagado, reservas canceladas, orgs avisadas', async () => {
     const { phone, id } = await activeIn([w.A, w.B], 'Rosa Nieto');
+    await owner(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, estado) SELECT ${w.A.orgId}, ${id}, 'cedula', 'aprobado'`);
     const shiftId = (await owner<{ id: string }>(sql`INSERT INTO shifts (org_id, role_id, inicio, fin, cupos, pago_total, piso_calculado, created_by)
       VALUES (${w.A.orgId}, ${w.roleId('mesero')}, now() + interval '2 days', now() + interval '2 days 5 hours', 1, 100000, 50000, 'u') RETURNING id`))[0]!.id;
     const shift2 = (await owner<{ id: string }>(sql`INSERT INTO shifts (org_id, role_id, inicio, fin, cupos, pago_total, piso_calculado, created_by)

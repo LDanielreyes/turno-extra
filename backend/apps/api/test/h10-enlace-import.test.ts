@@ -172,3 +172,33 @@ describe('carga masiva', () => {
     expect(await owner(sql`SELECT 1 FROM org_workers WHERE nombre = 'Ajeno Uno'`)).toHaveLength(0);
   });
 });
+
+describe('cédula como requisito fijo', () => {
+  const reqsOf = (roleId: string) =>
+    owner<{ tipo_documento: string; obligatorio: boolean; vigencia_requerida: boolean }>(
+      sql`SELECT tipo_documento, obligatorio, vigencia_requerida FROM role_requirements WHERE role_id = ${roleId} ORDER BY tipo_documento`);
+
+  it('el super admin no puede quitarla ni volverla opcional al editar los requisitos de un rol', async () => {
+    const id = w.roleId('mesero');
+    const r = await w.api('PUT', `/admin/roles/${id}/requirements`, {
+      cookie: w.superCookie,
+      body: [{ tipoDocumento: 'carnet_manipulacion_alimentos' }, { tipoDocumento: 'cedula', obligatorio: false, vigenciaRequerida: true }],
+    });
+    expect(r.statusCode).toBe(200);
+    expect(await reqsOf(id)).toEqual([
+      { tipo_documento: 'carnet_manipulacion_alimentos', obligatorio: true, vigencia_requerida: true },
+      { tipo_documento: 'cedula', obligatorio: true, vigencia_requerida: false },
+    ]);
+    // Aun con una lista vacía queda la cédula.
+    expect((await w.api('PUT', `/admin/roles/${id}/requirements`, { cookie: w.superCookie, body: [] })).statusCode).toBe(200);
+    expect((await reqsOf(id)).map((x) => x.tipo_documento)).toEqual(['cedula']);
+    // Se restablece el carnet para no afectar a otras pruebas.
+    await w.api('PUT', `/admin/roles/${id}/requirements`, { cookie: w.superCookie, body: [{ tipoDocumento: 'carnet_manipulacion_alimentos' }] });
+  });
+
+  it('un rol nuevo nace con la cédula', async () => {
+    const r = await w.api('POST', '/admin/roles', { cookie: w.superCookie, body: { slug: 'steward-prueba', nombre: 'Steward de prueba' } });
+    expect(r.statusCode).toBe(201);
+    expect((await reqsOf(r.json().id)).map((x) => x.tipo_documento)).toEqual(['cedula']);
+  });
+});

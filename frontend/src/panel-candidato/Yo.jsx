@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, upload } from '../shared/api'
 import { useSession } from '../shared/session'
-import { fmtTime } from '../shared/format'
+import { docLabel, fmtTime } from '../shared/format'
 import { Btn, ErrorState, Field, FormError } from '../shared/ui'
 import Crops from '../shared/Crops'
 import { Ico } from '../panel-empresa/live/icons'
@@ -224,7 +224,7 @@ function DocsAviso() {
   const subir = reqs.filter((r) => !r.documento || r.documento.estado === 'rechazado' || (r.documento.estado === 'aprobado' && !vigente(r)))
   const revision = reqs.filter((r) => r.documento?.estado === 'pendiente')
   if (!subir.length && !revision.length) return null
-  const names = [...new Set(subir.map((r) => r.tipo.replace(/_/g, ' ')))]
+  const names = [...new Set(subir.map((r) => docLabel(r.tipo)))]
   return (
     <div className={`yo-alert${subir.length ? ' is-todo' : ''}`} role={subir.length ? 'alert' : 'status'}>
       <Ico name="doc" size={16} />
@@ -283,7 +283,7 @@ function Requisito({ orgId, r, enabled }) {
     <li className={`yo-doc is-${tone}`}>
       <div className="yo-doc__row">
         <div className="yo-doc__txt">
-          <strong>{r.tipo.replace(/_/g, ' ')}</strong>
+          <strong>{docLabel(r.tipo)}</strong>
           <small>{d?.venceAt ? `vence ${fechaDoc(d.venceAt)}` : r.vigenciaRequerida ? 'requiere vencimiento' : 'sin vencimiento'}{r.obligatorio ? '' : ' · opcional'}</small>
         </div>
         <span className="yo-doc__state">{estado}</span>
@@ -293,7 +293,7 @@ function Requisito({ orgId, r, enabled }) {
       </div>
       {open && (
         <form className="yo-doc__form" onSubmit={(e) => { e.preventDefault(); if (ready) send.mutate() }}>
-          <input type="file" accept="image/jpeg,image/png,application/pdf" aria-label={`Archivo de ${r.tipo.replace(/_/g, ' ')}`} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" accept="image/jpeg,image/png,application/pdf" aria-label={`Archivo de ${docLabel(r.tipo)}`} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           {r.vigenciaRequerida && <input type="date" min={hoy()} aria-label="Fecha de vencimiento" title="Fecha de vencimiento" value={vence} onChange={(e) => setVence(e.target.value)} />}
           <FormError error={send.error} />
           <Btn type="submit" size="sm" variant="primary" loading={send.isPending} disabled={!ready}>Enviar</Btn>

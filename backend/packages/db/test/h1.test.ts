@@ -24,7 +24,9 @@ describe('migraciones y catálogo', () => {
     const rs = await t.db.select().from(roles);
     expect(rs.map((r) => r.slug).sort()).toEqual(['cocina', 'conductor', 'mesero', 'seguridad']);
     const reqs = await t.db.select().from(roleRequirements);
-    expect(reqs).toHaveLength(4);
+    // 4 propios de cada rol + la cédula, que se pide a los 4 roles.
+    expect(reqs).toHaveLength(8);
+    expect(reqs.filter((r) => r.tipoDocumento === 'cedula' && r.obligatorio && !r.vigenciaRequerida)).toHaveLength(4);
   });
 });
 

@@ -69,6 +69,7 @@ async function mkWorker(nombre: string, org = w.A): Promise<Person> {
   await say({ phone }, { button: ask.replies[0]!.buttons![0]!.id });
   // El candidato sube el documento desde su panel; aquí se siembra y la empresa lo aprueba.
   const [d] = await owner<{ id: string }>(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, vence_at) SELECT org_id, worker_id, 'carnet_manipulacion_alimentos', '2030-01-01' FROM org_workers WHERE id = ${linkId} RETURNING id`);
+  await owner(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, estado) SELECT org_id, worker_id, 'cedula', 'aprobado' FROM org_workers WHERE id = ${linkId}`);
   await w.api('PATCH', `/orgs/${org.orgId}/documents/${d!.id}`, { cookie: org.cookie, body: { estado: 'aprobado' } });
   return { id, phone };
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
 import { api, errorText } from '../shared/api'
-import { fmtDate, fmtRange } from '../shared/format'
+import { docLabel, fmtDate, fmtRange } from '../shared/format'
 import { Btn } from '../shared/ui'
 import Crops from '../shared/Crops'
 import { orgKey, roleName, useOrg, useRoles } from './org'
@@ -16,7 +16,7 @@ const CHANNELS = ['whatsapp', 'telegram', 'email']
 const ESTADOS = [['todos', 'Todas'], ['activo', 'Activas'], ['pendiente', 'Pendientes'], ['fuera', 'Salieron']]
 const ELEG = [['todas', 'Todas'], ['si', 'Elegibles'], ['no', 'No elegibles']]
 const GONE = ['baja', 'baja_org']
-const docName = (t) => (t ?? '').replace(/_/g, ' ')
+const docName = docLabel
 // Por qué una persona no recibe ofertas hoy; el descanso y el tope semanal se evalúan por turno.
 const MOTIVO = {
   sin_aceptar: () => 'Aún no acepta',
@@ -330,7 +330,7 @@ function Docs({ orgId, workerId }) {
           : (
             <ul className="bn-slips">
               {docs.map((d, j) => {
-                const name = d.tipoDocumento.replace(/_/g, ' ')
+                const name = docLabel(d.tipoDocumento)
                 const busy = review.isPending && review.variables?.id === d.id
                 return (
                   <li key={d.id} className={`bn-slip is-${d.estado}`} style={{ '--j': j }}>
@@ -353,7 +353,7 @@ function Docs({ orgId, workerId }) {
               {missing.map((r) => (
                 <li key={r.tipo} className="bn-slip is-missing">
                   <span className="bn-slip__staple" aria-hidden="true" />
-                  <span className="bn-slip__name">{r.tipo.replace(/_/g, ' ')}</span>
+                  <span className="bn-slip__name">{docLabel(r.tipo)}</span>
                   <span className="bn-slip__when">falta · lo sube la persona desde su panel</span>
                 </li>
               ))}

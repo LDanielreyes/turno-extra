@@ -28,3 +28,6 @@ export const defaultStart = (hoursAhead = 3) => {
   return toLocalInput(d)
 }
 export const addHours = (local, h) => toLocalInput(new Date(new Date(local).getTime() + h * 3600_000))
+
+// Nombre para mostrar de un tipo de documento (`cedula` → «cédula de ciudadanía»).
+export const docLabel = (t) => (t === 'cedula' ? 'cédula de ciudadanía' : String(t ?? '').replace(/_/g, ' '))

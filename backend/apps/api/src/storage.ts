@@ -1,3 +1,6 @@
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 /**
@@ -14,7 +17,15 @@ const s3 = () => {
   return client;
 };
 
-export const storageEnabled = () => s3() !== null;
+/**
+ * Almacenamiento simulado para pruebas: con `MOCK_STORAGE=true` los archivos van a una carpeta local (`.mock-storage`)
+ * en vez del bucket. Nunca en producción: ahí se ignora y la carga queda "no disponible" si falta el bucket real.
+ */
+const mockDir = () => join(process.env.MOCK_STORAGE_DIR ?? '.mock-storage');
+const mocked = () => process.env.MOCK_STORAGE === 'true' && process.env.NODE_ENV !== 'production' && s3() === null;
+const mockPath = (key: string) => join(mockDir(), createHash('sha256').update(key).digest('hex'));
+
+export const storageEnabled = () => s3() !== null || mocked();
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'] as const;
@@ -29,15 +40,25 @@ export function sniff(buf: Buffer): FileType | null {
 }
 
 export async function putFile(key: string, body: Buffer, contentType: FileType) {
+  if (mocked()) {
+    await mkdir(mockDir(), { recursive: true });
+    await writeFile(mockPath(key), body);
+    return;
+  }
   await s3()!.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType }));
 }
 
 export async function getFile(key: string) {
+  if (mocked()) return readFile(mockPath(key)).catch(() => null);
   const res = await s3()!.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
   return res.Body ? Buffer.from(await res.Body.transformToByteArray()) : null;
 }
 
 export async function deleteFiles(keys: string[]) {
+  if (mocked()) {
+    await Promise.allSettled(keys.map((k) => rm(mockPath(k), { force: true })));
+    return;
+  }
   const c = s3();
   if (!c) return;
   await Promise.allSettled(keys.map((Key) => c.send(new DeleteObjectCommand({ Bucket: BUCKET, Key }))));

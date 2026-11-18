@@ -43,6 +43,8 @@ beforeAll(async () => {
         await o.execute(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, vence_at, estado)
           VALUES (${A}, ${id}, 'carnet_manipulacion_alimentos', ${doc[1]}, ${doc[0]})`);
       }
+      // La cédula es requisito fijo de todos los roles: aquí siempre está aprobada para aislar el carnet.
+      await o.execute(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, estado) VALUES (${A}, ${id}, 'cedula', 'aprobado')`);
       return id;
     };
     const assign = async (org: string, worker: string, shiftRef: string, status = 'confirmed') =>

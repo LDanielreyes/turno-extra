@@ -1,6 +1,9 @@
 import type { OutMessage } from './types.js';
 
 /** Textos W1–W19 del documento «Mensajes WhatsApp — para revisar». Borradores a validar con el dueño y un abogado. */
+/** Nombre para mostrar de un tipo de documento. */
+export const docLabel = (t: string) => (t === 'cedula' ? 'cédula de ciudadanía' : t.replace(/_/g, ' '));
+
 export const msg = {
   w1Consent: (org: string, orgId: string, policyUrl: string, via = 'WhatsApp'): OutMessage => ({
     text: `${org} quiere enviarte ofertas de turnos extra por ${via}. Para eso necesitamos tu autorización: tratamos tu nombre y tu celular, y los compartimos con ${org} solo para ofrecerte turnos. Puedes retirarla cuando quieras escribiendo BAJA. Política completa: ${policyUrl}. ¿Aceptas?`,
@@ -14,7 +17,7 @@ export const msg = {
       docs.length && portalUrl
         ? `
 
-Último paso: para recibir ofertas debes subir tus documentos (${docs.map((d) => d.replace(/_/g, ' ')).join(', ')}). Entra a ${portalUrl} con tu celular (te llega un código por aquí), ve a «Mis documentos» y sube una foto o PDF de cada uno. ${org} los revisa y, cuando estén aprobados, empiezan a llegarte ofertas.`
+Último paso: para recibir ofertas debes subir tus documentos (${docs.map(docLabel).join(', ')}). Entra a ${portalUrl} con tu celular (te llega un código por aquí), ve a «Mis documentos» y sube una foto o PDF de cada uno. ${org} los revisa y, cuando estén aprobados, empiezan a llegarte ofertas.`
         : ''
     }`,
   }),
