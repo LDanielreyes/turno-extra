@@ -1,0 +1,48 @@
+# Blueprint de Render: API + worker en un solo servicio (plan gratuito). Las variables con sync:false se piden al crear.
+services:
+  - type: web
+    name: turnoextra-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      # Neon: rol de aplicación (turnoextra_app), no el dueño.
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      # URL de ESTE servicio en Render (https://turnoextra-api.onrender.com): los enlaces de los correos apuntan aquí.
+      - key: BETTER_AUTH_URL
+        sync: false
+      # URL pública del frontend en Vercel (https://tu-app.vercel.app), sin barra final.
+      - key: APP_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      # Sin URL pública fija para webhooks: el worker lee Telegram por sondeo.
+      - key: TELEGRAM_POLLING
+        value: "true"
+      # WhatsApp apagado hasta tener el canal habilitado en Meta.
+      - key: WHATSAPP_ENABLED
+        value: "false"
+      - key: DEMO_MODE
+        value: "false"

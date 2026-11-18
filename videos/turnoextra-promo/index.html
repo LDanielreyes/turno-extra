@@ -1,0 +1,100 @@
+<!doctype html>
+<html
+  lang="es"
+  data-composition-variables='[
+    {"id":"s1-text","type":"string","label":"Escena 1 · titular","default":"Viernes 6:00 PM. Faltan 3 meseros para el banquete."},
+    {"id":"s4-headline","type":"string","label":"Escena 4 · titular","default":"Cobertura total. Cero estrés."}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --navy: #1a2530;
+        --lime: #d4ff00;
+        --bone: #f8f9fa;
+        --slate: #495057;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--navy);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: var(--navy);
+        font-family: "Inter", Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="12"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="pain"
+        data-composition-id="pain"
+        data-composition-src="compositions/pain.html"
+        data-start="0"
+        data-duration="3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="panel"
+        data-composition-id="panel"
+        data-composition-src="compositions/panel.html"
+        data-start="3"
+        data-duration="3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="chat"
+        data-composition-id="chat"
+        data-composition-src="compositions/chat.html"
+        data-start="6"
+        data-duration="3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="match"
+        data-composition-id="match"
+        data-composition-src="compositions/match.html"
+        data-start="9"
+        data-duration="3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

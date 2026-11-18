@@ -1,0 +1,39 @@
+{
+  "name": "turnoextra-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @turnoextra/api",
+    "dev:worker": "npm run dev -w @turnoextra/worker",
+    "db:generate": "npm run generate -w @turnoextra/db",
+    "db:migrate": "npm run migrate -w @turnoextra/db",
+    "lint": "eslint .",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "audit:ci": "npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite-socket": "^0.2.19",
+    "@eslint/js": "^10.0.1",
+    "@testcontainers/postgresql": "^12.2.1",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.15.0",
+    "testcontainers": "^12.2.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@neon/config": "^1.14.1",
+    "@neon/env": "^2.1.4"
+  }
+}

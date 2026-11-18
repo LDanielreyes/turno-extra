@@ -1,0 +1,55 @@
+/* ---------- escenario de sección ---------- */
+.mh {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr); align-items: stretch;
+  min-height: 320px; margin-bottom: var(--space-4);
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+/* retícula de puntos que se desvanece hacia el texto y brasa baja detrás de la escena */
+.mh::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(90deg, transparent 18%, var(--ink) 62%);
+}
+.mh::after {
+  content: ''; position: absolute; z-index: -1; right: -6%; bottom: -55%; width: 70%; aspect-ratio: 1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 13%, transparent), transparent);
+}
+.mh__text { display: grid; align-content: end; gap: 14px; padding: clamp(24px, 3vw, 40px); min-width: 0; animation: mh-in 0.7s var(--ease-out) backwards; }
+.mh h1 { margin: 0; font: 800 clamp(36px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; text-wrap: balance; }
+.mh__lede { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.5; color: var(--color-text-muted); text-wrap: pretty; }
+.mh__facts { display: flex; flex-wrap: wrap; gap: 0; margin: 6px 0 0; border-top: 1px solid var(--hair); }
+.mh__facts > div { display: grid; gap: 2px; padding: 12px 22px 0 0; margin-right: 22px; border-right: 1px solid var(--hair); }
+.mh__facts > div:last-child { border-right: 0; margin-right: 0; }
+.mh__facts dt { order: 2; font-size: 12px; color: var(--color-text-muted); }
+.mh__facts dd { margin: 0; font: 700 22px/1.1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.mh__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* clave del dibujo: forma + palabra */
+.mh__key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--color-text-muted); }
+.mh__key li { display: inline-flex; align-items: center; gap: 8px; }
+.mh-k { width: 12px; height: 12px; flex: none; border-radius: 2px; border: 1.5px solid var(--hair-strong); }
+.mh-k--lit { background: var(--color-accent); border-color: var(--color-accent); }
+.mh-k--dash { border-style: dashed; border-color: var(--color-accent); }
+.mh-k--must { border-radius: 50%; background: var(--color-accent); border-color: var(--color-accent); width: 8px; height: 8px; }
+.mh-k--opt { border-radius: 50%; width: 8px; height: 8px; }
+.mh-k--ok { border-radius: 50%; background: var(--ok); border-color: var(--ok); }
+.mh-k--new { border-color: var(--color-accent); }
+.mh__art { position: relative; min-width: 0; padding: 12px 12px 0 0; }
+.mh__art > svg { position: absolute; inset: 12px 12px 0 0; width: calc(100% - 12px); height: calc(100% - 12px); }
+@keyframes mh-in { from { opacity: 0; translate: 0 12px; } }
+@media (prefers-reduced-motion: reduce) { .mh__text { animation: none; } }
+@media (max-width: 900px) {
+  .mh { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .mh__art { order: -1; height: 240px; padding: 12px 12px 0; }
+  .mh__art > svg { inset: 12px 12px 0; width: calc(100% - 24px); }
+  .mh::before { mask-image: linear-gradient(180deg, var(--ink) 30%, transparent 70%); }
+}
+@media (max-width: 480px) { .mh__art { height: 200px; } .mh h1 { font-size: 34px; } }
+
+/* ---------- área en la barra lateral ---------- */
+.crest { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 10px; padding: 10px; margin: 0 0 var(--space-1); border: 1px solid var(--line); border-radius: 3px; background: var(--color-bg); }
+.crest svg { width: 40px; height: 40px; display: block; }
+.crest .sc-clock__halo { display: none; }
+.crest strong { display: block; font: 700 15px/1.1 var(--font-display); letter-spacing: -0.02em; }
+.crest span { display: block; margin-top: 3px; font-size: 12px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }

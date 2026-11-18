@@ -1,0 +1,47 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #1a2530; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #fff; }
+    .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 120px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; flex-direction: column; gap: 40px; }
+    #cl-circle { width: 400px; height: 400px; flex: none; }
+    #root[data-height="1920"] #cl-circle { width: 320px; height: 320px; }
+    #cl-text { display: flex; flex-direction: column; gap: 30px; }
+    #root[data-height="1920"] #cl-text { align-items: center; text-align: center; gap: 24px; }
+    #cl-kick { font-size: 34px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #d4ff00; }
+    #root[data-height="1920"] #cl-kick { font-size: 30px; }
+    #cl-head { font-size: 132px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.98; }
+    #root[data-height="1920"] #cl-head { font-size: 116px; }
+    #cl-head .w { display: inline-block; }
+    #cl-stats { display: flex; gap: 64px; margin-top: 10px; }
+    #root[data-height="1920"] #cl-stats { gap: 40px; margin-top: 4px; }
+    .cl-stat b { display: block; font-size: 84px; font-weight: 800; color: #d4ff00; letter-spacing: -0.04em; line-height: 1; }
+    #root[data-height="1920"] .cl-stat b { font-size: 70px; }
+    .cl-stat span { display: block; font-size: 32px; font-weight: 600; color: #f8f9fa; margin-top: 6px; width: 380px; line-height: 1.15; }
+    #root[data-height="1920"] .cl-stat span { font-size: 28px; width: 340px; }
+  </style>
+  <div id="root" data-composition-id="closed" data-width="1080" data-height="1920">
+    <div class="stage">
+      <svg id="cl-circle" class="clip" data-start="0" data-duration="6" viewBox="0 0 200 200">
+        <circle id="cl-disc" cx="100" cy="100" r="96" fill="#d4ff00" />
+        <path id="cl-check" d="M52 104 L88 140 L150 66" fill="none" stroke="#1a2530" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="170" stroke-dashoffset="170" />
+      </svg>
+      <div id="cl-text">
+        <div id="cl-kick" class="clip" data-start="0" data-duration="6">3/3 cupos cubiertos</div>
+        <div id="cl-head" class="clip" data-start="0" data-duration="6" data-var-text="s4-headline"><span class="w">Cobertura total.</span><br /><span class="w" style="color:#d4ff00">Cero estrés.</span></div>
+        <div id="cl-stats" class="clip" data-start="0" data-duration="6">
+          <div class="cl-stat"><b>&lt; 5 min</b><span>para cubrir el ausentismo</span></div>
+          <div class="cl-stat"><b>8 h</b><span>de descanso legal respetado</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#cl-disc", { scale: 0, svgOrigin: "100 100" }, { scale: 1, svgOrigin: "100 100", duration: 0.7, ease: "expo.out" }, 0.3);
+    tl.fromTo("#cl-check", { strokeDashoffset: 170 }, { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" }, 0.8);
+    tl.fromTo("#cl-kick", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 1.0);
+    tl.fromTo("#cl-head .w", { opacity: 0, y: 60, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7, ease: "expo.out", stagger: 0.18 }, 1.2);
+    tl.fromTo(".cl-stat", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out", stagger: 0.2 }, 2.4);
+    window.__timelines["closed"] = tl;
+  </script>
+</template>

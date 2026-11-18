@@ -1,0 +1,72 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #1a2530; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #fff; }
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; }
+    html.v .stage { inset: 168px 0 auto 0; height: 1160px; gap: 30px; }
+    #bc-cap { position: relative; width: 1500px; height: 84px; font-size: 64px; font-weight: 800; letter-spacing: -0.03em; text-align: center; }
+    html.v #bc-cap { width: 940px; height: 130px; font-size: 56px; line-height: 1.04; }
+    #bc-cap span { position: absolute; left: 0; right: 0; top: 0; }
+    #bc-cap b { color: #d4ff00; }
+    #bc-card { background: #d4ff00; color: #1a2530; border-radius: 28px; padding: 24px 48px; font-size: 48px; font-weight: 800; letter-spacing: -0.02em; display: flex; gap: 28px; align-items: center; }
+    html.v #bc-card { font-size: 36px; padding: 20px 32px; gap: 18px; flex-wrap: wrap; justify-content: center; width: 900px; }
+    #bc-card i { width: 12px; height: 12px; border-radius: 50%; background: #1a2530; display: block; }
+    #bc-grid { display: grid; grid-template-columns: repeat(6, 250px); gap: 20px; }
+    html.v #bc-grid { grid-template-columns: repeat(3, 280px); gap: 20px; }
+    .bc-chip { position: relative; height: 230px; border: 4px solid #3b4a5a; border-radius: 28px; background: #223040; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+    html.v .bc-chip { height: 168px; }
+    .bc-av { width: 96px; height: 96px; border-radius: 50%; background: #f8f9fa; color: #1a2530; font-size: 48px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    html.v .bc-av { width: 74px; height: 74px; font-size: 38px; }
+    .bc-name { font-size: 32px; font-weight: 700; }
+    .bc-st { font-size: 28px; font-weight: 700; color: #d4ff00; letter-spacing: 0.02em; }
+    .bc-st.b { display: none; color: #ff4d3d; }
+    .bc-tick { position: absolute; right: -14px; top: -14px; width: 54px; height: 54px; border-radius: 50%; background: #25d366; border: 4px solid #1a2530; display: flex; align-items: center; justify-content: center; opacity: 0; }
+    .bc-tick svg { width: 28px; height: 28px; }
+  </style>
+  <div id="root" data-composition-id="broadcast" data-width="1920" data-height="1080">
+    <div class="stage">
+      <div id="bc-cap" class="clip" data-start="0" data-duration="10">
+        <span id="bc-capa">Primero, se filtra el <b>descanso legal</b>.</span>
+        <span id="bc-capb">Luego, un mensaje por <b>WhatsApp</b>.</span>
+      </div>
+      <div id="bc-card" class="clip" data-start="0" data-duration="10">Nuevo turno <i></i> 3 meseros <i></i> 8:00 PM <i></i> $60.000 COP</div>
+      <div id="bc-grid" class="clip" data-start="0" data-duration="10">
+        <div class="bc-chip" id="bc-1"><div class="bc-av">A</div><div class="bc-name">Ana</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-2"><div class="bc-av">L</div><div class="bc-name">Luis</div><div class="bc-st a">Disponible</div><div class="bc-st b">Descanso &lt; 8 h</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-3"><div class="bc-av">M</div><div class="bc-name">Marta</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-4"><div class="bc-av">J</div><div class="bc-name">Juan</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-5"><div class="bc-av">S</div><div class="bc-name">Sofía</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-6"><div class="bc-av">P</div><div class="bc-name">Pedro</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-7"><div class="bc-av">C</div><div class="bc-name">Camila</div><div class="bc-st a">Disponible</div><div class="bc-st b">Descanso &lt; 8 h</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-8"><div class="bc-av">A</div><div class="bc-name">Andrés</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-9"><div class="bc-av">L</div><div class="bc-name">Laura</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-10"><div class="bc-av">D</div><div class="bc-name">Diego</div><div class="bc-st a">Disponible</div><div class="bc-st b">Descanso &lt; 8 h</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-11"><div class="bc-av">V</div><div class="bc-name">Valeria</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+        <div class="bc-chip" id="bc-12"><div class="bc-av">M</div><div class="bc-name">Mateo</div><div class="bc-st a">Disponible</div><div class="bc-tick"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 L12 22 L23 7" /></svg></div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const V = document.documentElement.classList.contains("v");
+    const grid = V ? [4, 3] : [2, 6];
+    const tl = gsap.timeline({ paused: true });
+    const tired = [2, 7, 10];
+    const ok = [1, 3, 4, 5, 6, 8, 9, 11, 12];
+    tl.fromTo("#bc-card", { opacity: 0, y: -60 }, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" }, 0.4);
+    tl.fromTo("#bc-capa", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 0.6);
+    tl.fromTo(".bc-chip", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out", stagger: { each: 0.07, from: "center", grid } }, 1.2);
+    // Fatigue filter: the tired ones go grey and say why
+    tired.forEach((n, i) => {
+      tl.to("#bc-" + n, { opacity: 0.4, borderColor: "#ff4d3d", duration: 0.4, ease: "power2.out" }, 3.4 + i * 0.25);
+      tl.set("#bc-" + n + " .bc-st.a", { display: "none" }, 3.5 + i * 0.25);
+      tl.set("#bc-" + n + " .bc-st.b", { display: "block" }, 3.5 + i * 0.25);
+    });
+    // Caption swap on the same slot
+    tl.to("#bc-capa", { opacity: 0, y: -30, duration: 0.3, ease: "power3.in" }, 4.9);
+    tl.fromTo("#bc-capb", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 5.2);
+    // The message goes out to the rest: ticks ripple from the centre
+    ok.forEach((n, i) => {
+      tl.fromTo("#bc-" + n + " .bc-tick", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 5.6 + [0, 1, 2, 3, 4, 5, 6, 7, 8][i] * 0.2);
+    });
+    window.__timelines["broadcast"] = tl;
+  </script>
+</template>

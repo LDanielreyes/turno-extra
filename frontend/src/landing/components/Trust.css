@@ -1,0 +1,51 @@
+.tr { position: relative; padding: 0 0 var(--space-7); }
+.tr > .container { position: relative; z-index: 1; }
+/* placa de instrumento: un solo marco, filete entre las dos zonas */
+.tr__panel {
+  display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  background: color-mix(in srgb, var(--ink) 82%, transparent); --crop: var(--color-text-muted);
+}
+.tr__lead { padding: clamp(28px, 4.5vw, 64px); }
+.tr__title { margin: 0; font-weight: 700; font-size: clamp(32px, 4.4vw, 60px); line-height: 1; letter-spacing: -0.04em; text-wrap: balance; }
+
+/* quién hace qué */
+.tr__roles { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); align-items: start; gap: 12px; margin-top: var(--space-5); }
+.tr__role { display: grid; justify-items: start; gap: 6px; }
+.tr__role b { font: 700 19px/1.1 var(--font-display); letter-spacing: -0.02em; }
+.tr__role span { font-size: 14px; line-height: 1.35; color: var(--color-text-muted); }
+.tr__role--biz span { color: var(--color-text); }
+.tr__badge { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--hair-strong); background: var(--graphite); margin-bottom: 6px; }
+.tr__badge--tx { border-color: var(--color-accent); }
+.tr__badge svg { width: 30px; height: 30px; fill: none; stroke: var(--color-text); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.tr__link { width: 100%; height: 24px; overflow: visible; align-self: start; margin-top: 16px; }
+.tr__roles > .tr__link { margin-top: 16px; }
+.tr__link path { fill: none; stroke: var(--color-accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.tr__link path:first-child { stroke-dasharray: 3 6; animation: tr-flow 1.4s linear infinite; }
+@keyframes tr-flow { to { stroke-dashoffset: -18; } }
+
+/* lo que TurnoExtra no hace: tachado */
+.tr__nots { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: var(--space-5) 0 0; padding: 0; }
+.tr__nots li { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px 7px 9px; border: 1px dashed var(--hair-strong); border-radius: 999px; font-size: 14px; color: var(--color-text-muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-danger) 70%, transparent); }
+.tr__nots svg { width: 14px; height: 14px; fill: none; stroke: var(--color-danger); stroke-width: 2; stroke-linecap: round; }
+
+/* garantías para la persona */
+.tr__points { list-style: none; margin: 0; padding: clamp(28px, 4.5vw, 64px); align-self: stretch; display: grid; align-content: center; border-left: 1px solid var(--line); }
+.tr__points li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: var(--space-3); align-items: center; padding: var(--space-4) 0; border-top: 1px solid var(--hair); }
+.tr__points li:last-child { border-bottom: 1px solid var(--hair); }
+.tr__points svg { width: 52px; height: 52px; fill: none; stroke: var(--color-text); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.tr__draw { stroke: var(--color-accent); stroke-dasharray: 60; stroke-dashoffset: 0; animation: tr-draw 5s ease-in-out infinite; }
+.tr__points li:nth-child(2) .tr__draw { animation-delay: 0.6s; }
+.tr__points li:nth-child(3) .tr__draw { animation-delay: 1.2s; }
+@keyframes tr-draw { 0%, 8% { stroke-dashoffset: 60; } 40%, 88% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 60; } }
+.tr__points span { font-size: 16px; line-height: 1.4; }
+.tr__key { display: inline-block; margin-right: 8px; padding: 2px 7px; border-radius: 4px; background: var(--color-accent); color: var(--color-on-accent); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; vertical-align: 1px; }
+
+@media (max-width: 860px) {
+  .tr__panel { grid-template-columns: minmax(0, 1fr); }
+  .tr__points { border-left: 0; border-top: 1px solid var(--line); }
+  .tr { padding-bottom: var(--space-6); }
+}
+@media (max-width: 520px) {
+  .tr__roles { grid-template-columns: minmax(0, 1fr); }
+  .tr__link { transform: rotate(90deg); width: 40px; margin: 0 0 0 8px; }
+}

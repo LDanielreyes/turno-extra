@@ -1,0 +1,30 @@
+.iso { display: block; overflow: visible; flex: none; }
+.iso__track { fill: none; stroke: var(--color-text); stroke-opacity: 0.16; stroke-width: 4; }
+.iso__arc {
+  fill: none; stroke: var(--color-accent); stroke-width: 4; stroke-linecap: butt;
+  stroke-dasharray: 100; stroke-dashoffset: 0;
+  transform: rotate(-90deg); transform-origin: 12px 12px; transform-box: view-box;
+  animation: iso-draw 1.3s var(--ease-out) both;
+}
+.iso__hand {
+  fill: var(--color-text);
+  transform-box: view-box; transform-origin: 12px 12px;
+  animation: iso-spin 1.5s var(--ease-out) both, iso-tick 16s 2.2s infinite;
+}
+@keyframes iso-draw { from { stroke-dashoffset: 100; } }
+@keyframes iso-spin { from { transform: rotate(-360deg); } }
+@keyframes iso-tick {
+  0%, 18% { transform: rotate(0); }
+  22%, 43% { transform: rotate(90deg); }
+  47%, 68% { transform: rotate(180deg); }
+  72%, 93% { transform: rotate(270deg); }
+  97%, 100% { transform: rotate(360deg); }
+}
+a:hover > .iso .iso__hand, a:hover .wm .iso__hand { animation: iso-spin 0.9s var(--ease-out) both, iso-tick 16s 1.2s infinite; }
+a:hover > .iso .iso__arc, a:hover .wm .iso__arc { animation: iso-draw 0.9s var(--ease-out) both; }
+
+.wm {
+  display: inline-flex; align-items: center; gap: 0.015em; white-space: nowrap; line-height: 1;
+  font: 700 var(--wm, 24px)/1 var(--font-display); letter-spacing: -0.04em; color: var(--color-text);
+}
+.wm__o { width: 0.82em; height: 0.82em; margin-inline: 0.01em; transform: translateY(0.01em); }

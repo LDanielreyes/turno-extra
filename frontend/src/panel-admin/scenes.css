@@ -1,0 +1,195 @@
+/* Escenas del super admin (scenes.jsx). Tokens de theme.css; la brasa solo en el dato vivo de cada escena. */
+
+.sc { display: block; width: 100%; height: 100%; overflow: visible; font-family: var(--font-body); }
+.sc text { fill: var(--color-text-muted); font-size: 11px; }
+.sc * { transform-box: view-box; }
+.sc-note { font-size: 11px; }
+.sc-note.is-now { fill: var(--color-accent) !important; font-weight: 600; }
+.sc-person circle, .sc-person path { fill: currentColor; }
+
+/* reloj pequeño */
+.sc-clock__halo { fill: color-mix(in srgb, var(--ember) 7%, transparent); }
+.sc-clock__face { fill: var(--graphite); stroke: var(--hair-strong); stroke-width: 1.2; }
+.sc-clock__tick { stroke: color-mix(in srgb, var(--color-text) 45%, transparent); stroke-width: 1.2; }
+.sc-clock__tick.is-top { stroke: var(--color-accent); stroke-width: 2.2; }
+.sc-clock__h { stroke: var(--color-text); stroke-width: 2.6; stroke-linecap: round; }
+.sc-clock__m { stroke: var(--color-text); stroke-width: 1.6; stroke-linecap: round; }
+.sc-clock__s { stroke: var(--color-accent); stroke-width: 1; stroke-linecap: round; animation: sc-spin 60s linear infinite; }
+.sc-clock__pv { fill: var(--color-accent); }
+@keyframes sc-spin { to { rotate: 360deg; } }
+
+/* ---------- organizaciones ---------- */
+.sc-star { fill: var(--color-text); opacity: 0.35; }
+.sc-star.is-tw { animation: sc-tw 4.5s var(--d, 0s) ease-in-out infinite; }
+@keyframes sc-tw { 50% { opacity: 0.08; } }
+.sc-bld { animation: sc-rise 0.9s var(--d) var(--ease-out) backwards; }
+@keyframes sc-rise { from { translate: 0 26px; opacity: 0; } }
+.sc-bld__body { fill: var(--graphite-2); stroke: var(--hair-strong); stroke-width: 1; }
+.sc-bld__ant { stroke: var(--hair-strong); stroke-width: 1.4; }
+.sc-bld__beacon { fill: var(--color-accent); animation: sc-tw 2.4s ease-in-out infinite; }
+.sc-bld__door { fill: var(--ink); stroke: var(--hair-strong); }
+.sc-win { fill: color-mix(in srgb, var(--color-text) 9%, transparent); }
+.sc-win.is-lit { fill: var(--paper); opacity: 0.88; animation: sc-light 0.5s var(--wd) ease-out backwards; }
+.sc-win.is-tw { animation: sc-light 0.5s var(--wd) ease-out backwards, sc-tw 6s calc(var(--wd) + 2s) ease-in-out infinite; }
+@keyframes sc-light { from { opacity: 0; } }
+.sc-bld.is-pending .sc-bld__body { fill: color-mix(in srgb, var(--graphite) 60%, transparent); stroke-dasharray: 4 4; }
+.sc-bld.is-pending .sc-bld__door { stroke: var(--color-accent); stroke-width: 1.4; fill: var(--ember-soft); }
+.sc-label line { stroke: var(--hair-strong); stroke-dasharray: 2 3; }
+.sc-label text { fill: var(--color-text); font-size: 12px; font-weight: 600; }
+.sc-ground { stroke: var(--hair-strong); stroke-width: 1.2; }
+.sc-ground__dash { stroke: var(--hair); stroke-width: 1; }
+.sc-trail { fill: none; stroke: color-mix(in srgb, var(--ember) 40%, transparent); stroke-width: 1.2; stroke-dasharray: 2 6; stroke-linecap: round; }
+.sc-env rect { fill: var(--paper); stroke: var(--paper-line); }
+.sc-env path { fill: none; stroke: var(--ember-deep); stroke-width: 1.6; stroke-linejoin: round; }
+
+/* glifo de fila */
+.sc-glyph { width: 28px; height: 32px; flex: none; }
+.sc-glyph__body { fill: var(--graphite-2); stroke: var(--hair-strong); }
+.sc-glyph__w { fill: color-mix(in srgb, var(--color-text) 12%, transparent); }
+.sc-glyph__w.is-lit { fill: var(--paper); }
+.sc-glyph__door { fill: var(--ink); }
+.sc-glyph.is-pending .sc-glyph__body { fill: none; stroke-dasharray: 2.5 2.5; }
+.sc-glyph.is-pending .sc-glyph__door { fill: var(--color-accent); }
+
+/* ---------- roles ---------- */
+.sc-rail { stroke: var(--hair-strong); stroke-width: 3; stroke-linecap: round; }
+.sc-badge { animation: sc-drop 1s var(--d) var(--ease-out) backwards, sc-sway var(--sw) calc(var(--d) + 1s) ease-in-out infinite alternate; }
+@keyframes sc-drop { from { translate: 0 -40px; opacity: 0; } }
+@keyframes sc-sway { from { rotate: -1.6deg; } to { rotate: 1.6deg; } }
+.sc-hook { fill: var(--ink); stroke: var(--color-text-muted); stroke-width: 1.4; }
+.sc-strap { fill: none; stroke: var(--color-accent); stroke-width: 2.2; stroke-linecap: round; }
+.sc-badge__card { fill: var(--paper); stroke: var(--paper-line); filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--shadow-deep) 50%, transparent)); }
+.sc-badge__slot { fill: var(--ink); }
+.sc-badge__name { fill: var(--on-paper) !important; font: 700 13px var(--font-display) !important; letter-spacing: -0.01em; }
+.sc-badge__photo { fill: var(--paper-2); stroke: var(--paper-line); }
+.sc-badge__who { color: var(--on-paper-muted); }
+.sc-badge__doc circle { fill: none; stroke: var(--on-paper-muted); stroke-width: 1.3; }
+.sc-badge__doc circle.is-must { fill: var(--ember-deep); stroke: var(--ember-deep); }
+.sc-badge__doc rect { fill: var(--paper-line); }
+.sc-badge__free { fill: var(--on-paper-muted) !important; font-size: 10.5px !important; }
+.sc-badge__foot { fill: var(--on-paper-muted) !important; font-size: 10px !important; font-weight: 600; }
+.sc-badge.is-off { opacity: 0.45; }
+.sc-badge.is-off .sc-strap { stroke: var(--color-text-muted); }
+.sc-badge.is-ghost .sc-badge__card { fill: transparent; stroke: var(--hair-strong); stroke-dasharray: 5 5; filter: none; }
+.sc-badge.is-ghost .sc-badge__name { fill: var(--color-text-muted) !important; }
+.sc-badge.is-ghost .sc-badge__photo { fill: none; stroke: var(--hair-strong); stroke-dasharray: 3 3; }
+.sc-badge.is-ghost .sc-badge__who { color: var(--hair-strong); }
+.sc-badge.is-ghost .sc-badge__slot { fill: var(--hair-strong); }
+
+/* ---------- legal ---------- */
+.sc-dial__halo { fill: color-mix(in srgb, var(--ember) 6%, transparent); }
+.sc-dial__face { fill: var(--graphite); stroke: var(--hair-strong); stroke-width: 1.2; }
+.sc-dial__hr { stroke: color-mix(in srgb, var(--color-text) 55%, transparent); stroke-width: 1.4; }
+.sc-dial__min { stroke: color-mix(in srgb, var(--color-text) 20%, transparent); stroke-width: 1; }
+.sc-dial__num { fill: var(--color-text-muted) !important; font: 500 11px var(--font-mono) !important; }
+.sc-dial__night-bg { fill: none; stroke: var(--ember-soft); stroke-width: 14; stroke-linecap: round; }
+.sc-dial__night-bg.is-empty { stroke: var(--hair); stroke-dasharray: 3 6; stroke-width: 2; }
+.sc-dial__night { fill: none; stroke: var(--color-accent); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; animation: sc-draw 1.6s 0.3s var(--ease-out) backwards; }
+@keyframes sc-draw { from { stroke-dashoffset: 100; } }
+.sc-dial__tag { fill: var(--color-accent) !important; font: 700 13px var(--font-body) !important; font-variant-numeric: tabular-nums; }
+.sc-dial__label { fill: var(--color-text) !important; font: 700 17px var(--font-display) !important; letter-spacing: -0.02em; }
+.sc-dial__range { fill: var(--color-text-muted) !important; font: 500 12px var(--font-mono) !important; }
+.sc-dial__now { stroke: var(--paper); stroke-width: 2; stroke-linecap: round; }
+.sc-dial__nowdot { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.sc-dial__pv { fill: var(--color-accent); stroke: var(--ink); stroke-width: 2; }
+.sc-day { animation: sc-rise 0.8s var(--d) var(--ease-out) backwards; }
+.sc-day__col { fill: var(--graphite); stroke: var(--hair-strong); }
+.sc-day__night { fill: color-mix(in srgb, var(--ember) 30%, transparent); }
+.sc-day__l { fill: var(--color-text-muted) !important; font-weight: 600; }
+.sc-day.is-sun .sc-day__col { fill: var(--ember-soft); stroke: var(--color-accent); }
+.sc-day.is-sun .sc-day__l { fill: var(--color-accent) !important; }
+.sc-pay__l { fill: var(--color-text-muted) !important; font-size: 12px !important; }
+.sc-pay__v { fill: var(--color-text) !important; font: 600 13px var(--font-body) !important; font-variant-numeric: tabular-nums; }
+.sc-pay__v.is-up { fill: var(--paper) !important; }
+.sc-pay__rule { stroke: var(--hair); stroke-dasharray: 1 3; }
+
+/* ---------- términos ---------- */
+.sc-signer__plate { fill: var(--graphite); stroke: var(--hair-strong); transition: stroke 0.3s, fill 0.3s; }
+.sc-signer__ico { fill: none; stroke: var(--color-text-muted); stroke-width: 1.6; stroke-linejoin: round; }
+.sc-signer__who { color: var(--color-text-muted); }
+.sc-signer__t { font-size: 12px !important; font-weight: 600; }
+.sc-signer.is-on .sc-signer__plate { stroke: var(--color-accent); fill: color-mix(in srgb, var(--ember) 8%, var(--graphite)); }
+.sc-signer.is-on .sc-signer__ico { stroke: var(--color-text); }
+.sc-signer.is-on .sc-signer__who { color: var(--color-text); }
+.sc-signer.is-on .sc-signer__t { fill: var(--color-text) !important; }
+.sc-signer__link { fill: none; stroke: var(--color-accent); stroke-width: 1.4; stroke-dasharray: 3 4; }
+.sc-sheet { fill: var(--paper); stroke: var(--paper-line); }
+.sc-sheet.is-old { fill: var(--paper-2); opacity: 0.45; }
+.sc-sheet.is-old2 { fill: var(--paper-2); opacity: 0.75; }
+.sc-page > .sc-sheet { filter: drop-shadow(0 18px 18px color-mix(in srgb, var(--shadow-deep) 58%, transparent)); }
+.sc-page__title { fill: var(--on-paper) !important; font: 800 17px var(--font-display) !important; letter-spacing: -0.02em; }
+.sc-page__title.is-ph { fill: var(--on-paper-muted) !important; opacity: 0.6; }
+.sc-page__rule { fill: var(--ember-deep); }
+.sc-page__line { fill: color-mix(in srgb, var(--on-paper) 26%, transparent); animation: sc-light 0.4s ease-out backwards; }
+.sc-page__ghost { fill: none; stroke: var(--paper-line); stroke-dasharray: 3 3; }
+.sc-page__sign { stroke: var(--on-paper-muted); }
+.sc-page__signt { fill: var(--on-paper-muted) !important; font-size: 10px !important; }
+.sc-ribbon { fill: var(--color-accent); animation: sc-drop 0.5s var(--ease-out) backwards; }
+.sc-stamp circle, .sc-stamp rect { fill: color-mix(in srgb, var(--ember) 8%, transparent); stroke: var(--ember-deep); stroke-width: 2.4; }
+.sc-stamp .sc-stamp__in { fill: none; stroke-width: 1; }
+.sc-stamp text { fill: var(--ember-deep) !important; font: 800 13px var(--font-display) !important; letter-spacing: 0.02em; }
+.sc-stamp .sc-stamp__v { font: 600 12px var(--font-mono) !important; }
+.sc-stamp { rotate: -12deg; animation: sc-stamp 0.55s var(--ease-drop) backwards; }
+@keyframes sc-stamp { from { scale: 1.6; opacity: 0; } }
+.sc-pen { animation: sc-write 1.6s ease-in-out infinite; }
+@keyframes sc-write { 0%, 100% { translate: 0 0; } 30% { translate: 4px -2px; } 60% { translate: -2px 1px; } }
+.sc-pen__body { fill: var(--graphite-2); stroke: var(--hair-strong); }
+.sc-pen__tip { fill: var(--color-accent); }
+
+/* ---------- auditoría ---------- */
+.sc-tape { fill: color-mix(in srgb, var(--graphite) 80%, transparent); stroke: var(--hair-strong); }
+.sc-tape__h { stroke: var(--hair); stroke-dasharray: 2 4; }
+.sc-tape__v { stroke: color-mix(in srgb, var(--color-text) 5%, transparent); }
+.sc-tape__v.is-6 { stroke: var(--hair); }
+.sc-tape__sum { fill: var(--color-text) !important; font: 600 13px var(--font-body) !important; }
+.sc-bar { fill: color-mix(in srgb, var(--color-text) 10%, transparent); animation: sc-grow 0.6s calc(0.4s + var(--i) * 0.04s) var(--ease-out) backwards; transform-origin: center bottom; transform-box: fill-box; }
+@keyframes sc-grow { from { scale: 1 0; } }
+.sc-trace { fill: none; stroke: var(--paper); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 100; animation: sc-draw 2.2s 0.2s var(--ease-out) backwards; }
+.sc-needle { animation: sc-bob 2.8s ease-in-out infinite; }
+@keyframes sc-bob { 50% { translate: 0 -3px; } }
+.sc-needle__arm { stroke: var(--color-text-muted); stroke-width: 1.4; }
+.sc-needle__pv { fill: var(--graphite-2); stroke: var(--hair-strong); }
+.sc-needle__tip { fill: var(--color-accent); stroke: var(--ink); stroke-width: 2; }
+
+/* ---------- datos ---------- */
+.sc-ficha { fill: var(--paper); stroke: var(--paper-line); filter: drop-shadow(0 18px 18px color-mix(in srgb, var(--shadow-deep) 58%, transparent)); }
+.sc-ficha__photo { fill: var(--paper-2); stroke: var(--paper-line); transition: fill 0.4s; }
+.sc-ficha__who { color: var(--on-paper-muted); }
+.sc-ficha__name { fill: var(--on-paper); transition: opacity 0.4s; }
+.sc-ficha__id { fill: var(--on-paper-muted) !important; font: 500 10.5px var(--font-mono) !important; }
+.sc-ficha__rule { stroke: var(--paper-line); }
+.sc-ficha__cut { stroke: var(--on-paper-muted); stroke-dasharray: 4 4; }
+.sc-row__l { fill: var(--on-paper-muted) !important; font-size: 11px !important; }
+.sc-row__v { fill: color-mix(in srgb, var(--on-paper) 30%, transparent); transition: fill 0.4s, opacity 0.4s; }
+.sc-row__x { stroke: var(--ember-deep); stroke-width: 1.6; stroke-dasharray: 140; stroke-dashoffset: 140; transition: stroke-dashoffset 0.5s calc(var(--i) * 0.06s) var(--ease-out); }
+.sc-row__dot { fill: var(--paper-line); opacity: 0; transition: opacity 0.4s calc(var(--i) * 0.08s); }
+.sc-row__ok { fill: none; stroke: var(--on-paper); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sc-datos.is-armed .sc-row__v { fill: color-mix(in srgb, var(--ember-deep) 45%, transparent); }
+.sc-datos.is-armed .sc-row__x { stroke-dashoffset: 0; }
+.sc-datos.is-done .sc-row__v, .sc-datos.is-done .sc-row__x { opacity: 0; }
+.sc-datos.is-done .sc-row__dot { opacity: 1; }
+.sc-datos.is-done .sc-ficha__name { opacity: 0.15; }
+.sc-datos.is-done .sc-ficha__photo { fill: none; stroke-dasharray: 3 3; }
+.sc-scan { fill: var(--color-accent); opacity: 0.85; animation: sc-scan 2.6s ease-in-out infinite alternate; }
+@keyframes sc-scan { to { translate: 0 186px; } }
+.sc-brace { fill: none; stroke: var(--color-danger); stroke-width: 1.2; }
+.sc-brace.is-kept { stroke: var(--color-text-muted); }
+.sc-brace__t { font-size: 12px !important; font-weight: 600; fill: var(--color-text-muted) !important; }
+.sc-brace__t.is-gone { fill: var(--color-danger) !important; }
+.sc-ghostp { color: var(--hair-strong); transition: opacity 0.6s, translate 0.6s var(--ease-out); }
+.sc-datos.is-ready .sc-ghostp, .sc-datos.is-armed .sc-ghostp { color: var(--color-text-muted); }
+.sc-ghostp.is-gone { opacity: 0.12; }
+.sc-flow { fill: none; stroke: var(--hair-strong); stroke-dasharray: 3 5; }
+.sc-datos.is-ready .sc-flow, .sc-datos.is-armed .sc-flow { stroke: var(--color-accent); animation: sc-march 1s linear infinite; }
+@keyframes sc-march { to { stroke-dashoffset: -16; } }
+
+/* estados vacíos */
+.sc-va { fill: none; stroke: var(--hair-strong); stroke-width: 1.5; stroke-dasharray: 3 4; stroke-linecap: round; stroke-linejoin: round; }
+.sc-va.is-on { stroke: var(--color-accent); stroke-dasharray: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sc *, .sc { animation: none !important; transition: none !important; }
+  .sc-stamp { rotate: -12deg; }
+}
+
+.sc-skel { fill: var(--hair-strong); animation: skel-pulse 1.6s ease-in-out infinite; }

@@ -1,0 +1,28 @@
+.aud { position: relative; padding: var(--space-6) 0 var(--space-7); }
+.aud__title {
+  margin: 0 auto var(--space-5); max-width: 24ch; text-align: center; font-weight: 600;
+  font-size: clamp(20px, 2.2vw, 28px); line-height: 1.15; letter-spacing: -0.03em; color: var(--color-text-muted); text-wrap: balance;
+}
+.aud__marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+.aud__track { display: flex; width: max-content; animation: aud-scroll 46s linear infinite; }
+.aud__marquee:hover .aud__track { animation-play-state: paused; }
+@keyframes aud-scroll { to { transform: translateX(-33.3333%); } }
+
+.aud__list { display: flex; flex: none; gap: var(--space-6); margin: 0; padding: 0 calc(var(--space-6) / 2); list-style: none; }
+.aud__list li { display: flex; align-items: center; gap: var(--space-3); white-space: nowrap; }
+.aud__list svg { width: 52px; height: 52px; fill: none; stroke: var(--color-text); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.aud__lit { stroke: var(--color-accent); animation: aud-lit 3.6s ease-in-out infinite; }
+.aud__hand { stroke: var(--color-accent); transform-box: view-box; transform-origin: 24px 24px; animation: aud-turn 9s steps(12) infinite; }
+@keyframes aud-lit { 50% { opacity: 0.55; } }
+@keyframes aud-turn { to { transform: rotate(360deg); } }
+.aud__list span { font: 600 clamp(22px, 2.6vw, 34px)/1 var(--font-display); letter-spacing: -0.035em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aud__track { width: auto; flex-wrap: wrap; justify-content: center; }
+  .aud__list[aria-hidden] { display: none; }
+  .aud__list { flex-wrap: wrap; justify-content: center; gap: var(--space-4) var(--space-6); }
+}

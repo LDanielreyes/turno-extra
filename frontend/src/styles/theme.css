@@ -1,0 +1,80 @@
+/*
+  TEMA DE TURNOEXTRA — único documento para cambiar tipografía y colores.
+  Ningún otro archivo escribe un hex ni un nombre de fuente.
+
+  Mundo: "turno de noche". Tinta negra cálida, papel hueso como superficie de lectura,
+  una sola brasa de acento (la luz de la cocina que sigue encendida).
+
+  Regla 60 / 30 / 10
+    60 % dominante  → tinta: fondo de página y bandas oscuras         (--ink)
+    30 % secundario → grafito (superficies elevadas) + papel hueso     (--graphite*, --paper*)
+    10 % acento     → brasa: acciones, el dato vivo, el logo           (--ember)
+
+  Las fuentes se cargan desde index.html (<link>), no con @import, para no encadenar descargas.
+  Si cambias de fuente, cambia el link allí y los nombres de --font-* aquí.
+*/
+
+:root {
+  /* ---------- 1. Tipografía ---------- */
+  --font-display: "Bricolage Grotesque", "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace; /* solo datos y teclas */
+
+  /* ---------- 2. Paleta por rol ---------- */
+  color-scheme: dark;
+
+  /* 60 % · dominante */
+  --ink: #171719;               /* negro frío con un velo cálido: punto medio */
+
+  /* 30 % · secundario */
+  --graphite: #1e1d20;          /* superficie elevada */
+  --graphite-2: #27262a;        /* segundo nivel */
+  --line: #35333a;              /* filetes 1px */
+  --paper: #ebe4d4;             /* superficie de lectura */
+  --paper-2: #ddd4bf;
+  --paper-line: #c7bda4;
+
+  /* 10 % · acento */
+  --ember: #ff6a3d;
+  --ember-deep: #d8461a;
+
+  /* texto */
+  --text: #ebe7e0;              /* blanco hueso, apenas cálido */
+  --text-muted: #a8a5ab;        /* opaco: 7:1 sobre tinta, 6:1 sobre grafito (antes translúcido, 2.9:1) */
+  --on-paper: #16120e;
+  --on-paper-muted: #50483d;
+  --on-ember: #160a05;
+
+  /* estados (solo alertas) */
+  --ok: #4ade80;
+  --error: #ff5d5d;
+
+  /* ---------- 3. Alias que usan los componentes (no tocar) ---------- */
+  --color-bg: var(--ink);
+  --color-surface: var(--graphite);
+  --color-surface-2: var(--graphite-2);
+  --color-border: var(--line);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-line: var(--paper-line);
+  --color-on-paper: var(--on-paper);
+  --color-on-paper-muted: var(--on-paper-muted);
+  --color-accent: var(--ember);
+  --color-accent-deep: var(--ember-deep);
+  --color-on-accent: var(--on-ember);
+  --color-focus: var(--ember);
+  --color-success: var(--ok);
+  --color-danger: var(--error);
+
+  /* ---------- 4. Derivados ---------- */
+  --ember-soft: color-mix(in srgb, var(--ember) 14%, transparent);
+  --ember-glow: color-mix(in srgb, var(--ember) 40%, transparent);
+  --hair: color-mix(in srgb, var(--text) 9%, transparent);
+  --hair-strong: color-mix(in srgb, var(--text) 18%, transparent);
+  --dot: color-mix(in srgb, var(--text) 16%, transparent);
+  --paper-dot: color-mix(in srgb, var(--on-paper) 16%, transparent);
+  --shadow-deep: #000000b3;
+  --nav-bg: color-mix(in srgb, var(--ink) 72%, transparent);
+}

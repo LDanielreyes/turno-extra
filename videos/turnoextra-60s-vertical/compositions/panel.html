@@ -1,0 +1,74 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f8f9fa; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #1a2530; }
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; gap: 28px; }
+    #pn-cap { font-size: 68px; font-weight: 800; letter-spacing: -0.03em; text-align: center; }
+    #root[data-height="1920"] #pn-cap { font-size: 62px; width: 940px; line-height: 1.05; }
+    #pn-win { position: relative; width: 1500px; height: 700px; background: #fff; border: 5px solid #1a2530; border-radius: 28px; overflow: hidden; }
+    #root[data-height="1920"] #pn-win { width: 960px; height: 930px; }
+    #pn-bar { height: 92px; background: #1a2530; display: flex; align-items: center; padding: 0 40px; font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+    #pn-bar span { color: #d4ff00; }
+    #pn-body { display: flex; height: calc(100% - 92px); }
+    #pn-side { width: 220px; background: #eef0f2; padding: 30px 24px; display: flex; flex-direction: column; gap: 18px; flex: none; }
+    #root[data-height="1920"] #pn-side { display: none; }
+    .pn-nav { height: 26px; border-radius: 13px; background: #d3d8dd; }
+    .pn-nav.on { background: #1a2530; }
+    #pn-form { flex: 1; padding: 36px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px 36px; align-content: start; }
+    #root[data-height="1920"] #pn-form { grid-template-columns: 1fr; padding: 28px 40px; gap: 14px; }
+    #pn-form h3 { grid-column: 1 / -1; font-size: 40px; font-weight: 800; letter-spacing: -0.02em; }
+    .pn-f { border: 4px solid #1a2530; border-radius: 18px; padding: 10px 22px 12px; background: #fff; }
+    .pn-f small { display: block; font-size: 28px; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.08em; }
+    .pn-f .val { display: block; font-size: 44px; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; clip-path: inset(0 100% 0 0); }
+    #pn-btn { grid-column: 1 / -1; height: 112px; border-radius: 24px; background: #d4ff00; border: 5px solid #1a2530; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+    #root[data-height="1920"] #pn-btn { height: 100px; font-size: 46px; }
+    #pn-btn .ok { display: none; }
+    #pn-cursor { position: absolute; left: 0; top: 0; width: 100px; height: 100px; z-index: 5; overflow: visible; }
+    #pn-toast { position: absolute; right: 36px; top: 112px; background: #1a2530; color: #fff; border-radius: 20px; padding: 20px 30px; font-size: 34px; font-weight: 700; display: flex; align-items: center; gap: 16px; }
+    #pn-toast i { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #d4ff00; }
+    #root[data-height="1920"] #pn-toast { right: 24px; top: 106px; font-size: 30px; }
+  </style>
+  <div id="root" data-composition-id="panel" data-width="1080" data-height="1920">
+    <div class="stage">
+      <div id="pn-cap" class="clip" data-start="0" data-duration="10">El gerente crea el turno en segundos.</div>
+      <div id="pn-win" class="clip" data-start="0" data-duration="10">
+        <div id="pn-bar">Turno<span>Extra</span></div>
+        <div id="pn-body">
+          <div id="pn-side"><div class="pn-nav on"></div><div class="pn-nav"></div><div class="pn-nav"></div><div class="pn-nav"></div></div>
+          <div id="pn-form">
+            <h3>Nuevo turno</h3>
+            <div class="pn-f" id="pn-f1"><small>Cargo</small><span class="val" id="pn-v1">Mesero</span></div>
+            <div class="pn-f" id="pn-f2"><small>Cupos</small><span class="val" id="pn-v2">3</span></div>
+            <div class="pn-f" id="pn-f3"><small>Hora</small><span class="val" id="pn-v3">8:00 PM</span></div>
+            <div class="pn-f" id="pn-f4"><small>Pago</small><span class="val" id="pn-v4">$60.000 COP</span></div>
+            <div id="pn-btn"><span id="pn-btn-a">Publicar turno</span><span class="ok" id="pn-btn-b">Publicado</span></div>
+          </div>
+        </div>
+        <div id="pn-toast" style="opacity:0"><i></i>Turno enviado por WhatsApp</div>
+      </div>
+      <svg id="pn-cursor" class="clip" data-start="0" data-duration="10" viewBox="0 0 90 90"><path d="M12 6 L12 72 L30 56 L42 82 L54 76 L42 52 L68 52 Z" fill="#1a2530" stroke="#fff" stroke-width="5" stroke-linejoin="round" /></svg>
+    </div>
+  </div>
+  <script>
+    const V = (window.innerHeight > window.innerWidth);
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#pn-cap", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" }, 0.3);
+    tl.fromTo("#pn-win", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.8, ease: "expo.out" }, 0.45);
+    // Fields type in one after another
+    ["1", "2", "3", "4"].forEach((n, i) => {
+      tl.fromTo("#pn-v" + n, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.7, ease: "steps(10)" }, 1.5 + i * 0.9);
+    });
+    // Cursor travels to the button and clicks
+    const bx = V ? 480 : 960, by = V ? 960 : 800;
+    tl.fromTo("#pn-cursor", { x: V ? 1300 : 2100, y: V ? 1500 : 1200 }, { x: bx, y: by, duration: 1.0, ease: "power3.inOut" }, 5.2);
+    tl.to("#pn-cursor", { scale: 0.8, duration: 0.08, ease: "power2.in" }, 6.4);
+    tl.to("#pn-btn", { scale: 0.97, duration: 0.08, ease: "power2.in" }, 6.4);
+    tl.to("#pn-cursor", { scale: 1, duration: 0.2, ease: "power2.out" }, 6.48);
+    tl.to("#pn-btn", { scale: 1, backgroundColor: "#1a2530", color: "#d4ff00", duration: 0.25, ease: "power2.out" }, 6.48);
+    tl.set("#pn-btn-a", { display: "none" }, 6.5);
+    tl.set("#pn-btn-b", { display: "inline" }, 6.5);
+    tl.fromTo("#pn-toast", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 6.7);
+    tl.to("#pn-cursor", { x: bx + 400, y: by + 260, opacity: 0, duration: 0.7, ease: "power3.in" }, 7.4);
+    window.__timelines["panel"] = tl;
+  </script>
+</template>

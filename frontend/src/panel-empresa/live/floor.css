@@ -1,0 +1,35 @@
+/* Piso legal en vivo: regla pago vs piso, barra base + recargos y reparto de horas. */
+.fl .kpi b { font-family: var(--font-mono); letter-spacing: -0.03em; }
+
+.fl-rule { position: relative; height: 14px; margin: 26px 0 4px; border-radius: 2px; background: var(--hair); }
+.fl-rule__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; transition: width var(--dur-ui) var(--ease-out), background-color var(--dur-ui); }
+.fl-rule__fill.is-ok { background: var(--ok); }
+.fl-rule__fill.is-low { background: var(--color-danger); }
+.fl-rule__floor { position: absolute; top: -22px; bottom: -6px; z-index: 1; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); font: 500 11px var(--font-mono); color: var(--color-text-muted); }
+.fl-rule__floor i { order: 2; flex: 1; width: 2px; margin-top: 4px; background: var(--color-text); }
+
+.fl-diff { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 14px; color: var(--color-text-muted); }
+.fl-diff b { font-size: 18px; }
+.fl-diff.is-ok b { color: var(--ok); }
+.fl-diff.is-low b { color: var(--color-danger); }
+
+.fl-bar { display: flex; height: 10px; gap: 2px; margin-top: 8px; }
+.fl-bar span { min-width: 4px; border-radius: 2px; }
+.fl-bar__base { background: var(--color-text-muted); }
+.fl-bar__extra { background: var(--color-accent); }
+.fl-legend { display: grid; gap: 6px; margin: 0; }
+.fl-legend div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.fl-legend dt { display: inline-flex; align-items: center; gap: 8px; color: var(--color-text-muted); }
+.fl-legend dd { margin: 0; }
+.fl-sw { width: 10px; height: 10px; border-radius: 2px; }
+.fl-sw--base { background: var(--color-text-muted); }
+.fl-sw--extra { background: var(--color-accent); }
+
+.fl-hours { display: grid; gap: 10px; }
+.fl-hours span { display: grid; gap: 4px; }
+.fl-hours span::before { content: ''; grid-area: 1 / 1; height: 6px; border-radius: 2px; background: var(--hair); }
+.fl-hours i { grid-area: 1 / 1; height: 6px; border-radius: 2px; transition: width var(--dur-ui) var(--ease-out); }
+.fl-h--night { background: var(--color-accent); }
+.fl-h--sun { background: repeating-linear-gradient(45deg, var(--color-accent) 0 3px, transparent 3px 6px); }
+.fl-hours small { font-size: 13px; color: var(--color-text-muted); }
+.fl-hours b { color: var(--color-text); font-weight: 500; }

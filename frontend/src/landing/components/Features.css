@@ -1,0 +1,49 @@
+.feat { position: relative; padding: var(--space-7) 0; }
+.feat::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 40%, #000, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 50% at 50% 40%, #000, transparent 80%);
+}
+.feat .container { position: relative; z-index: 1; }
+.feat__head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-6); align-items: end; margin-bottom: var(--space-6); }
+.feat__title { margin: 0; font-weight: 700; font-size: clamp(36px, 5.6vw, 76px); line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
+.feat__side { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+
+/* Una sola placa con filetes internos (DESIGN.md §1.1): sin tarjetas redondeadas sueltas. */
+.feat__plate { --crop: var(--color-text-muted); }
+.feat__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.tile--a { grid-column: span 4; } .tile--b { grid-column: span 2; }
+.tile--c { grid-column: span 2; } .tile--d { grid-column: span 4; }
+.tile--e { grid-column: span 3; } .tile--f { grid-column: span 3; }
+
+.tile {
+  position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-5);
+  min-height: 300px; padding: clamp(24px, 3vw, 36px); overflow: hidden;
+  background: var(--ink);
+  transition: background-color var(--dur-ui);
+}
+.tile:hover { background: color-mix(in srgb, var(--graphite) 70%, var(--ink)); }
+.tile--a, .tile--d { flex-direction: row; align-items: stretch; }
+.tile--d { flex-direction: row-reverse; }
+
+.tile__art { display: grid; place-items: center; flex: 1 1 40%; min-height: 0; background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 16px 16px; }
+.tile__copy { display: flex; flex-direction: column; justify-content: flex-end; flex: 1 1 50%; }
+.tile--a .tile__copy, .tile--d .tile__copy { justify-content: center; }
+.tile__title { margin: 0; font-weight: 700; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.05; letter-spacing: -0.035em; text-wrap: balance; }
+.tile__body { margin: var(--space-2) 0 0; max-width: 46ch; font-size: 16px; color: var(--color-text-muted); text-wrap: pretty; }
+.tile:not(.tile--a):not(.tile--d) { gap: var(--space-4); }
+
+
+@media (max-width: 960px) {
+  .feat__head { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .tile--a, .tile--d { grid-column: span 6; }
+  .tile--b, .tile--c { grid-column: span 3; }
+  .tile--e, .tile--f { grid-column: span 3; }
+}
+@media (max-width: 680px) {
+  .feat { padding: var(--space-6) 0; }
+  .feat__grid > * { grid-column: span 6; }
+  .tile { min-height: 0; }
+  .tile--a, .tile--d { flex-direction: column; }
+}

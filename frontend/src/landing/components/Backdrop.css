@@ -1,0 +1,132 @@
+.bd { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; contain: paint; }
+.bd > * { position: absolute; }
+
+/* retícula de puntos que se desvanece hacia los bordes */
+.bd__dots {
+  inset: 0;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000, transparent 85%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000, transparent 85%);
+}
+
+/* haces de luz: abanicos cónicos que oscilan despacio */
+.bd__fan {
+  left: 50%; top: -6%; width: 1500px; height: 1100px; margin-left: -750px;
+  transform-origin: 50% 0;
+  will-change: transform;
+  -webkit-mask-image: radial-gradient(ellipse 62% 78% at 50% 0%, #000 10%, transparent 72%);
+  mask-image: radial-gradient(ellipse 62% 78% at 50% 0%, #000 10%, transparent 72%);
+}
+.bd__fan--a {
+  opacity: 0.85;
+  background: conic-gradient(from 150deg at 50% 0%,
+    transparent 0deg, color-mix(in srgb, var(--ember) 55%, transparent) 5deg, transparent 11deg,
+    transparent 17deg, color-mix(in srgb, var(--ember) 38%, transparent) 21deg, transparent 27deg,
+    transparent 31deg, color-mix(in srgb, var(--ember) 62%, transparent) 36deg, transparent 43deg,
+    transparent 49deg, color-mix(in srgb, var(--ember) 34%, transparent) 54deg, transparent 60deg);
+  animation: bd-sway 16s ease-in-out infinite alternate;
+}
+.bd__fan--b {
+  opacity: 0.5;
+  background: conic-gradient(from 160deg at 50% 0%,
+    transparent 0deg, color-mix(in srgb, var(--paper) 40%, transparent) 4deg, transparent 10deg,
+    transparent 24deg, color-mix(in srgb, var(--ember) 50%, transparent) 30deg, transparent 38deg,
+    transparent 44deg, color-mix(in srgb, var(--paper) 30%, transparent) 48deg, transparent 54deg);
+  animation: bd-sway 23s ease-in-out infinite alternate-reverse;
+}
+@keyframes bd-sway { from { transform: rotate(-3.5deg); } to { transform: rotate(3.5deg); } }
+
+/* la fuente: brasa que se asoma por arriba */
+.bd__source {
+  left: 50%; top: -260px; width: 880px; height: 380px; margin-left: -440px; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 62%, transparent), transparent);
+  opacity: 0.55;
+  animation: bd-breathe 7s ease-in-out infinite;
+}
+@keyframes bd-breathe { 50% { opacity: 0.8; transform: scale(1.06); } }
+
+/* suelo en perspectiva que avanza hacia ti */
+.bd__floor {
+  left: -20%; right: -20%; bottom: 0; height: 52%; overflow: hidden;
+  perspective: 520px; perspective-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(to top, #000 15%, transparent 95%);
+  mask-image: linear-gradient(to top, #000 15%, transparent 95%);
+}
+.bd__floor i {
+  position: absolute; inset: -64px 0 0; transform-origin: 50% 0; transform: rotateX(64deg);
+  background-image:
+    linear-gradient(to right, var(--hair-strong) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hair-strong) 1px, transparent 1px);
+  background-size: 72px 72px;
+  will-change: transform; animation: bd-floor 4.5s linear infinite;
+}
+@keyframes bd-floor { to { transform: rotateX(64deg) translateY(72px); } }
+
+/* chispas */
+.bd__spark {
+  width: 3px; height: 3px; border-radius: 50%; background: var(--ember); opacity: 0;
+  box-shadow: 0 0 8px 1px var(--ember-glow);
+  animation: bd-spark var(--s) var(--d) ease-in-out infinite;
+}
+@keyframes bd-spark {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-90px) scale(1.2); }
+}
+
+/* ---- soft ---- */
+.bd--soft .bd__fan { top: -14%; opacity: 0.5; width: 1200px; margin-left: -600px; }
+.bd--soft .bd__source { top: -300px; opacity: 0.4; }
+
+/* ---- soft: suelo en perspectiva más bajo que el del hero ---- */
+.bd--soft .bd__floor { height: 40%; opacity: 0.8; }
+.bd--soft .bd__fan--a { opacity: 0.6; }
+
+/* ---- rings ---- */
+.bd--rings .bd__dots { -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000, transparent 80%); mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000, transparent 80%); }
+.bd__ring {
+  left: 50%; top: 50%; width: 1100px; height: 1100px; margin: -550px 0 0 -550px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ember) 70%, transparent); opacity: 0;
+  will-change: transform, opacity; animation: bd-ring 10s calc(var(--i) * -2s) cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+@keyframes bd-ring {
+  0% { transform: scale(0.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+ /* ---- side: haz que entra desde el borde derecho (declaración del problema) ---- */
+.bd--side .bd__dots { -webkit-mask-image: radial-gradient(ellipse 60% 70% at 85% 50%, #000, transparent 80%); mask-image: radial-gradient(ellipse 60% 70% at 85% 50%, #000, transparent 80%); }
+.bd--side .bd__fan {
+  left: auto; right: -260px; top: 50%; width: 1200px; height: 1200px; margin: -600px 0 0 0; transform-origin: 100% 50%; opacity: 0.55;
+  background: conic-gradient(from 232deg at 100% 50%,
+    transparent 0deg, color-mix(in srgb, var(--ember) 50%, transparent) 5deg, transparent 11deg,
+    transparent 17deg, color-mix(in srgb, var(--ember) 32%, transparent) 21deg, transparent 27deg,
+    transparent 32deg, color-mix(in srgb, var(--ember) 56%, transparent) 37deg, transparent 44deg);
+  -webkit-mask-image: radial-gradient(ellipse 80% 62% at 100% 50%, #000 8%, transparent 72%);
+  mask-image: radial-gradient(ellipse 80% 62% at 100% 50%, #000 8%, transparent 72%);
+}
+.bd--side .bd__source { left: auto; right: -440px; top: 50%; margin: -190px 0 0 0; opacity: 0.5; }
+
+/* ---- ceil: rejilla en perspectiva colgando del techo (funciones) ---- */
+.bd--ceil .bd__floor { top: 0; bottom: auto; height: 46%; transform: scaleY(-1); }
+.bd--ceil .bd__floor { -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%); mask-image: linear-gradient(to top, #000 10%, transparent 90%); }
+.bd--ceil .bd__source { left: 50%; top: -300px; opacity: 0.45; }
+
+/* ---- paper: tinta sobre papel hueso ---- */
+.bd--paper { z-index: 0; }
+.bd__rays { left: -10%; top: -30%; width: 1400px; height: 1400px; transform-origin: 0 0; animation: bd-sway 24s ease-in-out infinite alternate;
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 0% 0%, #000 8%, transparent 72%); mask-image: radial-gradient(ellipse 70% 70% at 0% 0%, #000 8%, transparent 72%); }
+.bd__rays i { position: absolute; inset: 0; background: conic-gradient(from 90deg at 0% 0%,
+  transparent 0deg, color-mix(in srgb, var(--on-paper) 11%, transparent) 4deg, transparent 10deg,
+  transparent 17deg, color-mix(in srgb, var(--on-paper) 7%, transparent) 21deg, transparent 27deg,
+  transparent 33deg, color-mix(in srgb, var(--ember-deep) 14%, transparent) 38deg, transparent 45deg); }
+
+/* ---- trust: ondas detrás del panel, asomando por los lados ---- */
+.bd--trust .bd__ring { left: 82%; top: 50%; }
+.bd--trust .bd__dots { display: none; }
+
+@media (max-width: 760px) {
+  .bd__fan { width: 900px; margin-left: -450px; }
+  .bd__floor { height: 38%; }
+}

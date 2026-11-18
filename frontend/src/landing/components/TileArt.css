@@ -1,0 +1,91 @@
+/* Micro-interfaces del mosaico: contenido real del producto en lugar de iconos sueltos en cajas vacías. */
+.ta { width: 100%; align-self: stretch; display: grid; align-content: center; }
+.ta p { margin: 0; }
+
+/* filas: lista con marca de cumplido */
+.ta--rows { gap: 6px; padding: var(--space-3); }
+.ta__row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 38px; padding: 8px 12px;
+  border-radius: 10px; border: 1px solid var(--hair); background: var(--color-surface); font-size: 14px; font-weight: 500; color: var(--color-text-muted);
+}
+.ta__row em { font-style: normal; font-size: 12px; color: var(--color-text-muted); }
+.ta__row.is-on, .ta__row--sum { color: var(--color-text); border-color: var(--hair-strong); }
+.ta__row--sum { background: var(--ember-soft); border-color: color-mix(in srgb, var(--color-accent) 50%, transparent); }
+.ta__row--sum em { color: var(--color-text); }
+.ta__ck { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--color-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* oleadas: anillos que se abren desde el favorito */
+.ta--waves { position: relative; min-height: 190px; place-items: center; overflow: hidden; }
+.ta__core { width: 14px; height: 14px; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 0 5px var(--ember-soft); }
+.ta__ring { position: absolute; left: 50%; top: 50%; border-radius: 50%; border: 1px solid var(--hair-strong); translate: -50% -50%; }
+.ta__ring--1 { width: 64px; height: 64px; border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); }
+.ta__ring--2 { width: 132px; height: 132px; }
+.ta__ring--3 { width: 208px; height: 208px; border-style: dashed; }
+.ta__tag { position: absolute; display: inline-flex; gap: 8px; padding: 5px 10px; border-radius: 99px; background: var(--color-surface-2); border: 1px solid var(--hair-strong); font-size: 12px; color: var(--color-text); white-space: nowrap; }
+.ta__tag b { color: var(--color-accent); font-weight: 500; }
+.ta__tag--1 { left: 50%; top: 12px; translate: -50% 0; }
+.ta__tag--2 { left: 50%; bottom: 12px; translate: -50% 0; }
+/* Movimiento: el estado base (arriba) es el final, así que sin animación no se pierde nada.
+   Solo transform / opacity / scale; ciclos de 6 a 8 s. */
+@media (prefers-reduced-motion: no-preference) {
+  /* la oferta sale del favorito y se abre en anillos; el segundo grupo despierta a los 03:00 */
+  .ta__ring { animation: ta-ripple 6s var(--ease-out) infinite backwards; }
+  .ta__ring--2 { animation-delay: 0.7s; }
+  .ta__ring--3 { animation-delay: 1.4s; }
+  .ta__core { animation: ta-core 6s ease-in-out infinite; }
+  .ta__tag--2 { animation: ta-late 6s ease-in-out infinite; }
+
+  /* lista de espera: la reserva más antigua "respira" como candidata a subir */
+  .ta__row { position: relative; }
+  .ta__row:nth-child(2)::after {
+    content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+    border: 1px solid var(--color-accent); background: var(--ember-soft); animation: ta-next 5s ease-in-out infinite;
+  }
+  .ta__row:nth-child(2) em { animation: ta-up 5s ease-in-out infinite; }
+
+  /* panel en vivo: el recorrido de la oferta se enciende paso a paso y llena los cupos */
+  .ta__flow li { animation: ta-step 8s ease-in-out infinite; }
+  .ta__flow li:nth-child(2) { animation-delay: 0.8s; }
+  .ta__flow li:nth-child(3) { animation-delay: 1.6s; }
+  .ta__flow li:nth-child(4) { animation-delay: 2.4s; }
+  .ta__bar i { transform-origin: 0 50%; animation: ta-fill 8s var(--ease-out) infinite; }
+}
+@keyframes ta-ripple { 0% { scale: 0.3; opacity: 0; } 18% { opacity: 1; } 100% { scale: 1; opacity: 1; } }
+@keyframes ta-core { 0%, 100% { scale: 1; } 8% { scale: 1.35; } 20% { scale: 1; } }
+@keyframes ta-late { 0%, 40% { opacity: 0.35; } 55%, 100% { opacity: 1; } }
+@keyframes ta-next { 0%, 100% { opacity: 0; } 45%, 70% { opacity: 1; } }
+@keyframes ta-up { 0%, 100% { translate: 0 0; } 55% { translate: 0 -2px; } }
+@keyframes ta-step { 0% { opacity: 0.4; } 10%, 100% { opacity: 1; } }
+@keyframes ta-fill { 0%, 20% { scale: 0 1; } 50%, 100% { scale: 1 1; } }
+
+/* marcas de cumplido y filas del reporte: se dibujan al entrar en pantalla (sin soporte → quedan hechas) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .ta__ck path { stroke-dasharray: 1; animation: ta-draw linear both; animation-timeline: view(); animation-range: entry 20% cover 38%; }
+    .ta__row:nth-child(2) .ta__ck path { animation-range: entry 28% cover 44%; }
+    .ta__row:nth-child(3) .ta__ck path { animation-range: entry 36% cover 50%; }
+    .ta__row:nth-child(4) .ta__ck path { animation-range: entry 44% cover 56%; }
+    .ta__line i { transform-origin: 0 50%; animation: ta-grow linear both; animation-timeline: view(); animation-range: entry 25% cover 45%; }
+    .ta__line:nth-child(3) i { animation-range: entry 33% cover 52%; }
+    .ta__line:nth-child(4) i { animation-range: entry 41% cover 60%; }
+  }
+}
+@keyframes ta-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes ta-grow { from { scale: 0 1; opacity: 0.2; } to { scale: 1 1; opacity: 1; } }
+
+/* panel en vivo */
+.ta--live { gap: var(--space-3); padding: var(--space-4); }
+.ta__flow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
+.ta__flow li { padding: 5px 10px; border-radius: 99px; border: 1px solid var(--hair); color: var(--color-text-muted); }
+.ta__flow li.is-on { color: var(--color-on-accent); background: var(--color-accent); border-color: var(--color-accent-deep); }
+.ta__slots { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--color-text-muted); }
+.ta__slots b { font-size: 22px; font-weight: 500; color: var(--color-text); }
+.ta__bar { height: 8px; border-radius: 99px; background: var(--hair); overflow: hidden; }
+.ta__bar i { display: block; height: 100%; width: 50%; background: var(--color-accent); border-radius: inherit; }
+
+/* reporte */
+.ta--table { gap: 8px; padding: var(--space-3) var(--space-4); }
+.ta__cols, .ta__line { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; align-items: center; }
+.ta__cols { font-size: 11px; color: var(--color-text-muted); padding-bottom: 6px; border-bottom: 1px solid var(--hair-strong); }
+.ta__line i { height: 8px; border-radius: 4px; background: var(--hair-strong); }
+.ta__line i:first-child { width: 80%; background: var(--hair-strong); }

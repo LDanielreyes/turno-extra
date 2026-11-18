@@ -1,0 +1,28 @@
+/* sin caja: el fondo (brasa) es uno solo y lo dibuja el footer detrás de las dos secciones */
+.cta { position: relative; z-index: 1; overflow-x: clip; padding: var(--space-6) var(--frame) 0; }
+.cta__card {
+  position: relative; min-height: clamp(460px, 62vh, 620px); display: flex; align-items: flex-end;
+  padding: clamp(28px, 5vw, 72px) var(--rail-in-frame) clamp(56px, 8vw, 120px);
+  --clock: clamp(200px, 24vw, 320px); --clock-top: clamp(24px, 5vw, 64px);
+}
+.cta__card .bd--rings .bd__ring { left: calc(100% - var(--rail-in-frame) - var(--clock) / 2); top: calc(var(--clock-top) + var(--clock) / 2); }
+/* reloj de marca: anillo de minutos + isotipo; las ondas de la oferta salen de su centro */
+.cta__clock { position: absolute; z-index: 1; right: var(--rail-in-frame); top: var(--clock-top); width: var(--clock); aspect-ratio: 1; display: grid; place-items: center; }
+.cta__ticks { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cta__rim { fill: none; stroke: var(--hair-strong); stroke-width: 1; }
+.cta__min { stroke: color-mix(in srgb, var(--color-text) 38%, transparent); stroke-width: 0.8; stroke-linecap: butt; }
+.cta__hr { stroke: var(--color-text); stroke-width: 2.2; stroke-linecap: butt; }
+.cta__hr--top { stroke: var(--color-accent); stroke-width: 3; }
+.cta__num text { fill: var(--color-text-muted); font: 500 8px var(--font-mono); letter-spacing: 0.04em; }
+/* aguja de segundos: barrido continuo, una vuelta por minuto, y no cruza el isotipo */
+.cta__hand { transform-box: view-box; transform-origin: 100px 100px; animation: cta-sweep 60s linear infinite; }
+.cta__hand line { stroke: var(--color-accent); stroke-width: 1.6; stroke-linecap: round; }
+.cta__hand circle { fill: var(--color-accent); }
+@keyframes cta-sweep { to { transform: rotate(360deg); } }
+.cta__iso { width: 52%; height: 52%; }
+.cta__in { position: relative; z-index: 2; max-width: 780px; display: grid; justify-items: start; }
+.cta__title { margin: 0; font-weight: 700; font-size: clamp(40px, 6.4vw, 92px); line-height: 0.95; letter-spacing: -0.045em; text-wrap: balance; }
+.cta__body { margin: var(--space-4) 0 0; max-width: 44ch; font-size: clamp(17px, 1.6vw, 20px); color: var(--color-text); text-wrap: pretty; }
+.cta .btn { margin-top: var(--space-5); min-width: min(100%, 280px); justify-content: center; }
+.cta__note { margin: 14px 0 0; font-size: 13px; letter-spacing: 0.01em; color: var(--color-text); }
+@media (max-width: 760px) { .cta__card { --clock: 150px; min-height: 520px; } }

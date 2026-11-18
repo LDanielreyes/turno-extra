@@ -1,0 +1,107 @@
+/* Dibujos de la pantalla de acceso. Solo transform, opacity y trazo animan; el estado base es el final. */
+.aa { display: block; width: 100%; height: auto; overflow: visible; color: var(--color-text); }
+.aa * { transform-box: fill-box; transform-origin: center; }
+
+.aa-stroke { fill: none; stroke: var(--hair-strong); stroke-width: 1; }
+.aa-win { fill: var(--color-surface); stroke: var(--hair-strong); stroke-width: 1; }
+.aa-dot { fill: var(--color-text); }
+.aa-dim { opacity: 0.35; }
+.aa-fillbar { fill: color-mix(in srgb, var(--color-text) 30%, transparent); }
+.aa-fillbar.is-on { fill: var(--color-accent); }
+.aa-fillbar--ink { fill: var(--color-on-accent); }
+
+/* ---- casillas de cupo: contorno fijo + relleno de brasa que aparece ---- */
+.aa-slot-box { fill: none; stroke: var(--hair-strong); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.aa-slot { fill: var(--color-accent); opacity: 1; }
+
+/* ---- red ---- */
+.aa-link { fill: none; stroke: var(--hair-strong); stroke-width: 1; stroke-dasharray: 3 5; }
+.aa-pulse { fill: none; stroke: var(--color-accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 8 92; stroke-dashoffset: -100; opacity: 0; }
+.aa-person { fill: currentColor; opacity: 0.3; }
+.aa-person.is-pick { opacity: 1; }
+.aa-pickring { fill: none; stroke: var(--color-accent); stroke-width: 1.6; }
+.aa-hub-body { fill: var(--color-surface-2); stroke: var(--hair-strong); stroke-width: 1; }
+
+/* ---- panel ---- */
+.aa-livepill rect { fill: none; stroke: color-mix(in srgb, var(--color-accent) 60%, transparent); stroke-width: 1; }
+.aa-livepill circle { fill: var(--color-accent); }
+.aa-livepill text { fill: var(--color-text-muted); font: 500 9px var(--font-mono); }
+.aa-row-box { fill: none; stroke: var(--hair); stroke-width: 1; }
+.aa-chip-box { fill: none; stroke: var(--hair-strong); stroke-width: 1; }
+.aa-chip { fill: var(--color-text-muted); font: 500 10px var(--font-mono); }
+.aa-chip--open { opacity: 0; }
+.aa-chip--done { fill: var(--color-text); }
+.aa-row--open .aa-chip--open { opacity: 1; }
+.aa-row--open .aa-chip--done, .aa-row--open .aa-slot { opacity: 0; }
+.aa-row--open .aa-slot--a { opacity: 1; }
+.aa-row--live .aa-slot--b { opacity: 1; }
+
+/* ---- teléfono ---- */
+.aa-avatar { fill: var(--color-accent); }
+.aa-bubble { fill: var(--color-surface-2); stroke: var(--hair); stroke-width: 1; }
+.aa-bubble--out { fill: var(--color-accent); stroke: none; }
+.aa-btn { fill: none; stroke: var(--hair-strong); stroke-width: 1; }
+.aa-btn--yes { fill: color-mix(in srgb, var(--color-accent) 22%, transparent); stroke: var(--color-accent); }
+.aa-okdot { fill: var(--color-accent); }
+.aa-tick { fill: none; stroke: var(--color-on-accent); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.aa-digit { fill: var(--color-text); }
+
+/* ---- planilla sobre papel ---- */
+.aa-sheet { color: var(--on-paper); }
+.aa-sheet-page { fill: color-mix(in srgb, var(--paper) 60%, transparent); stroke: var(--paper-line); stroke-width: 1; }
+.aa-sheet-days text { fill: var(--on-paper-muted); font: 500 12px var(--font-mono); }
+.aa-sheet-rule { stroke: var(--paper-line); stroke-width: 1; }
+.aa-sheet-name { fill: color-mix(in srgb, var(--on-paper) 55%, transparent); }
+.aa-sheet-cell { fill: none; stroke: var(--paper-line); stroke-width: 1; stroke-dasharray: 3 4; }
+.aa-sheet-cell.is-on { fill: color-mix(in srgb, var(--on-paper) 82%, transparent); stroke: none; }
+.aa-gap-cell { fill: none; stroke: var(--on-paper-muted); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.aa-gap-fill { fill: var(--color-accent-deep); opacity: 1; }
+.aa-gap-check { fill: none; stroke: var(--paper); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 0; }
+.aa-gap-ring { fill: none; stroke: var(--color-accent-deep); stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 0; opacity: 0.5; }
+
+/* =================== movimiento (una sola escena por dibujo, ciclo largo y suave) =================== */
+@media (prefers-reduced-motion: no-preference) {
+  .aa-pulse { animation: aa-pulse 9s var(--d, 0s) var(--ease-out) infinite; }
+  .aa-person { animation: aa-wake 9s var(--d, 0s) ease-in-out infinite; }
+  .aa-person.is-pick { animation: none; }
+  .aa-pickring--0 { animation: aa-ring 9s 0.2s var(--ease-out) infinite; }
+  .aa-pickring--1 { animation: aa-ring 9s 0.9s var(--ease-out) infinite; }
+  .aa-slot--0 { animation: aa-fill 9s 0.2s ease-out infinite; }
+  .aa-slot--1 { animation: aa-fill 9s 0.9s ease-out infinite; }
+
+  .aa-row--live .aa-slot--b { animation: aa-fill 9s ease-out infinite; }
+  .aa-row--live .aa-chip--open { animation: aa-swap-out 9s ease-out infinite; opacity: 0; }
+  .aa-row--live .aa-chip--done { animation: aa-swap-in 9s ease-out infinite; }
+  .aa-livepill circle { animation: aa-breathe 3s ease-in-out infinite; }
+
+  .aa-msg--1 { animation: aa-msg-1 10s var(--ease-out) infinite; }
+  .aa-msg--2 { animation: aa-msg-2 10s var(--ease-out) infinite; }
+  .aa-msg--3 { animation: aa-msg-3 10s var(--ease-out) infinite; }
+  .aa-btn--yes { animation: aa-tap 10s ease-in-out infinite; }
+  .aa-digit { animation: aa-digit 10s calc(var(--i) * 0.28s) ease-out infinite; }
+
+  .aa-gap-ring { animation: aa-draw 9s ease-in-out infinite; }
+  .aa-gap-fill { animation: aa-gapfill 9s ease-in-out infinite; }
+  .aa-gap-check { animation: aa-gapcheck 9s ease-in-out infinite; }
+}
+@keyframes aa-pulse {
+  0% { stroke-dashoffset: 8; opacity: 0; }
+  3% { opacity: 1; }
+  22% { stroke-dashoffset: -100; opacity: 1; }
+  25%, 100% { stroke-dashoffset: -100; opacity: 0; }
+}
+@keyframes aa-wake { 0%, 20% { opacity: 0.3; } 30%, 80% { opacity: 1; } 94%, 100% { opacity: 0.3; } }
+@keyframes aa-ring { 0%, 34% { opacity: 0; scale: 0.7; } 46%, 84% { opacity: 1; scale: 1; } 96%, 100% { opacity: 0; scale: 1; } }
+@keyframes aa-fill { 0%, 38% { opacity: 0; } 50%, 86% { opacity: 1; } 97%, 100% { opacity: 0; } }
+@keyframes aa-swap-out { 0%, 40% { opacity: 1; } 52%, 90% { opacity: 0; } 98%, 100% { opacity: 1; } }
+@keyframes aa-swap-in { 0%, 40% { opacity: 0; } 52%, 90% { opacity: 1; } 98%, 100% { opacity: 0; } }
+@keyframes aa-breathe { 50% { opacity: 0.35; } }
+/* los mensajes llegan escalonados y se van juntos; antes de irse todo está visible */
+@keyframes aa-msg-1 { 0% { opacity: 0; translate: 0 10px; } 6%, 90% { opacity: 1; translate: 0 0; } 97%, 100% { opacity: 0; translate: 0 0; } }
+@keyframes aa-msg-2 { 0%, 34% { opacity: 0; translate: 0 10px; } 41%, 90% { opacity: 1; translate: 0 0; } 97%, 100% { opacity: 0; translate: 0 0; } }
+@keyframes aa-msg-3 { 0%, 52% { opacity: 0; translate: 0 10px; } 59%, 90% { opacity: 1; translate: 0 0; } 97%, 100% { opacity: 0; translate: 0 0; } }
+@keyframes aa-tap { 0%, 24% { fill-opacity: 1; } 28% { scale: 0.94; } 34%, 100% { scale: 1; } }
+@keyframes aa-digit { 0%, 8% { opacity: 0; scale: 0.4; } 16%, 84% { opacity: 1; scale: 1; } 96%, 100% { opacity: 0; } }
+@keyframes aa-draw { 0%, 6% { stroke-dashoffset: 100; opacity: 0.9; } 30%, 70% { stroke-dashoffset: 0; opacity: 0.9; } 88%, 100% { stroke-dashoffset: 0; opacity: 0.5; } }
+@keyframes aa-gapfill { 0%, 44% { opacity: 0; } 56%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes aa-gapcheck { 0%, 52% { stroke-dashoffset: 40; } 66%, 92% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 40; } }

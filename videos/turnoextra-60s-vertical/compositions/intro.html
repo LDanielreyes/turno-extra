@@ -1,0 +1,41 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #1a2530; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #fff; }
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 56px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; gap: 44px; }
+    #in-logo { font-size: 250px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; display: flex; }
+    #root[data-height="1920"] #in-logo { font-size: 190px; }
+    #in-logo .l { display: inline-block; }
+    #in-logo .x { color: #d4ff00; }
+    #in-bar { width: 640px; height: 14px; border-radius: 7px; background: #d4ff00; }
+    #root[data-height="1920"] #in-bar { width: 520px; }
+    #in-head { font-size: 66px; font-weight: 600; line-height: 1.12; letter-spacing: -0.02em; text-align: center; width: 1300px; color: #f8f9fa; }
+    #root[data-height="1920"] #in-head { font-size: 60px; width: 900px; }
+    #in-head b { color: #d4ff00; font-weight: 800; }
+    #in-pills { display: flex; gap: 24px; }
+    #root[data-height="1920"] #in-pills { flex-wrap: wrap; justify-content: center; width: 900px; }
+    .in-pill { font-size: 40px; font-weight: 700; padding: 16px 36px; border-radius: 60px; border: 4px solid #d4ff00; color: #d4ff00; letter-spacing: -0.01em; }
+    #root[data-height="1920"] .in-pill { font-size: 38px; }
+    .in-pill.solid { background: #d4ff00; color: #1a2530; }
+  </style>
+  <div id="root" data-composition-id="intro" data-width="1080" data-height="1920">
+    <div class="stage">
+      <div id="in-logo" class="clip" data-start="0" data-duration="7"><span class="l">T</span><span class="l">u</span><span class="l">r</span><span class="l">n</span><span class="l">o</span><span class="x" id="in-x"><span class="l">E</span><span class="l">x</span><span class="l">t</span><span class="l">r</span><span class="l">a</span></span></div>
+      <div id="in-bar" class="clip" data-start="0" data-duration="7"></div>
+      <div id="in-head" class="clip" data-start="0" data-duration="7">Staffing <b>bajo demanda</b> para hoteles, restaurantes y catering.</div>
+      <div id="in-pills" class="clip" data-start="0" data-duration="7">
+        <div class="in-pill solid">HORECA</div>
+        <div class="in-pill">Por WhatsApp</div>
+        <div class="in-pill">Sin descargar apps</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#in-logo .l", { opacity: 0, y: 90, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "expo.out", stagger: 0.07 }, 0.35);
+    tl.fromTo("#in-bar", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.7, ease: "power3.inOut" }, 1.0);
+    tl.fromTo("#in-head", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" }, 1.5);
+    tl.fromTo(".in-pill", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.5)", stagger: 0.15 }, 2.6);
+    window.__timelines["intro"] = tl;
+  </script>
+</template>

@@ -1,0 +1,33 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #1a2530; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #fff; }
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 50px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; gap: 44px; }
+    #ec-logo { font-size: 270px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; display: flex; }
+    #root[data-height="1920"] #ec-logo { font-size: 200px; }
+    #ec-logo .l { display: inline-block; }
+    #ec-logo .x { color: #d4ff00; }
+    #ec-tag { font-size: 60px; font-weight: 600; letter-spacing: -0.02em; text-align: center; color: #f8f9fa; }
+    #root[data-height="1920"] #ec-tag { font-size: 54px; width: 880px; line-height: 1.1; }
+    #ec-cta { position: relative; overflow: hidden; border: 6px solid #d4ff00; border-radius: 80px; padding: 26px 80px; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; margin-top: 20px; }
+    #root[data-height="1920"] #ec-cta { font-size: 50px; padding: 24px 64px; }
+    #ec-fill { position: absolute; inset: 0; background: #d4ff00; transform-origin: 50% 100%; }
+    #ec-cta-t { position: relative; color: #d4ff00; }
+  </style>
+  <div id="root" data-composition-id="endcard" data-width="1080" data-height="1920">
+    <div class="stage">
+      <div id="ec-logo" class="clip" data-start="0" data-duration="6"><span class="l">T</span><span class="l">u</span><span class="l">r</span><span class="l">n</span><span class="l">o</span><span class="x"><span class="l">E</span><span class="l">x</span><span class="l">t</span><span class="l">r</span><span class="l">a</span></span></div>
+      <div id="ec-tag" class="clip" data-start="0" data-duration="6">El staffing que funciona por WhatsApp.</div>
+      <div id="ec-cta" class="clip" data-start="0" data-duration="6"><div id="ec-fill"></div><span id="ec-cta-t">Agenda tu piloto</span></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#ec-logo .l", { opacity: 0, scale: 0.4, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out", stagger: 0.06 }, 0.35);
+    tl.fromTo("#ec-tag", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power3.out" }, 1.3);
+    tl.fromTo("#ec-cta", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 2.0);
+    tl.fromTo("#ec-fill", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power3.inOut" }, 3.0);
+    tl.to("#ec-cta-t", { color: "#1a2530", duration: 0.25, ease: "none" }, 3.2);
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

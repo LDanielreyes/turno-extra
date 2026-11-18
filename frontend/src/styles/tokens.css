@@ -1,0 +1,40 @@
+/* Espacio, forma y movimiento. Tipografía y colores viven en theme.css. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --space-6: 64px;
+  --space-7: 104px;
+  --space-8: 152px;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 36px;
+  --border: 1px solid var(--color-border);
+
+  /* profundidad: desplazamiento + difuminado suave, nunca halo a cero */
+  --lift: inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent), 0 14px 28px -14px var(--shadow-deep);
+  --lift-accent: inset 0 1px 0 color-mix(in srgb, var(--text) 45%, transparent), 0 14px 26px -12px var(--ember-glow);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* salida larga y cremosa */
+  --ease-drop: cubic-bezier(0.7, 0, 0.3, 1);
+
+  --container: 1200px; /* contenedor maestro único: nada se ancha más */
+  --gutter: clamp(16px, 4vw, 32px);
+
+  --dur-ui: 160ms; /* filtros, tablas, navegación frecuente */
+  /* sistema único de botones */
+  --btn-h: 44px;
+  --btn-h-sm: 36px;
+  --btn-h-lg: 52px;
+  --btn-radius: 10px;
+  --tap: 44px; /* objetivo táctil mínimo (/yo) */
+  /* Carril único: todo el contenido de la landing arranca en el borde de .container.
+     --frame es el margen exterior de las tarjetas a sangre (hero, cierre, bloque de papel). */
+  --frame: clamp(8px, 1.2vw, 16px);
+  /* Relleno lateral que deja el contenido de una tarjeta a sangre (ancho = 100 % del padre) sobre el carril. */
+  --rail-in-frame: max(calc(var(--gutter) - var(--frame)), calc((100% - var(--container)) / 2 + var(--gutter)));
+}

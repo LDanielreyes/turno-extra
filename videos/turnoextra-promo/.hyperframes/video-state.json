@@ -1,0 +1,711 @@
+{
+  "version": 1,
+  "historyId": "f9f23cbd-90d4-4d19-81b2-287f78a3f350",
+  "currentRevision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "1a68041fc901ff835682a2a8d6f63c96dbb0b9eef8fb0971e97a79eaf69303d3",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\1a\\1a68041fc901ff835682a2a8d6f63c96dbb0b9eef8fb0971e97a79eaf69303d3"
+    },
+    "CLAUDE.md": {
+      "hash": "1a68041fc901ff835682a2a8d6f63c96dbb0b9eef8fb0971e97a79eaf69303d3",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\1a\\1a68041fc901ff835682a2a8d6f63c96dbb0b9eef8fb0971e97a79eaf69303d3"
+    },
+    "compositions/chat.html": {
+      "hash": "e79a4505bea2d2ca250142840e4a17526be6f7df1e5a6545b5f6763c764dfc06",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\e7\\e79a4505bea2d2ca250142840e4a17526be6f7df1e5a6545b5f6763c764dfc06"
+    },
+    "compositions/match.html": {
+      "hash": "ae84b83fd20e1cd0b3a3c8e60707b8f3f831cd062824d97f7c5c422292de4491",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\ae\\ae84b83fd20e1cd0b3a3c8e60707b8f3f831cd062824d97f7c5c422292de4491"
+    },
+    "compositions/pain.html": {
+      "hash": "955e6b6afc0991f6d7c695dd5e6849e27536f705347355bf9149cd3b95e373b6",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\95\\955e6b6afc0991f6d7c695dd5e6849e27536f705347355bf9149cd3b95e373b6"
+    },
+    "compositions/panel.html": {
+      "hash": "deb636b3be9fb2ae2b29d12681bd212ca962581d84090fc4212d49e8d7f609f2",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\de\\deb636b3be9fb2ae2b29d12681bd212ca962581d84090fc4212d49e8d7f609f2"
+    },
+    "hyperframes.json": {
+      "hash": "35a6d4ea79ebe911f0d81705f7aace5d8ff0316b745b0311d56af50c9c237cb7",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\35\\35a6d4ea79ebe911f0d81705f7aace5d8ff0316b745b0311d56af50c9c237cb7"
+    },
+    "index.html": {
+      "hash": "1a8943e9b72ab67a0f0cbec67b6436aafbaab08b7d03554dd56c41667f51e873",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\1a\\1a8943e9b72ab67a0f0cbec67b6436aafbaab08b7d03554dd56c41667f51e873"
+    },
+    "meta.json": {
+      "hash": "2e7174ccfbb82e709069c21cbe3ba4b49e1e4ed2fd061bf633d14656932f0ef0",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\2e\\2e7174ccfbb82e709069c21cbe3ba4b49e1e4ed2fd061bf633d14656932f0ef0"
+    },
+    "package.json": {
+      "hash": "fd913aca56c1714034fd5e8cabbc27d253061f38da8aff63500dda133c9cb9bb",
+      "content": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\fd\\fd913aca56c1714034fd5e8cabbc27d253061f38da8aff63500dda133c9cb9bb"
+    }
+  },
+  "revisions": {
+    "fe6a2598-b716-4626-a4f9-d4490f88b908": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793930510939,
+      "endedAt": 1793930510957,
+      "files": {
+        "compositions/chat.html": {
+          "before": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\36\\3612f60251b2eac54889b34ec60684c7384124a91122feeeff774ac222c38640",
+          "after": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\e7\\e79a4505bea2d2ca250142840e4a17526be6f7df1e5a6545b5f6763c764dfc06"
+        },
+        "compositions/pain.html": {
+          "before": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\83\\83968e119febb3b17633f85f0055c100586a87f7f4338345fbd0e0ce8252b410",
+          "after": "C:\\Users\\lucas\\.cache\\hyperframes\\history\\f9f23cbd-90d4-4d19-81b2-287f78a3f350\\blobs\\95\\955e6b6afc0991f6d7c695dd5e6849e27536f705347355bf9149cd3b95e373b6"
+        }
+      }
+    }
+  },
+  "checks": {
+    "latest": {
+      "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+      "id": "a563e377-eafd-451a-aa10-a8f6d0f40e41"
+    },
+    "revisions": {
+      "fe6a2598-b716-4626-a4f9-d4490f88b908": [
+        {
+          "id": "a563e377-eafd-451a-aa10-a8f6d0f40e41",
+          "scope": "project",
+          "report": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\checks\\a563e377-eafd-451a-aa10-a8f6d0f40e41.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 45000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793930539974,
+          "contentHash": "16c27cba17c0f1eb69ef1b135227a1274135242711351c00f545ba4b03d7211d",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": [
+      {
+        "id": "a64b57de-b7f9-406e-ad66-37fb622206ef",
+        "scope": "project",
+        "report": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\checks\\a64b57de-b7f9-406e-ad66-37fb622206ef.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 45000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1793930493299,
+        "contentHash": "ffbf4350d0d4be229ae9a97723c71817853a0247c3a4807913e57df5cb3bb511",
+        "revision": null,
+        "inputFingerprint": "81d8a2cfaf0eaca0ac84c02f0c3a7f5dd5327b72a1f8280aef47508cfe274a05",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+      "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-22"
+    },
+    "revisions": {
+      "fe6a2598-b716-4626-a4f9-d4490f88b908": [
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-0",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-01-at-0.3s.png",
+          "time": 0.3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "pain"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568449,
+          "contentHash": "58a63adbb5ea119bb39ed1666a3de58d1a6a8575ebeae6e40dccbc6c3f2d5b15",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-1",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-02-at-1.5s.png",
+          "time": 1.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "pain mid"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568449,
+          "contentHash": "9ad29ddf9bfe799b7292a835e226f8f288da582955521be47abe6039f36aee83",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-2",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-03-at-3.3s.png",
+          "time": 3.3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "panel"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568450,
+          "contentHash": "c3d120843996c967dbdb131319a9cb50ace0a2c03bebc513023aa8927e9d77f5",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-3",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-04-at-4.5s.png",
+          "time": 4.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "panel mid"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568450,
+          "contentHash": "e2c9ee5fd7fb31caef2b578a1283edd929f2f22ebcad881e8aed655076b7fc29",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-4",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-05-at-6.3s.png",
+          "time": 6.3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "chat"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568450,
+          "contentHash": "bce39211fe46f9477e11ba04a431b4265272284bef70844ce87230e7be46f9f4",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-5",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-06-at-7.5s.png",
+          "time": 7.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "chat mid"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568451,
+          "contentHash": "c7bbf05c117aa7b8a22e106bb100ef40dcb67d4ea9fc4788b4553dd77a2ab885",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-6",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-07-at-9.3s.png",
+          "time": 9.3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "match"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568451,
+          "contentHash": "8d0f2c7c59f115b812faf4807c5b7c8c66b7572e6efa8457378e1cd2aa876984",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-7",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\beat-08-at-10.5s.png",
+          "time": 10.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "beat",
+              "label": "match mid"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568452,
+          "contentHash": "7323d8e4cbc339c283e5bfb9f32d765747e2a7010258518a42394dc42e3f1570",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-8",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-01-1-at-2.8s.png",
+          "time": 2.8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut -0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568453,
+          "contentHash": "4ad25c8a96a984a561233eb1d9c02ff02c113984791dcc1ed2aa762bc102a962",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-9",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-01-2-at-2.9s.png",
+          "time": 2.9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "-0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568454,
+          "contentHash": "802424359d7c918531b15e37831be46001f964168ffe1e43037b3a5f3da6b11f",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-10",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-01-3-at-3s.png",
+          "time": 3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut pain -> panel"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568455,
+          "contentHash": "7d66b73deb3857636a5d88f74d7ea504cdc2378ce19372bb4d7c546304d07dc7",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-11",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-01-4-at-3.1s.png",
+          "time": 3.1,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568456,
+          "contentHash": "17d1e4bd25a67b7f8a8fd34868ee8f334c794f6f81d4628e081183e19dcfa25c",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-12",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-01-5-at-3.2s.png",
+          "time": 3.2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568457,
+          "contentHash": "0328ef1821ed12eb78095d3e1cd7b071c0729358e7a680dea4e02356124527b3",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-13",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-02-1-at-5.8s.png",
+          "time": 5.8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut -0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568459,
+          "contentHash": "cbb81012dd37e470c8b09365f51f6fa1d9324afeda6c8cb6f567342d518bccd9",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-14",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-02-2-at-5.9s.png",
+          "time": 5.9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "-0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568461,
+          "contentHash": "dd666bff8b38c6008bf7f4598d15dccba4d9bda307658d0cf87a8f9f03cd8c39",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-15",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-02-3-at-6s.png",
+          "time": 6,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut panel -> chat"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568463,
+          "contentHash": "7d66b73deb3857636a5d88f74d7ea504cdc2378ce19372bb4d7c546304d07dc7",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-16",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-02-4-at-6.1s.png",
+          "time": 6.1,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568464,
+          "contentHash": "76ccbb513f3be6e26a3548d9c0d637ba345bfa01186e52cc64b30dfd8c2e9758",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-17",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-02-5-at-6.2s.png",
+          "time": 6.2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568466,
+          "contentHash": "6195b3296bc057da965f2d502c729137e312e79f4fdb48032def0e48d711ef50",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-18",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-03-1-at-8.8s.png",
+          "time": 8.8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut -0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568469,
+          "contentHash": "c4385548288e1b4a70bc0507d22c4fe59aa2a145c91639dda0d6a538e8098750",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-19",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-03-2-at-8.9s.png",
+          "time": 8.9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "-0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568472,
+          "contentHash": "a6d5710fec906c53eb304c12e16fbfc06e7549def6a8849042124ce6b9b3c0ab",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-20",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-03-3-at-9s.png",
+          "time": 9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "cut chat -> match"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568475,
+          "contentHash": "8c4dd9058e80f598d22a97691d4f73c3e5f2f07996458d86ddabd17dc9d18589",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-21",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-03-4-at-9.1s.png",
+          "time": 9.1,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.1"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568477,
+          "contentHash": "8c4dd9058e80f598d22a97691d4f73c3e5f2f07996458d86ddabd17dc9d18589",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "b4f8eb13-6362-4053-b1aa-946ca5c7e33a-22",
+          "image": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\.hyperframes\\artifacts\\snapshots\\1cfc8359-47e9-4915-a6c0-5243177422c6\\seam-03-5-at-9.2s.png",
+          "time": 9.2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "review": {
+              "role": "seam",
+              "label": "+0.2"
+            },
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793930568481,
+          "contentHash": "3dc70f74f687959838963833ebca17e757c01e7ae76425f3c3bbbcc8394faa26",
+          "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908",
+          "inputFingerprint": "ce2e9a97f8c97135d39c422dcd61128cf41f434ac288c8cf6d5adfe44618833a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": []
+  },
+  "renders": {
+    "latest": {
+      "id": "8e8787c6-b6bd-4f20-a100-c52dc7681b41",
+      "completedAt": 1793930743672,
+      "output": "C:\\Users\\lucas\\OneDrive\\Desktop\\Turno extra\\turnoextra-promo\\renders\\turnoextra-promo_2026-11-05_21-04-44.mp4",
+      "status": "completed",
+      "revision": "fe6a2598-b716-4626-a4f9-d4490f88b908"
+    },
+    "retainedRevisions": [
+      "fe6a2598-b716-4626-a4f9-d4490f88b908"
+    ]
+  },
+  "pendingArtifactCleanup": []
+}

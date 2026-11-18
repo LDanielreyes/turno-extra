@@ -1,0 +1,25 @@
+.rail {
+  position: fixed; z-index: 40; right: clamp(8px, 1.1vw, 18px); top: 50%; translate: 0 -50%;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 5px;
+  border-radius: 999px; background: color-mix(in srgb, var(--ink) 82%, transparent); border: 1px solid var(--hair-strong);
+  opacity: 0; transform: translateX(14px); pointer-events: none; transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.rail[data-show='true'] { opacity: 1; transform: none; pointer-events: auto; }
+.rail__btn { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--color-text); cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+.rail__btn:hover:not(:disabled) { background: var(--ember); color: var(--on-ember); }
+.rail__btn:disabled { opacity: 0.3; cursor: default; }
+.rail__dots { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.rail__dot { position: relative; display: grid; place-items: center; width: 26px; height: 20px; border: 0; background: transparent; cursor: pointer; }
+.rail__dot::before { content: ''; width: 6px; height: 6px; border-radius: 99px; background: var(--color-text-muted); opacity: 0.6; transition: height 0.35s var(--ease-out), background-color 0.25s, opacity 0.25s; }
+.rail__dot:hover::before { opacity: 1; background: var(--color-text); }
+.rail__dot[aria-current='true']::before { height: 18px; background: var(--ember); opacity: 1; }
+.rail__tip {
+  position: absolute; right: calc(100% + 10px); top: 50%; translate: 6px -50%; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis;
+  padding: 7px 12px; border-radius: 10px; background: var(--paper); color: var(--on-paper); font: 600 12.5px/1.2 var(--font-body);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s, translate 0.25s var(--ease-out);
+}
+.rail__dot:hover .rail__tip, .rail__dot:focus-visible .rail__tip { opacity: 1; translate: 0 -50%; }
+.rail__top { margin-top: 2px; width: 30px; padding: 6px 0; border: 0; border-top: 1px solid var(--hair-strong); background: transparent; color: var(--color-text-muted); font: 500 10px/1 var(--font-mono); cursor: pointer; transition: color 0.2s; }
+.rail__top small { font-size: 8px; }
+.rail__top:hover { color: var(--ember); }
+@media (max-width: 760px) { .rail__dots, .rail__top { display: none; } .rail { top: auto; bottom: 14px; translate: 0 0; flex-direction: row; padding: 4px; } }

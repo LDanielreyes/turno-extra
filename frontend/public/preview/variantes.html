@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TurnoExtra · Fase 2 · Variantes A y B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Vista previa aislada: copia los tokens de src/styles/theme.css y tokens.css. No forma parte de la app. */
+:root{
+  --font-display:"Bricolage Grotesque","Hanken Grotesk",Arial,sans-serif;--font-body:"Hanken Grotesk",Arial,sans-serif;--font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --ink:#171719;--graphite:#1e1d20;--graphite-2:#27262a;--line:#35333a;--paper:#ebe4d4;--paper-line:#c7bda4;
+  --ember:#ff6a3d;--ember-deep:#d8461a;--text:#ebe7e0;--muted:#a8a5ab;--on-paper:#16120e;--on-ember:#160a05;--ok:#4ade80;--error:#ff5d5d;
+  --hair:color-mix(in srgb,var(--text) 9%,transparent);--hair2:color-mix(in srgb,var(--text) 18%,transparent);
+  --ember-soft:color-mix(in srgb,var(--ember) 14%,transparent);--ember-glow:color-mix(in srgb,var(--ember) 40%,transparent);
+  --container:1200px;--gutter:clamp(16px,4vw,32px);--btn-h:44px;--btn-radius:10px;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font:400 16px/1.5 var(--font-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--container);margin:0 auto;padding-inline:var(--gutter)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--font-display);margin:0;letter-spacing:-.03em}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:var(--btn-h);padding:0 20px;border:1px solid var(--hair2);border-radius:var(--btn-radius);background:var(--graphite-2);color:var(--text);font:600 15px/1 var(--font-body);text-decoration:none;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 8%,transparent),0 14px 28px -14px #000b;transition:transform .2s var(--ease)}
+.btn:hover{transform:translateY(-2px)}
+.btn--p{background:var(--ember);color:var(--on-ember);border-color:var(--ember-deep);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 45%,transparent),0 14px 26px -12px var(--ember-glow)}
+/* barra de la maqueta */
+.bar{position:sticky;top:0;z-index:9;background:color-mix(in srgb,var(--ink) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;gap:16px;align-items:center;min-height:52px;flex-wrap:wrap}
+.bar a{color:var(--muted);text-decoration:none;font-size:14px}.bar a:hover{color:var(--text)}
+.sec{padding:56px 0;border-bottom:1px solid var(--line)}
+.tag{font:500 12px/1 var(--font-mono);color:var(--muted);letter-spacing:.04em}
+.vh{display:flex;gap:12px;align-items:baseline;margin-bottom:8px}
+.vh h2{font-size:28px}
+.why{color:var(--muted);max-width:70ch;margin:0 0 28px}
+.note{font-size:13px;color:var(--muted);margin-top:14px;max-width:80ch}
+.stage{border:1px solid var(--line);border-radius:28px;background:var(--ink);position:relative;overflow:hidden;isolation:isolate}
+.stage::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(60% 50% at 82% 0,var(--ember-soft),transparent 70%),radial-gradient(1px 1px at 0 0,var(--hair2) 99%,transparent) 0 0/22px 22px;opacity:.9}
+.live{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--font-mono);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ember);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:3px 9px;border-radius:6px;border:1px solid var(--hair2);font:500 12px/1.4 var(--font-mono);color:var(--muted)}
+.badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-ok{color:var(--ok)}.b-em{color:var(--ember)}.b-err{color:var(--error)}
+/* panel de ejemplo */
+.win{background:var(--graphite);border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 50px -30px #000}
+.win__top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.win__body{padding:18px 20px}
+.slots{display:flex;gap:6px}.slots u{width:22px;height:22px;border:1px dashed var(--hair2);border-radius:6px;display:grid;place-items:center;font:500 11px var(--font-mono);color:var(--muted);text-decoration:none}
+.slots u.on{background:var(--ember);border:0;color:var(--on-ember)}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.row:first-child{border-top:0}
+.phone{width:250px;background:var(--graphite);border:1px solid var(--line);border-radius:28px;padding:10px;box-shadow:0 30px 50px -26px #000}
+.phone__chat{background:var(--ink);border-radius:20px;padding:12px;min-height:190px;display:flex;flex-direction:column;gap:8px;background-image:radial-gradient(1px 1px at 0 0,var(--hair2) 99%,transparent);background-size:16px 16px}
+.bub{background:var(--graphite-2);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:13.5px}
+.bub--me{align-self:flex-end;background:var(--paper);color:var(--on-paper);border-radius:14px 4px 14px 14px}
+.qr{display:flex;gap:6px}.qr span{flex:1;text-align:center;font-size:12px;font-weight:600;padding:7px;border:1px solid var(--hair2);border-radius:8px}
+/* ---------- A1 ---------- */
+.a1{display:grid;grid-template-columns:1.05fr 1fr;gap:32px;align-items:center;padding:56px 48px}
+.a1 h1,.a2 h1{font-size:clamp(44px,5.4vw,72px);line-height:.98;font-weight:700}
+.mark{position:relative;white-space:nowrap}.mark svg{position:absolute;left:0;bottom:-.1em;width:100%;height:.28em}
+.lede{font-size:20px;line-height:1.35;max-width:32ch;margin:20px 0 28px}
+.fine{color:var(--muted);font-size:14px;margin:14px 0 0}
+.a1__scene{display:grid;grid-template-columns:1fr 250px;gap:0 20px;position:relative}
+.a1__scene .win{grid-column:1 / -1}
+.a1__phone{grid-column:2;margin-top:16px;justify-self:end;animation:float 9s ease-in-out infinite}
+.a1__trace{grid-column:1;align-self:center;font:500 12px/1.7 var(--font-mono);color:var(--muted);padding:0 0 0 4px}
+.a1__trace b{color:var(--text);font-weight:500}
+@keyframes float{50%{transform:translateY(-6px)}}
+.arc{position:absolute;pointer-events:none;inset:0;width:100%;height:100%}
+.arc path{stroke:var(--ember);stroke-width:1.5;fill:none;stroke-dasharray:4 6;animation:dash 6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-100}}
+/* ---------- A2 ---------- */
+.a2{padding:56px 48px 48px;text-align:left}
+.a2 .lede{max-width:46ch}
+.flow{display:grid;grid-template-columns:1fr 90px 250px;align-items:center;margin-top:40px}
+.link{height:2px;position:relative;background:repeating-linear-gradient(90deg,var(--hair2) 0 6px,transparent 6px 12px)}
+.link::after{content:"";position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--ember);box-shadow:0 0 0 4px var(--ember-soft);animation:travel 3s var(--ease) infinite}
+@keyframes travel{from{left:0}to{left:calc(100% - 10px)}}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:40px;border-top:1px solid var(--line)}
+.facts div{padding:16px 0;padding-right:20px}.facts b{display:block;font:600 20px var(--font-display)}.facts span{color:var(--muted);font-size:14px}
+/* ---------- B v2: placa de instrumento (sin tarjetas) ---------- */
+.plate{position:relative;border:1px solid var(--line);border-radius:3px;background:var(--ink);padding:28px;isolation:isolate}
+.plate::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(45% 40% at 8% 100%,var(--ember-soft),transparent 70%),radial-gradient(1px 1px at 0 0,var(--hair2) 99%,transparent) 0 0/22px 22px;opacity:.85}
+.crop{position:absolute;width:16px;height:16px;border:0 solid var(--muted)}
+.crop.tl{top:-9px;left:-9px;border-top-width:1px;border-left-width:1px}.crop.tr{top:-9px;right:-9px;border-top-width:1px;border-right-width:1px}
+.crop.bl{bottom:-9px;left:-9px;border-bottom-width:1px;border-left-width:1px}.crop.br{bottom:-9px;right:-9px;border-bottom-width:1px;border-right-width:1px}
+.phead{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.phead h3{font-size:clamp(26px,3vw,36px);line-height:1}.phead p{margin:8px 0 0;color:var(--muted);font-size:14px}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn--sm{min-height:36px;padding:0 14px;font-size:14px}
+.btn--danger{background:transparent;color:var(--error);border-color:color-mix(in srgb,var(--error) 55%,transparent);box-shadow:none}
+.ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;flex:none}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font:500 11px var(--font-mono);color:var(--muted);padding:8px 8px 8px 0;border-bottom:1px solid var(--hair2);position:sticky;top:52px;background:var(--ink)}
+td{padding:10px 8px 10px 0;border-bottom:1px solid var(--line);vertical-align:middle}td.t,th.t{text-align:right;padding-right:0}
+td .cn{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font:500 12px var(--font-mono)}
+tbody tr{transition:background-color .16s}tbody tr:hover{background:var(--hair)}
+/* B3 · red de propagación */
+.b3{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+.b3__map{padding:16px 28px 0 0;border-right:1px solid var(--line)}
+.b3__side{padding:20px 0 0 28px}
+.blk{padding:0 0 20px;margin-bottom:20px;border-bottom:1px solid var(--line)}.blk:last-child{border:0;margin:0}
+.blk h4{margin:0 0 12px;font:600 15px var(--font-body)}
+.count{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.count b{font:500 60px/1 var(--font-mono);color:var(--ember);letter-spacing:-.04em;font-variant-numeric:tabular-nums}.count span{color:var(--muted);font-size:14px}
+.wv{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px;font-size:14px}
+.wv li{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center}
+.wv i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--hair2)}.wv .done i{background:var(--ok);border-color:var(--ok)}.wv .now i{background:var(--ember);border-color:var(--ember);animation:pulse 2s infinite}.wv .later i{border-style:dashed}
+.wv small{font:500 12px var(--font-mono);color:var(--muted)}
+.net{width:100%;height:auto;display:block}
+.net .ring{fill:none;stroke:var(--line)}.net .ring--wait{stroke-dasharray:3 5}
+.net .rl{font:500 14px var(--font-mono);fill:var(--muted);paint-order:stroke;stroke:var(--ink);stroke-width:6px;stroke-linejoin:round}
+.net .e{stroke:var(--hair2)}.net .e--wait{stroke:var(--line);stroke-dasharray:2 5}
+.net .e--ok{stroke:var(--ok);stroke-width:1.5}.net .e--x{stroke:var(--error);stroke-dasharray:2 4}
+.net .e--live{stroke:var(--ember);stroke-width:1.5;stroke-dasharray:3 7;animation:flow 1.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.nd circle{fill:var(--graphite);stroke:var(--hair2);stroke-width:1.5}.nd use{color:var(--muted)}
+.nd--ok circle{fill:var(--ok);stroke:var(--ok)}.nd--ok use{color:var(--ink)}
+.nd--x circle{stroke:var(--error)}.nd--x use{color:var(--error)}
+.nd--now circle,.nd--live circle{stroke:var(--ember);fill:var(--ink)}.nd--now use,.nd--live use{color:var(--ember)}
+.nd--wait circle{stroke-dasharray:2 3;fill:var(--ink)}
+.nd text{font:500 14px var(--font-mono);fill:var(--muted)}.nd text.who{fill:var(--text)}
+.ping{fill:none;stroke:var(--ember);transform-box:fill-box;transform-origin:center;animation:ping 2.4s var(--ease) infinite}
+@keyframes ping{from{transform:scale(1);opacity:.7}to{transform:scale(2.3);opacity:0}}
+.hub .c{fill:var(--graphite);stroke:var(--line)}.hub .bg{fill:none;stroke:var(--graphite-2);stroke-width:3}
+.hub .cd{fill:none;stroke:var(--ember);stroke-width:3;stroke-linecap:round;stroke-dasharray:415;animation:cd 180s linear -19s infinite}
+@keyframes cd{from{stroke-dashoffset:0}to{stroke-dashoffset:415}}
+.hub .v{font:500 32px var(--font-mono);fill:var(--text);letter-spacing:-1px}.hub .s{font:500 11px var(--font-mono);fill:var(--muted)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0 16px;font-size:13px;color:var(--muted)}.legend span{display:inline-flex;gap:6px;align-items:center}
+/* B4 · partitura de turno */
+.b4top{display:grid;grid-template-columns:1fr auto auto;gap:32px;align-items:end;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.stubs{display:flex;gap:10px}
+.stub{display:grid;gap:4px;min-width:150px;padding:10px 18px;border:1px solid var(--hair2);border-radius:4px;font-size:13px;color:var(--muted);
+  -webkit-mask:radial-gradient(circle 7px at 0 50%,transparent 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 7px at 100% 50%,transparent 97%,#000) right/51% 100% no-repeat;
+          mask:radial-gradient(circle 7px at 0 50%,transparent 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 7px at 100% 50%,transparent 97%,#000) right/51% 100% no-repeat}
+.stub b{font:500 12px var(--font-mono);letter-spacing:.04em}
+.stub--on{background:var(--ember);border-color:var(--ember-deep);color:var(--on-ember);transform:rotate(-2deg)}
+.stub--open{border-style:dashed}.stub--open b{display:inline-flex;gap:8px;align-items:center;color:var(--text)}
+.cdown{text-align:right}.cdown b{display:block;font:500 48px/1 var(--font-mono);color:var(--ember);letter-spacing:-.04em}.cdown span{font-size:13px;color:var(--muted)}
+.score{width:100%;height:auto;display:block;margin:12px 0 4px}
+.score .band{fill:var(--hair)}.score .band--f{fill:url(#hatch)}
+.score .bl{font:500 13px var(--font-mono);fill:var(--muted)}.score .bl--now{fill:var(--text)}
+.score .ln{stroke:var(--line)}.score .lnl{font:600 15px var(--font-body);fill:var(--text)}.score .lns{font:500 12px var(--font-mono);fill:var(--muted)}
+.score .tk{stroke:var(--hair2)}.score .tl{font:500 13px var(--font-mono);fill:var(--muted)}
+.score .sg{stroke:var(--text);stroke-width:2;stroke-linecap:round}.score .sg--done{stroke:var(--muted)}
+.score .sg--live{stroke:var(--ember);stroke-dasharray:4 6;animation:flow 1.4s linear infinite}
+.score .lab{font:500 13px var(--font-mono);fill:var(--muted)}.score .lab b{fill:var(--text)}
+.score .esc{stroke:var(--muted);stroke-dasharray:2 3;fill:none}
+.score .ph{stroke:var(--ember);stroke-width:1.5}.score .phl{font:500 11px var(--font-mono);fill:var(--ember)}
+.score-m{display:none;list-style:none;margin:16px 0;padding:0}
+.score-m li{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}.score-m small{grid-column:2;color:var(--muted);font:500 12px var(--font-mono)}
+.b4low{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr);gap:40px;margin-top:20px;align-items:start}
+.sticky{background:var(--paper);color:var(--on-paper);padding:18px 18px 20px;transform:rotate(1.5deg);box-shadow:0 18px 30px -18px #000;font-size:14px;line-height:1.45;position:relative}
+.sticky::before{content:"";position:absolute;top:-9px;left:50%;width:70px;height:18px;margin-left:-35px;background:color-mix(in srgb,var(--paper-line) 70%,transparent);transform:rotate(-3deg)}
+.sticky h4{margin:0 0 8px;font:700 16px var(--font-display);letter-spacing:-.01em}.sticky p{margin:0 0 10px}.sticky p:last-child{margin:0}
+.sticky code{font:500 12.5px var(--font-mono)}
+@media (max-width:960px){.a1,.b3,.b4low{grid-template-columns:1fr}.a1{padding:36px 20px}.a2{padding:36px 20px}.flow{grid-template-columns:1fr}.link{height:40px;width:2px;margin:8px auto;background:repeating-linear-gradient(180deg,var(--hair2) 0 6px,transparent 6px 12px)}.facts{grid-template-columns:1fr}.phone{justify-self:center}.a1__scene{grid-template-columns:1fr}.a1__phone{grid-column:1;justify-self:center}.a1__trace{display:none}
+  .plate{padding:18px}.b3__map{border:0;padding:0;border-bottom:1px solid var(--line)}.b3__side{padding:20px 0 0}
+  .b4top{grid-template-columns:1fr;gap:16px}.cdown{text-align:left}.score{display:none}.score-m{display:block}.sticky{transform:none}}
+@media (max-width:520px){.stubs{flex-direction:column}.stub--on{transform:none}table{display:block;overflow-x:auto;white-space:nowrap}th{position:static}.vh{flex-wrap:wrap}.count b{font-size:48px}}
+.b3>*,.b4low>*,.b4top>*{min-width:0}
+/* capa de lectura: una frase + leyenda en palabras del gerente */
+.say{margin:0;padding:22px 0;border-bottom:1px solid var(--line);font:500 clamp(19px,2vw,24px)/1.35 var(--font-body);color:var(--muted);max-width:62ch;text-wrap:pretty}
+.say b{color:var(--text);font-weight:700}.say em{font-style:normal;color:var(--ember);font-weight:500}
+.key{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0;padding:14px 0 18px;font-size:13.5px;color:var(--muted)}
+.key li{display:inline-flex;gap:7px;align-items:center}
+.k{display:inline-block;vertical-align:-1px;flex:none;width:12px;height:12px;border-radius:50%;border:1.5px solid var(--hair2);background:var(--graphite)}
+.k--ok{background:var(--ok);border-color:var(--ok)}.k--live{border-color:var(--ember);background:var(--ink)}.k--x{border-color:var(--error)}.k--wait{border-style:dashed;background:var(--ink)}
+.key--score{padding-top:4px}
+@media (max-width:640px){.net .rl{font-size:22px}.net .nd text.who{font-size:24px}.net .nd text:not(.who){display:none}.key--score{display:none}
+  .b3__side td .mono,.b3__side th:nth-child(2),.b3__side td:nth-child(2) .cn{font-size:0}.b3__side td:nth-child(2) .cn .ico{width:18px;height:18px}.b3__side th:nth-child(4),.b3__side td:nth-child(4){display:none}}
+/* franja de estado visual: puestos · rondas · reloj */
+.strip{display:flex;flex-wrap:wrap;gap:24px 56px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line)}
+.seats{display:flex;gap:16px}
+.seat{display:grid;justify-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.seat .av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--font-display);position:relative}
+.seat--on .av{background:var(--ok);color:var(--ink)}.seat--on{color:var(--text)}
+.seat--open .av{border:1.5px dashed var(--ember)}.seat--open .av::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:1.5px solid var(--ember);animation:seat 2.4s var(--ease) infinite}
+@keyframes seat{from{transform:scale(1);opacity:.8}to{transform:scale(1.35);opacity:0}}
+.steps{display:flex;list-style:none;margin:0;padding:0;flex:1;max-width:420px;min-width:240px}
+.steps li{flex:1;display:grid;justify-items:center;gap:6px;position:relative;font-size:13px;color:var(--muted)}
+.steps li::before{content:"";position:absolute;top:20px;right:50%;width:100%;height:2px;background:repeating-linear-gradient(90deg,var(--hair2) 0 5px,transparent 5px 10px)}
+.steps li:first-child::before{display:none}
+.steps .done::before,.steps .now::before{background:var(--ember)}
+.steps .ic{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--hair2);background:var(--ink);color:var(--muted)}
+.steps .done .ic{border-color:var(--ember);color:var(--ember)}
+.steps .now .ic{background:var(--ember);border-color:var(--ember);color:var(--on-ember);box-shadow:0 0 0 6px var(--ember-soft)}
+.steps .now small{color:var(--text);font-weight:600}
+.clock{position:relative;width:72px;height:72px;margin-left:auto}.clock svg{width:100%;height:100%}
+.clock .cbg{fill:none;stroke:var(--graphite-2);stroke-width:4}.clock .carc{fill:none;stroke:var(--ember);stroke-width:4;stroke-linecap:round;stroke-dasharray:176;animation:cd2 180s linear -19s infinite}
+@keyframes cd2{from{stroke-dashoffset:0}to{stroke-dashoffset:176}}
+.clock b{position:absolute;inset:0;display:grid;place-items:center;font-size:17px;color:var(--text)}
+.rb circle{fill:var(--ink);stroke:var(--line);stroke-width:1.5}.rb use{color:var(--muted)}.rb--now circle{stroke:var(--ember)}.rb--now use{color:var(--ember)}
+.nm{font-weight:600}.ph{display:block;font-size:12px;color:var(--muted)}
+.b3__side th:nth-child(2),.b3__side td:nth-child(2){width:28px;color:var(--muted)}
+@media (max-width:640px){.strip{gap:20px}.steps{max-width:none;flex-basis:100%}.clock{margin-left:0}.b3__side .ph{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="bar"><div class="wrap">
+  <strong style="font-family:var(--font-display)">TurnoExtra</strong><span class="tag">FASE 2 · variantes · datos de ejemplo, no son cifras reales</span>
+  <a href="#a1">A1</a><a href="#a2">A2</a><a href="#b3">B3</a><a href="#b4">B4</a>
+</div></div>
+
+<!-- ============ A1 ============ -->
+<section class="sec" id="a1"><div class="wrap">
+  <div class="vh"><span class="tag">A · HERO</span><h2>A1 · Escena en dos planos</h2></div>
+  <p class="why">Texto a la izquierda sobre fondo limpio (el haz de brasa baja a la derecha, lejos del H1). A la derecha el panel completo y el teléfono <b>debajo y a un lado</b>, sin tapar filas ni píldoras; un hilo punteado animado une panel → teléfono. Es la mejora más pequeña sobre lo actual: conserva todo el carácter.</p>
+  <div class="stage a1">
+    <div>
+      <h1>El cupo vacío, cubierto en <span class="mark">minutos.<svg viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 40 2, 90 12, 198 4" stroke="#ff6a3d" stroke-width="4" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span></h1>
+      <p class="lede">Publica el turno en el panel. La oferta llega por WhatsApp a tu propia banca y el primero que acepta ocupa el cupo.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn--p" href="#">Solicitar demo →</a><a class="btn" href="#">Ver cómo funciona</a></div>
+      <p class="fine">WhatsApp · sin instalar nada</p>
+    </div>
+    <div class="a1__scene">
+      <div class="win">
+        <div class="win__top"><span class="mono" style="font-size:12px;color:var(--muted)">panel · turno abierto</span><span class="live"><i class="dot"></i>en vivo</span></div>
+        <div class="win__body">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h3 style="font-size:26px">Mesero</h3><span style="color:var(--muted);font-size:14px">Esta noche · salón principal</span></div><div style="text-align:right"><div class="big mono" style="font-size:36px">1/2</div><div class="slots" style="justify-content:flex-end;margin-top:6px"><u class="on">1</u><u>2</u></div></div></div>
+          <div style="display:flex;gap:8px;margin:16px 0 8px;flex-wrap:wrap"><span class="badge b-ok"><i></i>Oferta enviada</span><span class="badge b-em"><i></i>Aceptado</span><span class="badge"><i></i>Cupo cubierto</span></div>
+          <div class="row"><span>Banca A · +57 3** *** 41 07</span><span class="badge b-ok"><i></i>Aceptó</span><span class="mono" style="color:var(--muted)">0:12</span></div>
+          <div class="row"><span>Banca B · +57 3** *** 88 20</span><span class="badge"><i></i>Leído</span><span class="mono" style="color:var(--muted)">0:41</span></div>
+          <div class="row"><span>Banca C · +57 3** *** 15 63</span><span class="badge"><i></i>Enviado</span><span class="mono" style="color:var(--muted)">—</span></div>
+        </div>
+      </div>
+      <div class="a1__trace"><b>OFFER_ACCEPT</b><br>offer_id 7f3a…<br>canal: whatsapp<br>t+12 s</div>
+      <div class="phone a1__phone"><div class="phone__chat"><div class="bub">Turno extra: mesero, esta noche. ¿Lo tomas?</div><div class="qr"><span>Acepto</span><span>No puedo</span></div><div class="bub bub--me">Acepto</div></div></div>
+    </div>
+  </div>
+  <p class="note">Corrige: colisión píldoras/teléfono, contraste del H1, cajas vacías (cupos con número). Costo: bajo.</p>
+</div></section>
+
+<!-- ============ A2 ============ -->
+<section class="sec" id="a2"><div class="wrap">
+  <div class="vh"><span class="tag">A · HERO</span><h2>A2 · Línea de oferta</h2></div>
+  <p class="why">Más narrativa: H1 arriba a todo el ancho, y debajo una línea horizontal <b>Panel → pulso viajando → WhatsApp</b> que cuenta el producto en un vistazo. Los tres datos fijos (WhatsApp, En vivo, Tu banca) quedan como regla inferior. Más expresivo y menos "tarjeta flotante"; cambia más el layout.</p>
+  <div class="stage a2">
+    <h1 style="max-width:16ch">El cupo vacío, cubierto en <span class="mark">minutos.<svg viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 40 2, 90 12, 198 4" stroke="#ff6a3d" stroke-width="4" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span></h1>
+    <p class="lede">Publica el turno en el panel. La oferta llega por WhatsApp a tu propia banca y el primero que acepta ocupa el cupo. Tú lo ves en vivo.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn--p" href="#">Solicitar demo →</a><a class="btn" href="#">Ver cómo funciona</a></div>
+    <div class="flow">
+      <div class="win"><div class="win__top"><span class="mono" style="font-size:12px;color:var(--muted)">1 · panel</span><span class="live"><i class="dot"></i>en vivo</span></div><div class="win__body" style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="font-size:24px">Mesero</h3><span style="color:var(--muted);font-size:14px">salón principal · 22:00</span></div><div class="big mono">1/2</div></div></div>
+      <div class="link" aria-hidden="true"></div>
+      <div class="phone"><div class="phone__chat" style="min-height:150px"><div class="bub">Turno extra: mesero, esta noche. ¿Lo tomas?</div><div class="qr"><span>Acepto</span><span>No puedo</span></div></div></div>
+    </div>
+    <div class="facts"><div><b>WhatsApp</b><span>el personal no instala nada</span></div><div><b>En vivo</b><span>cupos y respuestas en el panel</span></div><div><b>Tu banca</b><span>solo personas que tu negocio registra</span></div></div>
+  </div>
+  <p class="note">Corrige: colisión (no hay superposición por diseño), contraste, cajas vacías. Costo: medio (rehacer composición del hero).</p>
+</div></section>
+
+<!-- íconos de canal dibujados (genéricos, no logos de marca) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="g-chat" viewBox="0 0 16 16"><path d="M3 3.5h10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7.5L4.5 14v-2.5H3a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="g-plane" viewBox="0 0 16 16"><path d="M14 2.5 2 7.2l4.2 1.6L12 4.6 7.6 9.6l.1 3.9 2-2.6 2.9 2.1z"/></symbol>
+  <symbol id="g-mail" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1"/><path d="m2.5 4.5 5.5 4 5.5-4"/></symbol>
+  <symbol id="g-star" viewBox="0 0 16 16"><path d="m8 2 1.8 3.8 4.2.5-3.1 2.9.8 4.1L8 11.3 4.3 13.3l.8-4.1L2 6.3l4.2-.5z"/></symbol>
+  <symbol id="g-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.3"/><path d="M1.8 13.5c.4-2.4 2.1-3.7 4.2-3.7s3.8 1.3 4.2 3.7"/><path d="M10.6 3.4a2.2 2.2 0 1 1 .3 4.3M11.6 9.9c1.4.3 2.3 1.5 2.6 3.6"/></symbol>
+  <symbol id="g-clock" viewBox="0 0 16 16"><circle cx="8" cy="8.5" r="5.5"/><path d="M8 5.5v3l2 1.5M6.5 1.5h3"/></symbol>
+</svg>
+
+<!-- ============ B3 ============ -->
+<section class="sec" id="b3"><div class="wrap">
+  <div class="vh"><span class="tag">B · /turnos/:id</span><h2>B3 · Red de propagación</h2></div>
+  <p class="why">Puestos, rondas y tiempo se entienden por forma. El texto queda en etiquetas.</p>
+  <div class="plate">
+    <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
+    <div class="phead">
+      <div><h3>Mesero · salón principal</h3><p>Hoy 22:00–06:00</p></div>
+      <div class="status"><span class="live"><i class="dot"></i>En vivo</span><a class="btn btn--sm btn--danger" href="#">Cancelar turno</a></div>
+    </div>
+    <div class="strip">
+      <div class="seats" role="img" aria-label="1 de 2 puestos cubiertos: Ana aceptó, falta 1">
+        <span class="seat seat--on"><span class="av">A</span>Ana</span>
+        <span class="seat seat--open"><span class="av"><i class="dot"></i></span>falta 1</span>
+      </div>
+      <ol class="steps" aria-label="Ronda 2 de 3">
+        <li class="done"><span class="ic"><svg class="ico"><use href="#g-star"/></svg></span><small>Favoritos</small></li>
+        <li class="now"><span class="ic"><svg class="ico"><use href="#g-people"/></svg></span><small>Tu banca</small></li>
+        <li><span class="ic"><svg class="ico"><use href="#g-clock"/></svg></span><small>Espera</small></li>
+      </ol>
+    </div>
+    <div class="b3">
+      <div class="b3__map">
+        <svg class="net" id="net" viewBox="-60 10 680 555" role="img" aria-label="Red de aviso: 12 personas en 3 rondas; Ana aceptó; ronda 2 en curso; 2:41 para la siguiente"></svg>
+        <ul class="key">
+          <li><i class="k k--ok"></i>Aceptó</li>
+          <li><i class="k k--live"></i>Esperando</li>
+          <li><i class="k"></i>Sin respuesta</li>
+          <li><i class="k k--x"></i>No llegó</li>
+          <li><i class="k k--wait"></i>En cola</li>
+        </ul>
+      </div>
+      <div class="b3__side">
+        <table>
+          <thead><tr><th>Persona</th><th aria-label="Canal"></th><th>Estado</th><th class="t">Tardó</th></tr></thead>
+          <tbody>
+            <tr><td><b class="nm">Ana</b><span class="ph mono">3** 41 07</span></td><td><svg class="ico" role="img" aria-label="WhatsApp"><use href="#g-chat"/></svg></td><td><span class="badge b-ok"><i></i>Aceptó</span></td><td class="t mono">12 s</td></tr>
+            <tr><td><b class="nm">Dani</b><span class="ph mono">3** 52 14</span></td><td><svg class="ico" role="img" aria-label="WhatsApp"><use href="#g-chat"/></svg></td><td><span class="badge b-em"><i></i>Lo vio</span></td><td class="t mono">—</td></tr>
+            <tr><td><b class="nm">Beto</b><span class="ph mono">3** 88 20</span></td><td><svg class="ico" role="img" aria-label="Telegram"><use href="#g-plane"/></svg></td><td><span class="badge"><i></i>Sin respuesta</span></td><td class="t mono">—</td></tr>
+            <tr><td><b class="nm">Caro</b><span class="ph mono">3** 15 63</span></td><td><svg class="ico" role="img" aria-label="Correo"><use href="#g-mail"/></svg></td><td><span class="badge b-err"><i></i>No llegó</span></td><td class="t mono">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="note">Si se pierde la conexión en vivo, la píldora «En vivo» cambia a «Reconectando» y los datos se actualizan cada 20 s. Sin nadie a quién avisar, el centro queda solo con «Buscar de nuevo». Nombres de ejemplo.</p>
+</div></section>
+
+<!-- ============ B4 ============ -->
+<section class="sec" id="b4"><div class="wrap">
+  <div class="vh"><span class="tag">B · /turnos/:id</span><h2>B4 · Partitura del turno</h2></div>
+  <p class="why">La misma franja de estado. Debajo, la historia en el tiempo: una fila por canal.</p>
+  <div class="plate">
+    <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
+    <div class="phead">
+      <div><h3>Mesero · salón principal</h3><p>Hoy 22:00–06:00</p></div>
+      <div class="status"><span class="live"><i class="dot"></i>En vivo</span><a class="btn btn--sm btn--danger" href="#">Cancelar turno</a></div>
+    </div>
+    <div class="strip strip--clock">
+      <div class="seats" role="img" aria-label="1 de 2 puestos cubiertos: Ana aceptó, falta 1">
+        <span class="seat seat--on"><span class="av">A</span>Ana</span>
+        <span class="seat seat--open"><span class="av"><i class="dot"></i></span>falta 1</span>
+      </div>
+      <ol class="steps" aria-label="Ronda 2 de 3">
+        <li class="done"><span class="ic"><svg class="ico"><use href="#g-star"/></svg></span><small>Favoritos</small></li>
+        <li class="now"><span class="ic"><svg class="ico"><use href="#g-people"/></svg></span><small>Tu banca</small></li>
+        <li><span class="ic"><svg class="ico"><use href="#g-clock"/></svg></span><small>Espera</small></li>
+      </ol>
+      <div class="clock" role="img" aria-label="2 minutos 41 segundos para la siguiente ronda">
+        <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" class="cbg"/><circle cx="32" cy="32" r="28" class="carc" transform="rotate(-90 32 32)"/></svg>
+        <b class="mono">2:41</b>
+      </div>
+    </div>
+    <svg class="score" id="score" viewBox="0 0 1100 290" role="img" aria-label="Ofertas por canal entre 21:58 y 22:06; ahora 22:01, ronda 2 en curso"></svg>
+    <ul class="key key--score">
+      <li><i class="k k--ok"></i>Aceptó</li>
+      <li><i class="k k--live"></i>Esperando</li>
+      <li><i class="k"></i>Sin respuesta</li>
+      <li><i class="k k--x"></i>No llegó</li>
+    </ul>
+    <ul class="score-m">
+      <li><svg class="ico"><use href="#g-chat"/></svg><span><i class="k k--ok"></i> Ana · <i class="k k--live"></i> Dani · <i class="k k--live"></i> Eva</span></li>
+      <li><svg class="ico"><use href="#g-plane"/></svg><span><i class="k"></i> Beto · <i class="k k--live"></i> Gabi</span></li>
+      <li><svg class="ico"><use href="#g-mail"/></svg><span><i class="k k--x"></i> Caro · <i class="k k--live"></i> Fer</span></li>
+    </ul>
+  </div>
+  <p class="note">Los mismos estados de conexión que B3. La tabla completa queda en una pestaña «Detalle» para no repetir lo que ya muestra el dibujo. Nombres de ejemplo.</p>
+</div></section>
+
+<section class="sec" style="border:0"><div class="wrap"><p class="tag">Elegido: A1. Para B, dime B3 o B4. Los números y nombres son de ejemplo; los celulares aparecen enmascarados.</p></div></section>
+
+<script>
+/* Dibuja B3 y B4 desde datos de ejemplo (en la app vendrán del servicio / SSE). */
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); parent && parent.appendChild(n); return n; };
+  const txt = (s, attrs, parent) => { const t = el('text', attrs, parent); t.textContent = s; return t; };
+
+  /* ---------- B3 ---------- */
+  const net = document.getElementById('net');
+  const cx = 280, cy = 270, R = { 1: 96, 2: 168, 3: 236 };
+  const people = [
+    { w: 1, a: 235, who: 'Ana', st: 'aceptó', k: 'ok', ch: 'chat' },
+    { w: 1, a: 305, who: 'Beto', st: 'no respondió', k: '', ch: 'plane' },
+    { w: 1, a: 90, who: 'Caro', st: 'no le llegó', k: 'x', ch: 'mail' },
+    { w: 2, a: 30, who: 'Dani', st: 'lo vio', k: 'now', ch: 'chat' },
+    { w: 2, a: 126, who: 'Eva', st: 'lo recibió', k: 'live', ch: 'chat' },
+    { w: 2, a: 198, who: 'Fer', st: 'enviado', k: 'live', ch: 'mail' },
+    { w: 2, a: 270, who: 'Gabi', st: 'lo recibió', k: 'live', ch: 'plane' },
+    { w: 2, a: 342, who: 'Hugo', st: 'enviado', k: 'live', ch: 'chat' },
+    { w: 3, a: 75, who: 'Iván', st: 'en espera', k: 'wait', ch: 'chat' },
+    { w: 3, a: 105, who: 'Juli', st: 'en espera', k: 'wait', ch: 'chat' },
+    { w: 3, a: 225, who: 'Kevin', st: 'en espera', k: 'wait', ch: 'plane' },
+    { w: 3, a: 315, who: 'Lina', st: 'en espera', k: 'wait', ch: 'chat' },
+  ];
+  const ringIcons = { 1: 'star', 2: 'people', 3: 'clock' };
+  for (const w of [1, 2, 3]) {
+    el('circle', { cx, cy, r: R[w], class: 'ring' + (w === 3 ? ' ring--wait' : '') }, net);
+    { const t = 160 * Math.PI / 180, rx = cx + R[w] * Math.cos(t), ry = cy + R[w] * Math.sin(t);
+      const rg = el('g', { class: 'rb' + (w === 2 ? ' rb--now' : '') }, net);
+      el('circle', { cx: rx, cy: ry, r: 15 }, rg);
+      el('use', { href: '#g-' + ringIcons[w], x: rx - 8, y: ry - 8, width: 16, height: 16, class: 'ico' }, rg); }
+  }
+  const edges = el('g', {}, net), nodes = el('g', {}, net);
+  const edgeCls = { ok: 'e--ok', x: 'e--x', now: 'e--live', live: 'e--live', wait: 'e--wait', '': 'e' };
+  for (const p of people) {
+    const rad = p.a * Math.PI / 180, c = Math.cos(rad), s = Math.sin(rad);
+    const x = cx + R[p.w] * c, y = cy + R[p.w] * s;
+    el('line', { x1: cx, y1: cy, x2: x, y2: y, class: edgeCls[p.k] }, edges);
+    const g = el('g', { class: 'nd' + (p.k ? ' nd--' + p.k : '') }, nodes);
+    if (p.k === 'now') el('circle', { cx: x, cy: y, r: 14, class: 'ping' }, g);
+    el('circle', { cx: x, cy: y, r: 14 }, g);
+    el('use', { href: '#g-' + p.ch, x: x - 8, y: y - 8, width: 16, height: 16, class: 'ico' }, g);
+    // etiqueta hacia afuera del anillo
+    const lx = x + c * 26, anchor = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle';
+    let ly = y + s * 26;
+    if (anchor === "middle") ly = s < 0 ? y - 26 : y + 36;
+    else ly = ly + 5;
+    txt(p.who, { x: lx, y: ly, 'text-anchor': anchor, class: 'who' }, g);
+    el('title', {}, g).textContent = p.who + ': ' + p.st;
+  }
+  const hub = el('g', { class: 'hub' }, net);
+  el('circle', { cx, cy, r: 66, class: 'bg' }, hub);
+  el('circle', { cx, cy, r: 66, class: 'cd', transform: `rotate(-90 ${cx} ${cy})` }, hub);
+  el('circle', { cx, cy, r: 56, class: 'c' }, hub);
+  el('use', { href: '#g-clock', x: cx - 7, y: cy - 34, width: 14, height: 14, class: 'ico', style: 'color:var(--ember)' }, hub);
+  txt('2:41', { x: cx, y: cy + 10, 'text-anchor': 'middle', class: 'v' }, hub);
+  txt('próxima ronda', { x: cx, y: cy + 30, 'text-anchor': 'middle', class: 's' }, hub);
+
+  /* ---------- B4 ---------- */
+  const sc = document.getElementById('score');
+  const X0 = 170, X1 = 1080, SPAN = 480, X = s => X0 + s * (X1 - X0) / SPAN;  // s = segundos desde 21:58:00
+  const NOW = 199; // 22:01:19
+  const defs = el('defs', {}, sc);
+  const pat = el('pattern', { id: 'hatch', width: 8, height: 8, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+  el('line', { x1: 0, y1: 0, x2: 0, y2: 8, stroke: 'var(--hair)', 'stroke-width': 3 }, pat);
+  const bands = [[0, 180, 'Favoritos', 'star'], [180, 360, 'Tu banca', 'people'], [360, 480, 'Espera', 'clock']];
+  bands.forEach(([a, b, l, ic], i) => {
+    const now = a <= NOW && NOW < b;
+    if (i % 2 === 0 || a >= NOW) el('rect', { x: X(a), y: 36, width: X(b) - X(a), height: 222, class: a >= NOW ? 'band band--f' : 'band' }, sc);
+    el('use', { href: '#g-' + ic, x: X(a) + 8, y: 12, width: 16, height: 16, class: 'ico', style: now ? 'color:var(--ember)' : 'color:var(--muted)' }, sc);
+    txt(l, { x: X(a) + 30, y: 25, class: 'bl' + (now ? ' bl--now' : '') }, sc);
+  });
+  const lanes = [['WhatsApp', 'se usa primero', 'chat', 92], ['Telegram', 'si WhatsApp falla', 'plane', 162], ['Correo', 'último recurso', 'mail', 232]];
+  const LY = {};
+  for (const [n, sub, ic, y] of lanes) {
+    LY[n] = y;
+    el('line', { x1: X0, y1: y, x2: X1, y2: y, class: 'ln' }, sc);
+    el('use', { href: '#g-' + ic, x: 0, y: y - 16, width: 16, height: 16, class: 'ico', style: 'color:var(--muted)' }, sc);
+    txt(n, { x: 24, y: y - 3, class: 'lnl' }, sc);
+  }
+  for (let m = 0; m <= 8; m++) {
+    const x = X(m * 60);
+    el('line', { x1: x, y1: 262, x2: x, y2: 268, class: 'tk' }, sc);
+    const mm = 58 + m, h = mm >= 60 ? 22 : 21;
+    txt(`${h}:${String(mm % 60).padStart(2, '0')}`, { x, y: 286, 'text-anchor': 'middle', class: 'tl' }, sc);
+  }
+  // ofertas: [carril, desfase, inicio, fin, final, etiqueta, posición etiqueta]
+  const offers = [
+    ['WhatsApp', 0, 2, 16, 'ok', 'Ana · 12 s', -1],
+    ['Correo', 0, 5, 7, 'x', 'Caro', 1],
+    ['Telegram', 0, 19, 180, 'none', 'Beto', -1],
+    ['WhatsApp', -9, 180, NOW, 'live', 'Dani', -1],
+    ['WhatsApp', 9, 181, NOW, 'live', 'Eva', 1],
+    ['Telegram', 0, 182, NOW, 'live', 'Gabi', 1],
+    ['Correo', 0, 183, NOW, 'live', 'Fer', -1],
+  ];
+  for (const [lane, off, a, b, end, lab, pos] of offers) {
+    const y = LY[lane] + off, xa = X(a), xb = X(b);
+    el('line', { x1: xa, y1: y, x2: xb, y2: y, class: 'sg' + (end === 'live' ? ' sg--live' : end === 'none' ? ' sg--done' : '') }, sc);
+    el('circle', { cx: xa, cy: y, r: 3.5, fill: 'var(--text)' }, sc);
+    if (end === 'ok') { el('circle', { cx: xb, cy: y, r: 7, fill: 'var(--ok)' }, sc); el('path', { d: `M${xb - 3.5} ${y} l2.5 2.5 l4.5 -5`, stroke: 'var(--ink)', 'stroke-width': 1.8, fill: 'none' }, sc); }
+    if (end === 'x') el('path', { d: `M${xb - 4} ${y - 4} l8 8 M${xb + 4} ${y - 4} l-8 8`, stroke: 'var(--error)', 'stroke-width': 2 }, sc);
+    if (end === 'none') el('line', { x1: xb, y1: y - 7, x2: xb, y2: y + 7, stroke: 'var(--muted)', 'stroke-width': 2 }, sc);
+    const ly = pos < 0 ? y - 10 : y + 18;
+    txt(lab, { x: end === 'live' ? xb + 10 : xa, y: end === 'live' ? y + 4 : ly, class: 'lab' }, sc);
+  }
+  // escalamiento WhatsApp → Telegram
+  el('path', { d: `M${X(17)} ${LY.WhatsApp + 6} C ${X(17)} ${LY.WhatsApp + 40}, ${X(19)} ${LY.Telegram - 40}, ${X(19)} ${LY.Telegram - 5}`, class: 'esc' }, sc);
+  txt('reintento', { x: X(19) + 8, y: (LY.WhatsApp + LY.Telegram) / 2 + 4, class: 'lab' }, sc);
+  // cabezal «ahora»
+  el('line', { x1: X(NOW), y1: 36, x2: X(NOW), y2: 258, class: 'ph' }, sc);
+  el('circle', { cx: X(NOW), cy: 36, r: 4, fill: 'var(--ember)' }, sc);
+  txt('ahora', { x: X(NOW) - 8, y: 252, 'text-anchor': 'end', class: 'phl' }, sc);
+})();
+</script>
+</body>
+</html>

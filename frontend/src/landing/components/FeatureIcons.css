@@ -1,0 +1,37 @@
+.ficon { width: 56px; height: 56px; color: var(--color-text); overflow: visible; }
+.ficon * { transform-box: fill-box; transform-origin: center; }
+.ficon__dot { fill: var(--color-accent); stroke: none; }
+.ficon__p--off { stroke: var(--color-text); }
+.ficon__dot--live { animation: f-live 1.6s ease-in-out infinite; }
+
+.ficon__wave { stroke: var(--color-accent); opacity: 0; animation: f-wave 3.2s ease-out infinite; }
+.ficon__wave--2 { animation-delay: 1.6s; }
+
+.ficon__q { animation: f-queue 4s var(--ease-drop) infinite; }
+.ficon__q--1 { animation-name: f-queue-out; stroke: var(--color-accent); }
+.ficon__q--3 { animation-delay: 0.2s; }
+
+.ficon__rise { transform-origin: 50% 100%; stroke: var(--color-accent); animation: f-rise 3.4s var(--ease-drop) infinite; }
+
+.ficon__p { animation: f-pass 3.6s ease-in-out infinite; }
+.ficon__p--off { animation-name: f-block; }
+
+.ficon__bar { transform-origin: 50% 100%; animation: f-bar 3s ease-in-out infinite alternate; }
+.ficon__bar--2 { stroke: var(--color-accent); animation-delay: -1s; }
+.ficon__bar--3 { animation-delay: -2s; }
+
+.ficon__row { transform-origin: 0 50%; animation: f-row 3.6s ease-out infinite; }
+.ficon__row--2 { animation-delay: 0.3s; }
+.ficon__row--3 { animation-delay: 0.6s; }
+.ficon__arrow { stroke: var(--color-accent); animation: f-arrow 3.6s ease-in-out infinite; }
+
+@keyframes f-wave { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3.4); opacity: 0; } }
+@keyframes f-queue-out { 0%, 40% { transform: translateY(0); opacity: 1; } 70%, 100% { transform: translateY(-12px); opacity: 0; } }
+@keyframes f-queue { 0%, 40% { transform: translateY(0); } 70%, 100% { transform: translateY(-14px); } }
+@keyframes f-rise { 0% { transform: scaleY(0.15); } 55%, 100% { transform: scaleY(1); } }
+@keyframes f-pass { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+@keyframes f-block { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; transform: translateY(-3px); } }
+@keyframes f-bar { from { transform: scaleY(0.6); } to { transform: scaleY(1); } }
+@keyframes f-row { 0% { transform: scaleX(0); } 35%, 100% { transform: scaleX(1); } }
+@keyframes f-arrow { 0%, 40% { transform: translateY(-4px); opacity: 0; } 60%, 100% { transform: translateY(0); opacity: 1; } }
+@keyframes f-live { 50% { transform: scale(1.5); opacity: 0.5; } }

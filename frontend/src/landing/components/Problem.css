@@ -1,0 +1,7 @@
+.prob { position: relative; padding: var(--space-7) 0 var(--space-8); }
+.prob > .container { position: relative; z-index: 1; }
+
+.prob__title { margin: 0; font-weight: 600; font-size: clamp(32px, 5.6vw, 72px); line-height: 1.02; letter-spacing: -0.04em; text-wrap: balance; max-width: 20ch; }
+.prob__w { color: color-mix(in srgb, var(--color-text) 24%, transparent); transition: color 0.45s var(--ease-out); }
+.prob__w.is-on { color: var(--color-text); }
+.prob__body { margin: var(--space-5) 0 0; max-width: 52ch; font-size: clamp(17px, 1.6vw, 20px); color: var(--color-text-muted); text-wrap: pretty; }

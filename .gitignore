@@ -1,0 +1,18 @@
+# Secretos: NUNCA se suben
+.env
+.env.*
+!.env.example
+!frontend/.env.production
+
+# Dependencias y compilados (se regeneran solos)
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.tsbuildinfo
+.neon
+
+# Herramientas locales
+.impeccable/
+.impeccable-live/
+.claude/

@@ -1,0 +1,57 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f8f9fa; font-family: "Inter", Arial, sans-serif; overflow: hidden; color: #1a2530; }
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 70px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; gap: 34px; }
+    #pb-title { font-size: 92px; font-weight: 800; letter-spacing: -0.04em; text-align: center; }
+    #root[data-height="1920"] #pb-title { font-size: 96px; }
+    #pb-cards { display: flex; gap: 48px; }
+    #root[data-height="1920"] #pb-cards { flex-direction: column; gap: 24px; }
+    .pb-card { width: 520px; height: 400px; background: #fff; border: 5px solid #1a2530; border-radius: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; }
+    #root[data-height="1920"] .pb-card { width: 920px; height: 196px; flex-direction: row; justify-content: flex-start; padding-left: 56px; gap: 44px; }
+    .pb-card svg { width: 150px; height: 150px; flex: none; }
+    #root[data-height="1920"] .pb-card svg { width: 112px; height: 112px; }
+    .pb-label { position: relative; font-size: 48px; font-weight: 700; letter-spacing: -0.02em; text-align: center; line-height: 1.1; }
+    #root[data-height="1920"] .pb-label { font-size: 50px; text-align: left; }
+    .pb-strike { position: absolute; left: -10px; right: -10px; top: 50%; height: 11px; margin-top: -5px; background: #ff4d3d; border-radius: 6px; }
+    #pb-final { font-size: 108px; font-weight: 800; letter-spacing: -0.04em; text-align: center; }
+    #root[data-height="1920"] #pb-final { font-size: 82px; line-height: 1.02; }
+    #pb-final .w { display: inline-block; }
+    #pb-final .r { color: #ff4d3d; }
+  </style>
+  <div id="root" data-composition-id="problem" data-width="1080" data-height="1920">
+    <div class="stage">
+      <div id="pb-title" class="clip" data-start="0" data-duration="7">Así se cubre un turno hoy.</div>
+      <div id="pb-cards" class="clip" data-start="0" data-duration="7">
+        <div class="pb-card" id="pb-c1">
+          <svg viewBox="0 0 120 120" fill="none" stroke="#1a2530" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M30 18 L48 18 L56 42 L44 52 C52 70 62 80 78 88 L88 76 L112 84 L112 102 C112 108 106 112 100 112 C54 108 14 68 10 22 C10 20 20 18 30 18 Z" transform="translate(0 -4) scale(.95)" /></svg>
+          <div class="pb-label"><span>Llamar uno por uno</span><div class="pb-strike" id="pb-s1"></div></div>
+        </div>
+        <div class="pb-card" id="pb-c2">
+          <svg viewBox="0 0 120 120" fill="none" stroke="#1a2530" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 20 H80 V64 H44 L28 80 V64 H14 Z" /><path d="M92 40 H106 V84 H92 V100 L76 84 H52 V72" /></svg>
+          <div class="pb-label"><span>Escribir en grupos de chat</span><div class="pb-strike" id="pb-s2"></div></div>
+        </div>
+        <div class="pb-card" id="pb-c3">
+          <svg viewBox="0 0 120 120" fill="none" stroke="#1a2530" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M28 12 H92 M28 108 H92 M34 12 C34 52 60 54 60 60 C60 66 34 68 34 108 M86 12 C86 52 60 54 60 60 C60 66 86 68 86 108" /></svg>
+          <div class="pb-label"><span>Esperar que respondan</span><div class="pb-strike" id="pb-s3"></div></div>
+        </div>
+      </div>
+      <div id="pb-final" class="clip" data-start="0" data-duration="7"><span class="w">Lento.</span> <span class="w">Manual.</span> <span class="w r">Sin certeza.</span></div>
+    </div>
+  </div>
+  <script>
+    const V = (window.innerHeight > window.innerWidth);
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#pb-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" }, 0.3);
+    ["#pb-c1", "#pb-c2", "#pb-c3"].forEach((c, i) => {
+      tl.fromTo(c, V ? { opacity: 0, x: -140 } : { opacity: 0, y: 90 }, V ? { opacity: 1, x: 0, duration: 0.7, ease: "expo.out" } : { opacity: 1, y: 0, duration: 0.7, ease: "expo.out" }, 0.8 + i * 0.5);
+    });
+    ["1", "2", "3"].forEach((n, i) => {
+      const t0 = 3.0 + i * 0.6;
+      tl.fromTo("#pb-s" + n, { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.4, ease: "power3.inOut" }, t0);
+      tl.to("#pb-c" + n, { opacity: 0.45, duration: 0.35, ease: "power2.out" }, t0 + 0.2);
+    });
+    tl.fromTo("#pb-final .w", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.2 }, 5.0);
+    window.__timelines["problem"] = tl;
+  </script>
+</template>

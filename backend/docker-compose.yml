@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: turnoextra_owner
+      POSTGRES_PASSWORD: owner_dev_only
+      POSTGRES_DB: turnoextra
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnoextra_owner -d turnoextra"]
+      interval: 5s
+      retries: 10
+volumes:
+  pgdata:

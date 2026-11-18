@@ -1,0 +1,49 @@
+.contact { position: relative; isolation: isolate; overflow-x: clip; padding: clamp(128px, 19vh, 176px) 0 var(--space-7); }
+.contact__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--space-6); align-items: start; }
+.contact__head .phead__title { font-size: clamp(34px, 4.6vw, 60px); }
+.contact__head .phead__lede { margin-bottom: 0; }
+
+/* el formulario vive en una placa de instrumento (DESIGN.md §1.1) */
+.form__plate { background: var(--color-surface); --crop: var(--color-text-muted); }
+.form {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-3);
+  padding: clamp(22px, 3.5vw, 44px);
+}
+/* qué pasa después: tres pasos con íconos unidos por un hilo */
+.cnext { list-style: none; display: flex; margin: var(--space-5) 0 var(--space-4); padding: 0; max-width: 460px; }
+.cnext li { flex: 1; position: relative; display: grid; justify-items: center; gap: 8px; text-align: center; font-size: 13px; color: var(--color-text-muted); }
+.cnext li + li::before { content: ''; position: absolute; top: 22px; right: 50%; width: 100%; height: 2px; background: repeating-linear-gradient(90deg, var(--hair-strong) 0 5px, transparent 5px 10px); }
+.cnext__ic { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--hair-strong); background: var(--ink); }
+.cnext svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.cnext .is-now { color: var(--color-text); font-weight: 600; }
+.cnext .is-now .cnext__ic { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 0 0 6px var(--ember-soft); }
+.form--done { display: block; }
+.form--done h2 { margin: 0; font-size: 28px; line-height: 1.1; letter-spacing: -0.03em; }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field--wide, .form__foot, .form__err { grid-column: 1 / -1; }
+.field label { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.field label span { font-weight: 400; color: var(--color-text-muted); }
+.field input, .field select, .field textarea {
+  width: 100%; min-height: 48px; padding: 12px 14px; font: 400 16px/1.3 var(--font-body);
+  color: var(--color-text); background: var(--color-bg); border: var(--border); border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+.field textarea { resize: vertical; min-height: 112px; }
+.field input:hover, .field select:hover, .field textarea:hover { border-color: var(--color-text-muted); }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; border-color: var(--color-focus); }
+.field [aria-invalid='true'] { border-color: var(--color-danger); }
+.field__err { margin: 0; font-size: 14px; color: var(--color-danger); }
+
+.form__foot { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.form__foot .small { margin: 0; max-width: 34ch; }
+.form__err { margin: 0; padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--color-danger); color: var(--color-text); }
+
+
+@media (max-width: 860px) {
+  .contact { padding-top: 108px; }
+  .contact__in { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  .form { grid-template-columns: minmax(0, 1fr); }
+}
+
+.contact > .container { position: relative; z-index: 1; }

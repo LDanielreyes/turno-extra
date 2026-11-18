@@ -1,0 +1,69 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #1a2530;
+      font-family: "Inter", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 70px;
+    }
+    #pain-clock {
+      width: 260px;
+      height: 260px;
+      overflow: visible;
+    }
+    #pain-text {
+      width: 1400px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 88px;
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+    }
+    #pain-text em {
+      font-style: normal;
+      color: #ff4d3d;
+    }
+  </style>
+  <div id="root" data-composition-id="pain" data-width="1920" data-height="1080">
+    <svg id="pain-clock" class="clip" data-start="0" data-duration="3" viewBox="0 0 200 200">
+      <g id="pain-clock-body">
+        <circle cx="100" cy="108" r="78" fill="none" stroke="#ff4d3d" stroke-width="14" />
+        <rect x="84" y="14" width="32" height="14" rx="4" fill="#ff4d3d" />
+        <line x1="150" y1="40" x2="164" y2="54" stroke="#ff4d3d" stroke-width="12" stroke-linecap="round" />
+        <line id="pain-hand-min" x1="100" y1="108" x2="100" y2="58" stroke="#ff4d3d" stroke-width="12" stroke-linecap="round" />
+        <line id="pain-hand-hr" x1="100" y1="108" x2="72" y2="124" stroke="#ff4d3d" stroke-width="12" stroke-linecap="round" />
+        <circle cx="100" cy="108" r="9" fill="#ff4d3d" />
+      </g>
+      <circle id="pain-pulse" cx="100" cy="108" r="78" fill="none" stroke="#ff4d3d" stroke-width="6" opacity="0" />
+    </svg>
+    <h1 id="pain-text" class="clip" data-start="0" data-duration="3" data-var-text="s1-text">
+      Viernes 6:00 PM. Faltan 3 meseros para el banquete.
+    </h1>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Clock: pop in, then nervous shake and blinking pulse
+    tl.fromTo("#pain-clock", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.1);
+    for (let i = 0; i < 9; i++) {
+      tl.to("#pain-clock-body", { rotation: i % 2 ? -5 : 5, svgOrigin: "100 108", duration: 0.08, ease: "sine.inOut" }, 0.55 + i * 0.1);
+    }
+    tl.to("#pain-clock-body", { rotation: 0, svgOrigin: "100 108", duration: 0.1 }, 1.5);
+    for (let i = 0; i < 3; i++) {
+      tl.fromTo("#pain-pulse", { opacity: 0.9, scale: 1, svgOrigin: "100 108" }, { opacity: 0, scale: 1.35, svgOrigin: "100 108", duration: 0.5, ease: "power2.out", immediateRender: i === 0 }, 0.5 + i * 0.7);
+      tl.to("#pain-clock-body", { opacity: 0.35, duration: 0.12 }, 0.5 + i * 0.7);
+      tl.to("#pain-clock-body", { opacity: 1, duration: 0.12 }, 0.62 + i * 0.7);
+    }
+    tl.to("#pain-hand-min", { rotation: 40, svgOrigin: "100 108", duration: 2.2, ease: "none" }, 0.4);
+    // Text: fade-in-up
+    tl.fromTo("#pain-text", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.5);
+    // Exit
+    tl.to(["#pain-text", "#pain-clock"], { opacity: 0, duration: 0.25, ease: "power2.in" }, 2.72);
+    window.__timelines["pain"] = tl;
+  </script>
+</template>

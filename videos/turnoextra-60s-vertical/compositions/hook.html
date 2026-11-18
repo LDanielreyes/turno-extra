@@ -1,0 +1,76 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #1a2530; font-family: "Inter", Arial, sans-serif; overflow: hidden; }
+    .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 130px; }
+    #root[data-height="1920"] .stage { inset: 168px 0 auto 0; height: 1160px; flex-direction: column; gap: 40px; }
+    #hk-clock { width: 440px; height: 440px; overflow: visible; flex: none; }
+    #root[data-height="1920"] #hk-clock { width: 360px; height: 360px; }
+    #hk-text { display: flex; flex-direction: column; align-items: flex-start; gap: 36px; }
+    #root[data-height="1920"] #hk-text { align-items: center; text-align: center; gap: 28px; }
+    #hk-time { color: #fff; font-size: 190px; line-height: 0.95; font-weight: 800; letter-spacing: -0.04em; }
+    #root[data-height="1920"] #hk-time { font-size: 176px; }
+    #hk-time .w { display: inline-block; }
+    #hk-time .red { color: #ff4d3d; }
+    #hk-miss { color: #f8f9fa; font-size: 62px; line-height: 1.12; font-weight: 600; letter-spacing: -0.02em; width: 1000px; }
+    #root[data-height="1920"] #hk-miss { font-size: 56px; width: 900px; }
+    #hk-three { display: inline-block; color: #ff4d3d; font-weight: 800; }
+    #hk-slots { display: flex; gap: 34px; }
+    .hk-slot { width: 120px; height: 120px; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1080" data-height="1920">
+    <div class="stage">
+      <svg id="hk-clock" class="clip" data-start="0" data-duration="6" viewBox="0 0 200 200">
+        <g id="hk-clock-body">
+          <rect id="hk-bell-l" x="22" y="26" width="46" height="18" rx="9" fill="#ff4d3d" />
+          <rect id="hk-bell-r" x="132" y="26" width="46" height="18" rx="9" fill="#ff4d3d" />
+          <circle id="hk-tint" cx="100" cy="108" r="84" fill="#ff4d3d" opacity="0" />
+          <circle cx="100" cy="108" r="84" fill="none" stroke="#f8f9fa" stroke-opacity="0.18" stroke-width="10" />
+          <circle id="hk-arc" cx="100" cy="108" r="84" fill="none" stroke="#ff4d3d" stroke-width="10" stroke-linecap="round" stroke-dasharray="528" stroke-dashoffset="0" transform="rotate(-90 100 108)" />
+          <line x1="100" y1="40" x2="100" y2="52" stroke="#f8f9fa" stroke-width="6" stroke-linecap="round" />
+          <line x1="100" y1="164" x2="100" y2="176" stroke="#f8f9fa" stroke-width="6" stroke-linecap="round" />
+          <line x1="32" y1="108" x2="44" y2="108" stroke="#f8f9fa" stroke-width="6" stroke-linecap="round" />
+          <line x1="156" y1="108" x2="168" y2="108" stroke="#f8f9fa" stroke-width="6" stroke-linecap="round" />
+          <line id="hk-hand-h" x1="100" y1="108" x2="100" y2="76" stroke="#f8f9fa" stroke-width="9" stroke-linecap="round" />
+          <line id="hk-hand-m" x1="100" y1="108" x2="100" y2="58" stroke="#ff4d3d" stroke-width="7" stroke-linecap="round" />
+          <circle cx="100" cy="108" r="8" fill="#f8f9fa" />
+        </g>
+      </svg>
+      <div id="hk-text">
+        <div id="hk-time" class="clip" data-start="0" data-duration="6" data-var-text="s1-text"><span class="w" id="hk-w1">Viernes</span><br /><span class="w" id="hk-w2">6:00</span> <span class="w red" id="hk-w3">PM.</span></div>
+        <div id="hk-miss" class="clip" data-start="0" data-duration="6">Faltan <span id="hk-three">3</span> meseros para el banquete.</div>
+        <div id="hk-slots" class="clip" data-start="0" data-duration="6">
+          <svg class="hk-slot" viewBox="0 0 120 120"><circle cx="60" cy="38" r="20" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /><path d="M20 108 C20 78 38 66 60 66 C82 66 100 78 100 108" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /></svg>
+          <svg class="hk-slot" viewBox="0 0 120 120"><circle cx="60" cy="38" r="20" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /><path d="M20 108 C20 78 38 66 60 66 C82 66 100 78 100 108" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /></svg>
+          <svg class="hk-slot" viewBox="0 0 120 120"><circle cx="60" cy="38" r="20" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /><path d="M20 108 C20 78 38 66 60 66 C82 66 100 78 100 108" fill="none" stroke="#ff4d3d" stroke-width="6" stroke-dasharray="10 9" stroke-linecap="round" /></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Hook: the line is the first thing on screen
+    tl.fromTo(["#hk-w1", "#hk-w2", "#hk-w3"], { opacity: 1, filter: "blur(16px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out", stagger: 0.1 }, 0);
+    tl.fromTo("#hk-clock", { opacity: 1, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.7, ease: "expo.out" }, 0);
+    // Countdown arc drains while the minute hand spins
+    tl.to("#hk-arc", { strokeDashoffset: 528, duration: 5.2, ease: "none" }, 0.2);
+    tl.to("#hk-hand-m", { rotation: 1800, svgOrigin: "100 108", duration: 5.2, ease: "none" }, 0.2);
+    tl.to("#hk-hand-h", { rotation: 150, svgOrigin: "100 108", duration: 5.2, ease: "none" }, 0.2);
+    // Alarm shakes in three bursts, with a flat red flash
+    [1.0, 2.6, 4.2].forEach((t0) => {
+      for (let i = 0; i < 8; i++) {
+        tl.to("#hk-clock-body", { rotation: i % 2 ? -4 : 4, svgOrigin: "100 108", duration: 0.07, ease: "sine.inOut" }, t0 + i * 0.075);
+      }
+      tl.to("#hk-clock-body", { rotation: 0, svgOrigin: "100 108", duration: 0.1 }, t0 + 0.6);
+      tl.to("#hk-tint", { opacity: 0.22, duration: 0.1 }, t0);
+      tl.to("#hk-tint", { opacity: 0, duration: 0.4 }, t0 + 0.12);
+    });
+    // Second line
+    tl.fromTo("#hk-miss", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "power3.out" }, 1.2);
+    tl.fromTo("#hk-three", { scale: 2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "expo.out" }, 1.45);
+    // Three empty chairs
+    tl.fromTo(".hk-slot", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.4)", stagger: 0.14 }, 2.1);
+    tl.fromTo("#hk-slots", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 2.1);
+    tl.to(".hk-slot", { opacity: 0.3, duration: 0.18, yoyo: true, repeat: 7, ease: "none", stagger: 0.12 }, 3.0);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>

@@ -1,0 +1,30 @@
+{
+  "name": "@turnoextra/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    }
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate:prod": "node dist/migrate-cli.js",
+    "migrate": "tsx --env-file-if-exists=../../.env src/migrate-cli.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^4.1.1"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
+  }
+}

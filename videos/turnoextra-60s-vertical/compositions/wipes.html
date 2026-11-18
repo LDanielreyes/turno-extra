@@ -1,0 +1,62 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; pointer-events: none; }
+    .wp { position: absolute; }
+    #w-sweep { inset: 0; background: #d4ff00; }
+    #w-slide { inset: 0; background: #1a2530; }
+    #w-iris { inset: 0; background: #d4ff00; clip-path: circle(0% at 50% 50%); }
+    .w-bar { background: #d4ff00; }
+  </style>
+  <div id="root" data-composition-id="wipes" data-width="1080" data-height="1920">
+    <div id="w-sweep" class="wp clip" data-start="0" data-duration="60"></div>
+    <div id="w-slide" class="wp clip" data-start="0" data-duration="60"></div>
+    <div id="w-iris" class="wp clip" data-start="0" data-duration="60"></div>
+    <div id="w-bars" class="wp clip" data-start="0" data-duration="60" style="inset:0">
+      <div class="wp w-bar" id="w-b1"></div><div class="wp w-bar" id="w-b2"></div><div class="wp w-bar" id="w-b3"></div><div class="wp w-bar" id="w-b4"></div><div class="wp w-bar" id="w-b5"></div>
+    </div>
+  </div>
+  <script>
+    const V = (window.innerHeight > window.innerWidth);
+    const tl = gsap.timeline({ paused: true });
+    const bars = ["#w-b1", "#w-b2", "#w-b3", "#w-b4", "#w-b5"];
+    bars.forEach((b, i) => {
+      const el = document.querySelector(b);
+      if (V) { el.style.left = "0"; el.style.width = "100%"; el.style.top = i * 20 + "%"; el.style.height = "20.5%"; }
+      else { el.style.top = "0"; el.style.height = "100%"; el.style.left = i * 20 + "%"; el.style.width = "20.5%"; }
+    });
+    // Baselines: everything starts hidden
+    tl.set("#w-sweep", V ? { scaleY: 0 } : { scaleX: 0 }, 0);
+    tl.set("#w-slide", V ? { x: "-100%" } : { y: "100%" }, 0);
+    tl.set(bars, V ? { scaleX: 0 } : { scaleY: 0 }, 0);
+
+    const sweep = (t) => {
+      const k = V ? "scaleY" : "scaleX";
+      const o1 = V ? "50% 0%" : "0% 50%", o2 = V ? "50% 100%" : "100% 50%";
+      tl.fromTo("#w-sweep", { [k]: 0, transformOrigin: o1 }, { [k]: 1, duration: 0.4, ease: "power3.in", immediateRender: false }, t - 0.4);
+      tl.fromTo("#w-sweep", { [k]: 1, transformOrigin: o2 }, { [k]: 0, duration: 0.4, ease: "power3.out", immediateRender: false }, t);
+    };
+    const barWipe = (t) => {
+      const k = V ? "scaleX" : "scaleY";
+      const o1 = V ? "0% 50%" : "50% 0%", o2 = V ? "100% 50%" : "50% 100%";
+      tl.fromTo(bars, { [k]: 0, transformOrigin: o1 }, { [k]: 1, duration: 0.3, ease: "power3.in", stagger: 0.06, immediateRender: false }, t - 0.55);
+      tl.fromTo(bars, { [k]: 1, transformOrigin: o2 }, { [k]: 0, duration: 0.3, ease: "power3.out", stagger: 0.06, immediateRender: false }, t - 0.05);
+    };
+    const iris = (t) => {
+      tl.fromTo("#w-iris", { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(78% at 50% 50%)", duration: 0.45, ease: "power3.in", immediateRender: false }, t - 0.45);
+      tl.fromTo("#w-iris", { clipPath: "circle(78% at 50% 50%)" }, { clipPath: "circle(0% at 50% 50%)", duration: 0.45, ease: "power3.out", immediateRender: false }, t);
+    };
+    const slide = (t) => {
+      const p = V ? "x" : "y";
+      tl.fromTo("#w-slide", { [p]: V ? "-100%" : "100%" }, { [p]: "0%", duration: 0.45, ease: "power3.in", immediateRender: false }, t - 0.45);
+      tl.fromTo("#w-slide", { [p]: "0%" }, { [p]: V ? "100%" : "-100%", duration: 0.45, ease: "power3.out", immediateRender: false }, t);
+    };
+    sweep(6);
+    barWipe(13);
+    iris(20);
+    slide(30);
+    sweep(40);
+    iris(48);
+    barWipe(54);
+    window.__timelines["wipes"] = tl;
+  </script>
+</template>

@@ -1,0 +1,65 @@
+/* Comparación «hoy vs con TurnoExtra»: una placa partida por un filete. */
+.pa2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--space-6); background: color-mix(in srgb, var(--ink) 70%, transparent); }
+.pa2__half { margin: 0; padding: clamp(20px, 3vw, 36px); display: grid; gap: var(--space-3); }
+.pa2__half--after { border-left: 1px solid var(--line); background: radial-gradient(60% 60% at 50% 45%, var(--ember-soft), transparent 75%); }
+.pa2__svg { width: 100%; height: auto; max-height: 280px; overflow: visible; }
+.pa2 figcaption { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pa2 figcaption b { font: 600 13px/1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); }
+.pa2__half--after figcaption b { color: var(--color-accent); }
+.pa2 figcaption span { font: 700 clamp(20px, 2vw, 26px)/1.1 var(--font-display); letter-spacing: -0.03em; }
+
+.pa2-stroke { fill: none; stroke: var(--color-text); stroke-width: 1.5; stroke-linecap: round; }
+.pa2-hand { fill: none; stroke: var(--color-accent); stroke-width: 1.5; stroke-linecap: round; transform-box: view-box; transform-origin: 36px 150px; animation: pa2-turn 4s steps(12) infinite; }
+@keyframes pa2-turn { to { transform: rotate(360deg); } }
+
+/* hoy: cada llamada sale después de la anterior y no contesta */
+.pa2__line { fill: none; stroke: var(--color-text-muted); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.pa2__node { fill: var(--graphite); stroke: var(--hair-strong); stroke-width: 1.5; }
+.pa2__x { stroke: var(--color-danger); stroke-width: 2; stroke-linecap: round; }
+.pa2__wait circle { fill: var(--color-text-muted); }
+.pa2__call { opacity: 0; }
+.pa2__call--0 { animation: pa2-c0 9s var(--ease-out) infinite; } .pa2__call--0 .pa2__line { animation: pa2-d0 9s var(--ease-out) infinite; }
+.pa2__call--1 { animation: pa2-c1 9s var(--ease-out) infinite; } .pa2__call--1 .pa2__line { animation: pa2-d1 9s var(--ease-out) infinite; }
+.pa2__call--2 { animation: pa2-c2 9s var(--ease-out) infinite; } .pa2__call--2 .pa2__line { animation: pa2-d2 9s var(--ease-out) infinite; }
+.pa2__call--3 { animation: pa2-c3 9s var(--ease-out) infinite; } .pa2__call--3 .pa2__line { animation: pa2-d3 9s var(--ease-out) infinite; }
+@keyframes pa2-c0 { 0%, 4% { opacity: 0; } 6%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pa2-c1 { 0%, 22% { opacity: 0; } 24%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pa2-c2 { 0%, 40% { opacity: 0; } 42%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pa2-c3 { 0%, 58% { opacity: 0; } 60%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pa2-d0 { 0%, 4% { stroke-dashoffset: 1; } 12%, 100% { stroke-dashoffset: 0; } }
+@keyframes pa2-d1 { 0%, 22% { stroke-dashoffset: 1; } 30%, 100% { stroke-dashoffset: 0; } }
+@keyframes pa2-d2 { 0%, 40% { stroke-dashoffset: 1; } 48%, 100% { stroke-dashoffset: 0; } }
+@keyframes pa2-d3 { 0%, 58% { stroke-dashoffset: 1; } 66%, 100% { stroke-dashoffset: 0; } }
+.pa2__wait circle { animation: pa2-dots 1.2s ease-in-out infinite; }
+.pa2__wait circle:nth-child(2) { animation-delay: 0.2s; } .pa2__wait circle:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pa2-dots { 50% { opacity: 0.2; } }
+
+/* con TurnoExtra: todos a la vez; la primera que acepta queda en verde */
+.pa2__pulse { fill: none; stroke: var(--color-accent); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: pa2-pulse 2.4s var(--ease-out) infinite; }
+.pa2__pulse--2 { animation-delay: 1.2s; }
+@keyframes pa2-pulse { from { transform: scale(1); opacity: 0.7; } to { transform: scale(4.2); opacity: 0; } }
+.pa2__ray { stroke: var(--color-accent); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: pa2-ray 6s var(--ease-out) infinite; }
+.pa2__ray--win { animation-name: pa2-ray-win; }
+@keyframes pa2-ray { 0%, 6% { stroke-dashoffset: 1; opacity: 1; } 18%, 44% { stroke-dashoffset: 0; opacity: 1; } 52%, 90% { stroke-dashoffset: 0; opacity: 0.18; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes pa2-ray-win { 0%, 6% { stroke-dashoffset: 1; stroke: var(--color-accent); } 18%, 44% { stroke-dashoffset: 0; stroke: var(--color-accent); } 50%, 92% { stroke-dashoffset: 0; stroke: var(--ok); opacity: 1; } 100% { opacity: 0; } }
+.pa2__p circle { fill: var(--graphite); stroke: var(--color-accent); stroke-width: 1.5; }
+.pa2__p { animation: pa2-p 6s var(--ease-out) infinite; }
+@keyframes pa2-p { 0%, 12% { opacity: 0.25; } 18%, 44% { opacity: 1; } 52%, 90% { opacity: 0.35; } 100% { opacity: 0.25; } }
+.pa2__p--win { animation-name: pa2-pw; }
+.pa2__p--win circle { animation: pa2-fill 6s var(--ease-out) infinite; }
+@keyframes pa2-pw { 0%, 12% { opacity: 0.25; } 18%, 92% { opacity: 1; } 100% { opacity: 0.25; } }
+@keyframes pa2-fill { 0%, 44% { fill: var(--graphite); stroke: var(--color-accent); } 50%, 92% { fill: var(--ok); stroke: var(--ok); } 100% { fill: var(--graphite); } }
+.pa2__ck { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; animation: pa2-ck 6s infinite; }
+@keyframes pa2-ck { 0%, 46% { opacity: 0; } 50%, 92% { opacity: 1; } 100% { opacity: 0; } }
+.pa2__core { fill: var(--color-accent); }
+.pa2__core-ico { fill: none; stroke: var(--color-on-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* sin movimiento: estado final legible (llamadas sin respuesta / una persona aceptó) */
+@media (prefers-reduced-motion: reduce) {
+  .pa2__call { opacity: 1; } .pa2__line, .pa2__ray { stroke-dashoffset: 0; }
+  .pa2__p--win circle { fill: var(--ok); stroke: var(--ok); } .pa2__ck { opacity: 1; } .pa2__ray--win { stroke: var(--ok); }
+}
+@media (max-width: 760px) {
+  .pa2 { grid-template-columns: minmax(0, 1fr); }
+  .pa2__half--after { border-left: 0; border-top: 1px solid var(--line); }
+}
