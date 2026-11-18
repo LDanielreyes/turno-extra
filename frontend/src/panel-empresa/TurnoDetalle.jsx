@@ -41,6 +41,10 @@ export default function TurnoDetalle() {
   const offers = useQuery({ queryKey: orgKey(orgId, 'shift', id, 'offers'), queryFn: () => api(`/orgs/${orgId}/shifts/${id}/offers`), refetchInterval: POLL_MS })
   const settings = useQuery({ queryKey: orgKey(orgId, 'settings'), queryFn: () => api(`/orgs/${orgId}/settings`), staleTime: 5 * 60_000 })
   const refresh = () => qc.invalidateQueries({ queryKey: orgKey(orgId) })
+  const search = useMutation({
+    mutationFn: () => api(`/orgs/${orgId}/shifts/${id}/search`, { method: 'POST' }),
+    onSuccess: refresh,
+  })
 
   const ofertas = offers.data?.ofertas ?? []
   const { wave, nextAt, waveMs } = summarize(ofertas, settings.data)
@@ -81,10 +85,12 @@ export default function TurnoDetalle() {
               : offers.isError ? <ErrorState error={offers.error} onRetry={() => offers.refetch()} />
               : ofertas.length === 0 ? (
                 <div className="lv-empty">
-                  <PropagationNet ofertas={[]} center={center} label="Aún no se ha avisado a nadie" />
+                  <PropagationNet ofertas={[]} center={center} label={open && elegibles.length ? 'Buscando candidatos en la banca' : 'Aún no se ha avisado a nadie'} />
                   {open && elegibles.length === 0
                     ? <Empty title="Nadie elegible">Nadie de tu banca cumple descanso, tope semanal y documentos para este horario.</Empty>
-                    : <p className="muted small">{open ? `${elegibles.length} personas elegibles. Los avisos aparecen aquí en cuanto salen.` : `Este turno está ${s.estado}.`}</p>}
+                    : open
+                      ? <p className="lv-searching" role="status"><i aria-hidden="true" />Buscando entre {elegibles.length} {elegibles.length === 1 ? 'persona elegible' : 'personas elegibles'} de tu banca… el primer aviso sale en unos segundos.</p>
+                      : <p className="muted small">Este turno está {s.estado}.</p>}
                 </div>
               ) : (
                 <>
@@ -103,6 +109,18 @@ export default function TurnoDetalle() {
 
           <div className="lv-side">
             <h2>Quién recibió la oferta</h2>
+            {open && ofertas.length > 0 && (
+              <div className="lv-search">
+                <button type="button" className="btn btn--sm" disabled={search.isPending} onClick={() => search.mutate()}>
+                  {search.isPending ? 'Buscando…' : 'Buscar otra ronda ahora'}
+                </button>
+                <p className="muted small" role="status">
+                  {search.isError ? errorText(search.error)
+                    : search.data ? (search.data.sent > 0 ? `Se avisó a ${search.data.sent} personas nuevas.` : 'No quedan candidatos nuevos para avisar.')
+                    : 'Avisa ya a otro grupo, sin repetir a quien ya recibió la oferta.'}
+                </p>
+              </div>
+            )}
             {ofertas.length === 0 ? <p className="muted small">Todavía no hay avisos.</p> : (
               <table className="lv-tbl">
                 <thead><tr><th>Persona</th><th aria-label="Canal" /><th>Estado</th><th className="t">Tardó</th></tr></thead>

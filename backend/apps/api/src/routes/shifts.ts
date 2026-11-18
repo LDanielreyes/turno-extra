@@ -4,7 +4,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   assignments, audit, emit, offerDeliveries, orgRoles, orgWorkers, orgs, roles, shiftOffers, shifts, withOrg, withSuper, type Db,
 } from '@turnoextra/db';
-import { cancelShift } from '@turnoextra/channels';
+import { cancelShift, launchWave } from '@turnoextra/channels';
 import { Decimal } from 'decimal.js';
 import type { Guards } from '../auth/guards.js';
 import { computeFloor, toMinute } from '../services/floor.js';
@@ -179,6 +179,22 @@ export function shiftRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
     return { id: shiftId, estado: 'cancelado' };
   });
 
+  // Busca ya una ronda nueva: avisa a elegibles que aún no recibieron la oferta (no repite a nadie).
+  app.post('/orgs/:orgId/shifts/:shiftId/search', { preHandler: pre }, async (req, reply) => {
+    const orgId = org(req);
+    const shiftId = uuid.safeParse((req.params as { shiftId: string }).shiftId).data;
+    if (!shiftId) return notFound(reply);
+    const r = await withSuper(db, async (tx) => {
+      const [s] = await tx.select({ estado: shifts.estado }).from(shifts).where(and(eq(shifts.id, shiftId), eq(shifts.orgId, orgId)));
+      if (!s) return null;
+      if (s.estado !== 'abierto') return { sent: 0, estado: s.estado };
+      const { sent } = await launchWave(tx, shiftId);
+      return { sent, estado: s.estado };
+    });
+    if (!r) return notFound(reply);
+    return r;
+  });
+
   // --- Ajustes de la org (/ajustes) ---------------------------------------------------------
   app.get('/orgs/:orgId/settings', { preHandler: pre }, async (req) => {
     const orgId = org(req);
@@ -186,7 +202,7 @@ export function shiftRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
       const [o] = await tx.select().from(orgs).where(eq(orgs.id, orgId));
       return {
         waveMinutes: o!.waveMinutes, descansoMinH: o!.descansoMinH, topeSemanalH: o!.topeSemanalH,
-        standbyMax: o!.standbyMax, relaunchLimit: o!.relaunchLimit,
+        standbyMax: o!.standbyMax, relaunchLimit: o!.relaunchLimit, waveFactor: o!.waveFactor,
       };
     });
   });
@@ -200,6 +216,7 @@ export function shiftRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
         topeSemanalH: z.number().int().min(1).max(60),
         standbyMax: z.number().int().min(0).max(10),
         relaunchLimit: z.number().int().min(0).max(5),
+        waveFactor: z.number().int().min(1).max(10),
       })
       .partial()
       .parse(req.body);

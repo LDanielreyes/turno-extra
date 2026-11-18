@@ -13,6 +13,8 @@ export const orgs = pgTable('orgs', {
   topeSemanalH: integer('tope_semanal_h').notNull().default(42),
   standbyMax: integer('standby_max').notNull().default(2),
   relaunchLimit: integer('relaunch_limit').notNull().default(2),
+  /** Candidatos avisados por cupo libre en cada ronda (1-10). */
+  waveFactor: integer('wave_factor').notNull().default(2),
   /** Código de ALTA (va en el QR/enlace). No es secreto: el celular debe estar registrado como pendiente. */
   inviteCode: text('invite_code').notNull().unique().default(sql`upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8))`),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

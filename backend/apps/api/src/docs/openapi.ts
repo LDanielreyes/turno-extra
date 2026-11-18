@@ -117,7 +117,7 @@ add('get', '/orgs/{orgId}/invitacion', { tag: E, who: 'gerente', summary: 'Códi
 add('get', '/orgs/{orgId}/settings', { tag: E, who: 'gerente', summary: 'Parámetros de la organización', params: [orgId] });
 add('patch', '/orgs/{orgId}/settings', {
   tag: E, who: 'gerente', summary: 'Cambiar parámetros de la organización', params: [orgId],
-  body: obj({ waveMinutes: int(3), descansoMinH: int(8), topeSemanalH: int(42), standbyMax: int(2), relaunchLimit: int(2) }, []),
+  body: obj({ waveMinutes: int(3), descansoMinH: int(8), topeSemanalH: int(42), standbyMax: int(2), relaunchLimit: int(2), waveFactor: int(2) }, []),
 });
 
 const B = 'Empresa · banca';

@@ -9,8 +9,7 @@ import { enqueue, rowsOf } from './outbox.js';
 import { msg, shiftInfo, type ShiftInfo } from './messages.js';
 import type { ChannelName, OutMessage } from './types.js';
 
-/** Cada oleada ofrece a `cupos libres × WAVE_FACTOR` candidatos (no todos a la vez). Por validar en el piloto. */
-export const WAVE_FACTOR = 2;
+/** Por defecto cada oleada ofrece a `cupos libres × wave_factor` candidatos; la org lo ajusta (orgs.wave_factor). */
 /** Si una oferta no salió por su canal en este tiempo, se escala al siguiente canal habilitado. */
 export const ESCALATE_AFTER_SECONDS = 90;
 /** Estados en los que una oferta aún puede responderse. */
@@ -64,8 +63,8 @@ const confirmedCount = async (tx: Tx, shiftId: string) =>
  * Bloquea el turno (FOR UPDATE) para que dos procesos no lancen la misma oleada. Contexto de sistema.
  */
 export async function launchWave(tx: Tx, shiftId: string): Promise<{ sent: number }> {
-  const [s] = rowsOf<{ orgId: string; cupos: number; estado: string; waveCount: number }>(
-    await tx.execute(sql`SELECT org_id AS "orgId", cupos, estado, wave_count AS "waveCount" FROM shifts WHERE id = ${shiftId} FOR UPDATE`),
+  const [s] = rowsOf<{ orgId: string; cupos: number; estado: string; waveCount: number; factor: number }>(
+    await tx.execute(sql`SELECT s.org_id AS "orgId", s.cupos, s.estado, s.wave_count AS "waveCount", o.wave_factor AS factor FROM shifts s JOIN orgs o ON o.id = s.org_id WHERE s.id = ${shiftId} FOR UPDATE OF s`),
   );
   if (!s || s.estado !== 'abierto') return { sent: 0 };
   const free = s.cupos - (await confirmedCount(tx, shiftId));
@@ -75,7 +74,7 @@ export async function launchWave(tx: Tx, shiftId: string): Promise<{ sent: numbe
   const wave = s.waveCount + 1;
   let sent = 0;
   for (const e of await eligibleWorkers(tx, s.orgId, shiftId)) {
-    if (sent >= free * WAVE_FACTOR) break;
+    if (sent >= free * s.factor) break;
     if (offered.has(e.workerId)) continue;
     const ch = await pickChannel(tx, e.workerId);
     if (!ch) continue;

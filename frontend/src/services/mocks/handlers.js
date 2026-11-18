@@ -293,7 +293,7 @@ const routes = [
     members: [{ id: 'm-1', userId: 'u-demo', name: 'Gerente demo', email: 'gerente@demo.local', since: iso(Date.now() - 40 * 86400e3) }],
     invitations: [], maxAdmins: 3,
   })],
-  ['GET', /^\/orgs\/[^/]+\/settings$/, () => ({ waveMinutes: 1, descansoMinH: 8, topeSemanalH: 42, standbyMax: 2, relaunchLimit: 2 })],
+  ['GET', /^\/orgs\/[^/]+\/settings$/, () => ({ waveMinutes: 1, descansoMinH: 8, topeSemanalH: 42, standbyMax: 2, relaunchLimit: 2, waveFactor: 2 })],
   ['GET', /^\/me\/notification-prefs$/, () => ({ prefs: PREFS })],
   ['PUT', /^\/me\/notification-prefs$/, (_s, body) => {
     if (body.prefs.some((x) => x.telegram) && !TG.vinculadoAt) throw new ApiError(409, 'telegram_not_linked', 'Vincula tu Telegram antes de activar los avisos por ese canal')

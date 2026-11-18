@@ -14,7 +14,8 @@ import './ajustes.css'
 // con el mismo peso: WhatsApp (número + código) y Telegram (enlace del bot). Todo responde a lo que confirma el backend.
 
 const PARAMS = [
-  { k: 'waveMinutes', name: 'Entre rondas', unit: 'min', min: 1, max: 30, hint: 'Cada cuánto sale la siguiente ronda de aviso' },
+  { k: 'waveFactor', name: 'Avisos por cupo', unit: 'pers.', min: 1, max: 10, hint: 'A cuántas personas se avisa por cada puesto libre en cada ronda' },
+  { k: 'waveMinutes', name: 'Entre rondas', unit: 'min', min: 1, max: 30, hint: 'Cuánto se espera antes de avisar a un grupo nuevo, sin repetir a quien ya recibió el aviso' },
   { k: 'descansoMinH', name: 'Descanso mínimo', unit: 'h', min: 0, max: 24, hint: 'Horas entre un turno y el siguiente de la misma persona' },
   { k: 'topeSemanalH', name: 'Tope semanal', unit: 'h', min: 1, max: 60, hint: 'Horas máximas por persona y semana' },
   { k: 'standbyMax', name: 'En espera', unit: 'pers.', min: 0, max: 10, hint: 'Personas en espera por turno cuando se llenan los puestos' },
@@ -204,6 +205,15 @@ function Gauge({ k, v }) {
         </g>
       )
     })
+  } else if (k === 'waveFactor') {
+    body = (
+      <>
+        {Array.from({ length: 10 }, (_, i) => (
+          <circle key={i} className={`aj-g__seat${i < v ? ' is-on' : ''}`} cx={14 + i * 19} cy="20" r="7" />
+        ))}
+        <text x="6" y="42">{`${v} ${v === 1 ? 'aviso' : 'avisos'} por puesto libre`}</text>
+      </>
+    )
   } else if (k === 'standbyMax') {
     body = Array.from({ length: 10 }, (_, i) => (
       <circle key={i} className={`aj-g__seat${i < v ? ' is-on' : ''}`} cx={14 + i * 19} cy="20" r="7" />
