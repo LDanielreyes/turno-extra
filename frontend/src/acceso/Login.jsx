@@ -17,6 +17,7 @@ export default function Login() {
   const [f, setF] = useState({ email: '', password: '' })
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const [cand, setCand] = useState({ celular: '', code: '', sent: false })
+  const [resent, setResent] = useState(null) // null | 'sending' | 'ok'
 
   if (!s.loading && s.user) return <Navigate to={loc.state?.from ?? homeFor(s)} replace />
 
@@ -35,7 +36,6 @@ export default function Login() {
   })
 
   // Sin verificar el correo no hay sesión: se puede pedir otro correo de verificación desde el mismo error.
-  const [resent, setResent] = useState(null) // null | 'sending' | 'ok'
   const resend = async () => {
     setResent('sending')
     try {
