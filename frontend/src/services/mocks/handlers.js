@@ -138,6 +138,9 @@ const WORKERS = PEOPLE.map(([nombre, favorito], i) => ({
   id: `w-${i}`, nombre, favorito, roleId: i % 4 === 3 ? 'r-bartender' : 'r-mesero',
   celular: `+57 3** *** ${String(10 + i * 7).padStart(2, '0')} ${String(30 + i * 3).padStart(2, '0')}`,
   estado: i === 11 ? 'pendiente' : i === 10 ? 'baja' : 'activo',
+  createdAt: new Date(Date.now() - (i * 9 + 2) * 86400e3).toISOString(),
+  // mismo contrato que /orgs/:id/workers: canales habilitados; el de la ronda en vivo va primero
+  canales: i === 11 ? [] : [...new Set([PEOPLE[i][3], 'whatsapp', ...(i % 3 === 0 ? ['telegram'] : []), ...(i % 4 === 2 ? ['email'] : [])])],
 }))
 
 const ALERTS = [
@@ -210,6 +213,15 @@ const AUDIT = [
   { id: 1011, orgId: null, actorId: 'u-admin', accion: 'legal_param.created', entidad: 'legal_param', entidadId: 'e5000000-0000-4000-8000-000000000002', detalle: { clave: 'recargo_nocturno' }, at: ago(1800) },
 ]
 
+// ---- avisos del gerente (estado de la simulación) ----
+let PREFS = ['cancelacion_asistencia', 'baja_con_turnos', 'turno_vencido', 'disputa_abierta']
+  .map((evento) => ({ evento, panel: true, email: true, whatsapp: false, telegram: false }))
+const TG = { vinculadoAt: null, linkAt: null }
+const tgState = () => {
+  if (!TG.vinculadoAt && TG.linkAt && Date.now() >= TG.linkAt) { TG.vinculadoAt = new Date().toISOString(); TG.linkAt = null }
+  return { disponible: true, vinculado: !!TG.vinculadoAt, vinculadoAt: TG.vinculadoAt }
+}
+
 // ---- enrutador ----
 const sinSesion = () => { throw new ApiError(401, 'unauthorized', 'Sin sesión') }
 const routes = [
@@ -223,7 +235,7 @@ const routes = [
   ['GET', /^\/yo\/sesion$/, () => (getPersona() === 'candidato' ? { id: 'c-demo', nombre: 'Ana' } : sinSesion())],
   ['GET', /^\/yo$/, (s) => ({ nombre: 'Ana', turnos: s === 'empty' ? [] : TURNOS_CANDIDATO, canales: CANALES_CANDIDATO, ventanaDisputaDias: 7 })],
 
-  ['GET', /^\/admin\/orgs$/, (s) => ({ orgs: s === 'empty' ? [] : ORGS_ADMIN })],
+  ['GET', /^\/admin\/orgs$/, (s) => ({ orgs: s === 'empty' ? [] : ORGS_ADMIN.map((o) => ({ ...o, roles: (ORG_ROLE_IDS[o.id] ?? []).length })) })],
   ['GET', /^\/admin\/orgs\/[^/]+\/roles$/, (s, _b, path) => ({ roleIds: s === 'empty' ? [] : ORG_ROLE_IDS[path.split('/')[3]] ?? [] })],
   ['GET', /^\/admin\/roles$/, (s) => ({ roles: s === 'empty' ? [] : CATALOGO })],
   ['GET', /^\/admin\/legal$/, (s) => ({ params: s === 'empty' ? [] : LEGAL })],
@@ -259,7 +271,11 @@ const routes = [
       { id: 'd-2', tipoDocumento: 'certificado_eps', venceAt: null, estado: 'pendiente' },
     ],
   })],
-  ['GET', /^\/orgs\/[^/]+\/invitacion$/, () => ({ whatsappUrl: 'https://wa.me/?text=ALTA%20HOTELDEMO', texto: 'ALTA HOTELDEMO' })],
+  ['GET', /^\/orgs\/[^/]+\/invitacion$/, () => ({
+    codigo: 'HOTELDEMO', texto: 'ALTA HOTELDEMO',
+    whatsappUrl: 'https://wa.me/?text=ALTA%20HOTELDEMO',
+    telegramUrl: 'https://t.me/TurnoExtraBot?start=ALTA-HOTELDEMO',
+  })],
   ['GET', /^\/orgs\/[^/]+\/disputes(\?.*)?$/, (s) => ({
     disputas: s === 'empty' ? [] : [{ id: 'dp-1', nombre: 'Hugo', rol: 'Mesero', inicio: iso(Date.now() - 2 * 86400e3), estado: 'abierta', motivo: 'Sí fui, llegué 10 minutos tarde y firmé en recepción.' }],
   })],
@@ -268,9 +284,23 @@ const routes = [
     invitations: [], maxAdmins: 3,
   })],
   ['GET', /^\/orgs\/[^/]+\/settings$/, () => ({ waveMinutes: 1, descansoMinH: 8, topeSemanalH: 42, standbyMax: 2, relaunchLimit: 2 })],
-  ['GET', /^\/me\/notification-prefs$/, () => ({
-    prefs: ['cancelacion_asistencia', 'baja_con_turnos', 'turno_vencido', 'disputa_abierta'].map((evento) => ({ evento, panel: true, email: true, whatsapp: false })),
-  })],
+  ['GET', /^\/me\/notification-prefs$/, () => ({ prefs: PREFS })],
+  ['PUT', /^\/me\/notification-prefs$/, (_s, body) => {
+    if (body.prefs.some((x) => x.telegram) && !TG.vinculadoAt) throw new ApiError(409, 'telegram_not_linked', 'Vincula tu Telegram antes de activar los avisos por ese canal')
+    PREFS = PREFS.map((x) => ({ ...x, ...(body.prefs.find((y) => y.evento === x.evento) ?? {}) }))
+    return { prefs: PREFS }
+  }],
+  // Telegram del gerente: POST abre el enlace del bot; la simulación «toca Iniciar» a los ~6 s.
+  ['GET', /^\/me\/notification-telegram$/, () => tgState()],
+  ['POST', /^\/me\/notification-telegram$/, () => {
+    TG.linkAt = Date.now() + 6000
+    return { url: 'https://t.me/TurnoExtraBot?start=G-7KQ2MX', expiresAt: new Date(Date.now() + 15 * 60e3).toISOString() }
+  }],
+  ['DELETE', /^\/me\/notification-telegram$/, () => {
+    TG.vinculadoAt = null; TG.linkAt = null
+    PREFS = PREFS.map((x) => ({ ...x, telegram: false }))
+    return tgState()
+  }],
   ['GET', /^\/me\/notification-whatsapp$/, () => ({ verificado: false, configurado: false })],
 ]
 

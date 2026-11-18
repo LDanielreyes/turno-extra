@@ -110,3 +110,13 @@ export const candidateLoginCodes = pgTable('candidate_login_codes', {
   attempts: integer('attempts').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Alta por Telegram en curso: el chat abrió `/start ALTA-<código>` y falta que comparta el celular de su cuenta.
+ * Una fila por chat; caduca sola. Dato de acceso: solo el contexto de sistema la lee y escribe.
+ */
+export const telegramAltaPending = pgTable('telegram_alta_pending', {
+  chatId: text('chat_id').primaryKey(),
+  inviteCode: text('invite_code').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});

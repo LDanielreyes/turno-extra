@@ -1,0 +1,208 @@
+/* Organizaciones: una calle de edificios (Orgs.jsx). Cada edificio es la organización y se administra sobre él. */
+
+.og {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; gap: 22px; padding: clamp(22px, 3vw, 36px) clamp(16px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+.og::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 40%);
+}
+.og::after {
+  content: ''; position: absolute; z-index: -1; right: -10%; bottom: -45%; width: 80%; aspect-ratio: 2;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 11%, transparent), transparent);
+}
+
+.og__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; animation: mh-in 0.7s var(--ease-out) backwards; }
+.og__title { display: grid; gap: 14px; }
+.og h1 { margin: 0; font: 800 clamp(34px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; }
+.og__facts { margin: 0; }
+.og-k { width: 11px; height: 11px; flex: none; border-radius: 1.5px; }
+.og-k--lit { background: var(--color-accent); }
+.og-k--dash { border: 1.5px dashed var(--color-text-muted); }
+.og-k--role { background: var(--paper); }
+
+.og__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--hair); }
+.og__hint { margin-left: auto; font-size: 13px; color: var(--color-text-muted); }
+.og-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 3px; border: 1px solid var(--hair-strong); background: var(--color-bg); }
+.og-seg button { min-height: 28px; padding: 0 12px; border: 0; border-radius: 2px; background: transparent; color: var(--color-text-muted); font: 500 13px var(--font-body); cursor: pointer; transition: color 0.15s, background-color 0.15s; }
+.og-seg button:hover { color: var(--color-text); }
+.og-seg button.is-on { background: var(--color-surface-2); color: var(--color-text); }
+.og-seg button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.og__msg { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.og__none { margin: 0; font-size: 14px; color: var(--color-text-muted); }
+
+/* ---------- la calle ---------- */
+.og__street {
+  --gap: 22px; --w: 192px; --fl: 46px;
+  display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: var(--gap); row-gap: 34px;
+  margin: 0; padding: 0; list-style: none;
+}
+.og-b { position: relative; display: grid; width: var(--w); flex: none; transition: width 0.45s var(--ease-out); }
+.og-b.is-open { width: min(440px, 100%); }
+.og-b__ground { position: relative; height: 3px; margin: 0 calc(var(--gap) / -2 - 1px); background: var(--hair-strong); }
+.og-b__addr { display: flex; justify-content: space-between; gap: 6px; padding-top: 8px; font-size: 11.5px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; }
+.og-b__addr .mono { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; }
+
+/* edificio */
+.og-b__bld {
+  position: relative; min-height: calc(var(--floors) * var(--fl) + 30px);
+  border: 1px solid var(--hair-strong); border-bottom: 0; border-radius: 3px 3px 0 0;
+  background: var(--graphite-2);
+  box-shadow: 0 -20px 40px -30px var(--shadow-deep);
+  transform-origin: 50% 100%;
+  animation: og-rise 0.9s var(--d) var(--ease-out) backwards;
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+@keyframes og-rise { from { clip-path: inset(100% 0 0 0); translate: 0 12px; } to { clip-path: inset(-40px -40px 0 -40px); } }
+.og-b:not(.is-open):not(.is-lot):hover .og-b__bld { border-color: color-mix(in srgb, var(--color-text) 34%, transparent); box-shadow: 0 -20px 40px -30px var(--shadow-deep), 0 0 0 3px var(--ember-soft); }
+
+.og-ant { position: absolute; left: 50%; bottom: 100%; width: 1.5px; height: 18px; background: var(--hair-strong); }
+.og-ant i { position: absolute; top: -4px; left: 50%; width: 6px; height: 6px; translate: -50% 0; border-radius: 50%; background: var(--color-accent); animation: og-blink 2.6s ease-in-out infinite; }
+.og-b.is-pending .og-ant i { background: transparent; box-shadow: inset 0 0 0 1.4px var(--color-text-muted); animation: none; }
+@keyframes og-blink { 50% { opacity: 0.25; } }
+
+.og-face { display: flex; flex-direction: column; width: 100%; min-height: inherit; padding: 10px 12px 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.og-face:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -4px; }
+
+/* letrero en la fachada */
+.og-sign {
+  display: block; align-self: stretch; padding: 5px 8px; border-radius: 2px;
+  background: var(--paper); color: var(--on-paper); box-shadow: inset 0 0 0 1px var(--paper-line);
+  font: 700 13.5px/1.2 var(--font-display); letter-spacing: -0.01em; text-align: center; overflow-wrap: anywhere;
+}
+
+.og-wins { display: grid; width: 100%; align-self: stretch; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 12px; flex: 1; align-content: start; padding: 14px 6px 10px; }
+.og-wins i { height: 18px; border-radius: 1.5px; background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.og-wins i.is-warm { background: var(--paper); opacity: 0.88; box-shadow: 0 0 12px -2px color-mix(in srgb, var(--paper) 45%, transparent); }
+
+/* planta baja: puestos de gerente + puerta */
+.og-floor0 { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; padding: 8px 6px 0; border-top: 1px solid var(--hair); }
+.og-seats { display: inline-flex; gap: 6px; padding-bottom: 10px; }
+.og-seats i { width: 14px; height: 14px; border-radius: 1.5px; box-shadow: inset 0 0 0 1.4px var(--hair-strong); transition: background-color 0.4s; }
+.og-seats i.is-lit { background: var(--color-accent); box-shadow: none; }
+.og-door { position: relative; display: grid; place-items: center; width: 26px; height: 34px; border-radius: 2px 2px 0 0; background: var(--ink); box-shadow: inset 0 0 0 1px var(--hair-strong); }
+.og-env { width: 22px; height: 16px; fill: var(--paper); stroke: var(--ember-deep); stroke-width: 1.5; stroke-linejoin: round; }
+.og-door .og-env { position: absolute; bottom: 6px; rotate: -8deg; }
+
+/* en obra: invitación pendiente */
+.og-b.is-pending .og-b__bld {
+  border-style: dashed; background-color: transparent;
+  background-image: repeating-linear-gradient(135deg, transparent 0 11px, var(--hair) 11px 12px);
+}
+.og-b.is-pending .og-wins i { background: transparent; box-shadow: inset 0 0 0 1px var(--hair-strong); }
+.og-b.is-pending .og-sign { background: transparent; color: var(--color-text); box-shadow: inset 0 0 0 1px var(--hair-strong); }
+.og-b.is-pending:not(.is-open) .og-door .og-env { animation: og-wiggle 3.4s ease-in-out infinite; }
+@keyframes og-wiggle { 0%, 80%, 100% { rotate: -8deg; } 86% { rotate: 4deg; } 92% { rotate: -12deg; } }
+
+/* ---------- edificio abierto ---------- */
+.og-edit { display: grid; gap: 14px; padding: 12px 14px 14px; outline: none; }
+.og-b.is-open .og-b__bld { background: var(--graphite-2); background-image: none; border-style: solid; border-color: color-mix(in srgb, var(--color-text) 30%, transparent); }
+.og-b.is-open.is-pending .og-sign { background: var(--paper); color: var(--on-paper); box-shadow: inset 0 0 0 1px var(--paper-line); }
+
+.og-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.og-rooms li { animation: og-on 0.35s calc(var(--j) * 0.035s) var(--ease-out) backwards; }
+@keyframes og-on { from { opacity: 0; translate: 0 4px; } }
+.og-room {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 9px; width: 100%; min-height: 40px; padding: 6px 10px 6px 8px;
+  border: 1px solid var(--hair-strong); border-radius: 3px; background: var(--ink); color: var(--color-text-muted);
+  font: 500 13px/1.25 var(--font-body); text-align: left; cursor: pointer; transition: border-color 0.15s, color 0.15s, background-color 0.2s;
+}
+.og-room span { overflow-wrap: anywhere; }
+.og-room:hover { border-color: color-mix(in srgb, var(--color-text) 30%, transparent); color: var(--color-text); }
+.og-room:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.og-room__win { position: relative; width: 22px; height: 18px; border-radius: 2px; box-shadow: inset 0 0 0 1.4px var(--hair-strong); transition: background-color 0.3s, box-shadow 0.3s; }
+.og-room__win::after { content: ''; position: absolute; left: 50%; top: 2px; bottom: 2px; width: 1px; background: var(--hair-strong); }
+.og-room.is-on { color: var(--color-text); border-color: color-mix(in srgb, var(--paper) 40%, transparent); }
+.og-room.is-on .og-room__win { background: var(--paper); box-shadow: 0 0 12px -2px color-mix(in srgb, var(--paper) 50%, transparent); }
+.og-room.is-on .og-room__win::after { background: var(--paper-line); }
+.og-rooms.is-loading { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.og-rooms.is-loading i { height: 40px; border-radius: 3px; background: var(--hair); animation: og-pulse 1s ease-in-out infinite alternate; }
+@keyframes og-pulse { to { opacity: 0.4; } }
+.og-edit__empty { margin: 0; font-size: 13px; color: var(--color-text-muted); }
+.og-edit__err { display: grid; gap: 8px; justify-items: start; }
+.og-edit__bad { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--color-danger); }
+
+.og-floor0--open { flex-wrap: wrap; align-items: center; padding: 10px 0 0; }
+.og-floor0__seats { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.og-floor0__seats .og-seats { padding: 0; }
+.og-mail { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.og-mail__txt { display: grid; justify-items: end; gap: 2px; min-width: 0; }
+.og-mail__to { font-size: 12px; color: var(--color-text-muted); overflow-wrap: anywhere; text-align: right; }
+.og-mail.is-sent .og-mail__to { color: var(--color-success); }
+.og-door--open { flex: none; }
+.og-env.is-flying { animation: og-fly 1.2s var(--ease-out) forwards; }
+@keyframes og-fly {
+  0% { translate: 0 0; rotate: -8deg; opacity: 1; }
+  60% { translate: 40px -70px; rotate: 18deg; opacity: 1; }
+  100% { translate: 70px -120px; rotate: 30deg; opacity: 0; }
+}
+
+.og-edit__foot { display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding-top: 10px; border-top: 1px solid var(--hair); }
+.og-edit__foot > span { margin-right: auto; font-size: 12.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+
+/* respuesta del backend */
+.og-toast {
+  position: absolute; z-index: 2; left: 50%; top: -14px; translate: -50% 0; display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 99px; background: var(--ember); color: var(--on-ember); font-size: 12px; font-weight: 700; white-space: nowrap;
+  animation: og-toast 2.2s var(--ease-out) forwards; pointer-events: none;
+}
+.og-toast .ak-ico { width: 13px; height: 13px; stroke-width: 2.4; }
+@keyframes og-toast { 0% { opacity: 0; translate: -50% 8px; } 12%, 80% { opacity: 1; translate: -50% 0; } 100% { opacity: 0; } }
+.og-b.is-flash .og-b__bld { box-shadow: 0 -20px 40px -30px var(--shadow-deep), 0 0 0 3px var(--ember-glow); }
+.og-b.is-flash .og-wins i { animation: og-lights 0.9s calc(var(--d, 0s)) ease-out; }
+@keyframes og-lights { 30% { background: color-mix(in srgb, var(--paper) 60%, transparent); } }
+
+/* ---------- solar libre ---------- */
+.og-b.is-lot .og-b__bld { border: 1.5px dashed var(--hair-strong); border-bottom: 0; background: transparent; box-shadow: none; animation: none; }
+.og-b.is-lot:not(.is-open):hover .og-b__bld { border-color: var(--color-accent); }
+.og-face--lot { align-items: center; justify-content: center; gap: 10px; padding: 12px; color: var(--color-text-muted); text-align: center; }
+.og-face--lot strong { font: 600 14px/1.2 var(--font-body); }
+.og-lot__plus { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--hair-strong); transition: color 0.15s, box-shadow 0.15s; }
+.og-b.is-lot:hover .og-lot__plus { color: var(--color-accent); box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+.og-plus { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+
+/* plano: el formulario de invitación dibujado como planos sobre el solar */
+.og-b.is-lot.is-typing .og-b__bld {
+  border-style: solid; border-color: color-mix(in srgb, var(--color-text) 30%, transparent);
+  background-color: var(--graphite);
+  background-image: linear-gradient(var(--hair) 1px, transparent 1px), linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.og-plan { position: relative; }
+.og-plan__f { display: grid; gap: 5px; }
+.og-plan__f > span { font-size: 12.5px; font-weight: 500; color: var(--color-text-muted); }
+.og-plan__f input {
+  min-height: 40px; padding: 8px 10px; border: 1px solid var(--hair-strong); border-radius: 3px; background: var(--ink);
+  font: 400 14px var(--font-body); color: var(--color-text); outline: 0; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.og-plan__f input::placeholder { color: color-mix(in srgb, var(--color-text-muted) 70%, transparent); }
+.og-plan__f input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--ember-soft); }
+.og-plan__f--mono input { font-family: var(--font-mono); font-size: 13px; }
+.og-plan__f.is-bad input { border-color: var(--color-danger); }
+.og-plan__f small { font-size: 12px; color: var(--color-danger); }
+.og-plan__door { justify-self: center; display: grid; place-items: center; width: 34px; height: 30px; }
+.og-plan__door .og-env { width: 28px; height: 20px; }
+.og-plan[aria-busy] .og-plan__door .og-env { animation: og-fly 1.2s var(--ease-out) infinite; }
+
+/* esqueleto */
+.og-b.is-skel .og-b__bld { border-color: transparent; background: var(--graphite-2); animation: og-pulse 1.1s var(--d) ease-in-out infinite alternate; }
+
+.og ::selection { background: var(--ember); color: var(--on-ember); }
+
+@media (max-width: 560px) {
+  .og__street { --gap: 12px; --w: calc(50% - 6px); --fl: 34px; }
+  .og-b.is-open { width: 100%; }
+  .og__hint { display: none; }
+  .og-rooms { grid-template-columns: minmax(0, 1fr); }
+  .og-b__addr > span:last-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .og-b__bld, .og-ant i, .og-door .og-env, .og-rooms li, .og-env.is-flying, .og-toast, .og-b.is-flash .og-wins i, .og__head, .og-plan[aria-busy] .og-plan__door .og-env { animation: none !important; }
+  .og-env.is-flying { opacity: 0; }
+  .og-toast { opacity: 1; }
+  .og-b { transition: none; }
+}

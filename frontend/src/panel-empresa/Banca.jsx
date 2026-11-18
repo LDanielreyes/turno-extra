@@ -1,15 +1,22 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
-import { api } from '../shared/api'
+import { api, errorText } from '../shared/api'
 import { fmtDate } from '../shared/format'
-import { Async, Badge, Btn, Card, Empty, Field, FormError, PageTitle } from '../shared/ui'
-import { NoMatch, Pager, SortTh, TableTools, useTable } from '../shared/table'
+import { Btn } from '../shared/ui'
+import Crops from '../shared/Crops'
 import { orgKey, roleName, useOrg, useRoles } from './org'
 import { CHANNEL_LABEL, Ico } from './live/icons'
+import './banca.css'
 
-const ESTADOS = [['activo', 'Activos'], ['pendiente', 'Pendientes'], ['baja', 'Baja'], ['baja_org', 'Salieron']]
-const CANALES = [['whatsapp', 'WhatsApp'], ['telegram', 'Telegram'], ['email', 'Correo'], ['ninguno', 'Sin canal activo']]
+// Banca como fichero de tarjetas de papel: cada tarjeta es una persona y se trabaja sobre ella.
+// Lo que responde el backend se ve en la tarjeta: entra al fichero al crearla, la chinche se clava al
+// marcarla favorita, el sello cae sobre el documento revisado y la tarjeta se endereza al reinvitar.
+const CHANNELS = ['whatsapp', 'telegram', 'email']
+const ESTADOS = [['todos', 'Todas'], ['activo', 'Activas'], ['pendiente', 'Pendientes'], ['fuera', 'Salieron']]
+const GONE = ['baja', 'baja_org']
+const STEP = 48
+const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 export default function Banca() {
   const { orgId } = useOrg()
@@ -17,121 +24,133 @@ export default function Banca() {
   const roles = useRoles()
   const q = useQuery({ queryKey: orgKey(orgId, 'workers'), queryFn: () => api(`/orgs/${orgId}/workers`) })
   const refresh = () => qc.invalidateQueries({ queryKey: orgKey(orgId, 'workers') })
-  const fav = useMutation({ mutationFn: ({ id, favorito }) => api(`/orgs/${orgId}/workers/${id}`, { method: 'PATCH', body: { favorito } }), onSuccess: refresh })
-  const reinvite = useMutation({ mutationFn: (id) => api(`/orgs/${orgId}/workers/${id}/reinvitar`, { method: 'POST' }), onSuccess: refresh })
-
-  return (
-    <>
-      <PageTitle title="Banca" lede="Tu personal de confianza. Nadie recibe ofertas hasta que acepta por su canal (ALTA → «Acepto»)." />
-      <div className="grid2">
-        <AddWorker orgId={orgId} roles={roles.data?.roles ?? []} onAdded={refresh} />
-        <Invite orgId={orgId} />
-      </div>
-
-      <Card title="Personas" className="bar-in">
-        <FormError error={fav.error ?? reinvite.error} />
-        <Async skeleton="table" q={q}>
-          {({ workers }) => workers.length === 0 ? (
-            <Empty title="Aún no hay personas">Agrega a alguien arriba: queda pendiente hasta que escanee el QR y acepte.</Empty>
-          ) : <WorkersTable workers={workers} roles={roles.data} orgId={orgId} fav={fav} reinvite={reinvite} />}
-        </Async>
-      </Card>
-    </>
-  )
-}
-
-function WorkersTable({ workers, roles, orgId, fav, reinvite }) {
   const [open, setOpen] = useState(null)
-  const t = useTable(workers, {
-    initialSort: { key: 'alta', dir: 'desc' },
-    sorters: {
-      nombre: (w) => w.nombre,
-      rol: (w) => roleName(roles, w.roleId),
-      canales: { by: (w) => (w.canales ?? []).length, first: 'desc' },
-      respondio: { by: (w) => (w.respondioAt ? +new Date(w.respondioAt) : null), first: 'desc' },
-      estado: (w) => w.estado,
-      alta: { by: (w) => +new Date(w.createdAt), first: 'desc' },
-    },
-    search: (w) => `${w.nombre} ${roleName(roles, w.roleId)}`,
-    filters: {
-      estado: (w, v) => w.estado === v,
-      rol: (w, v) => w.roleId === v,
-      favorito: (w) => w.favorito,
-      canal: (w, v) => (v === 'ninguno' ? !(w.canales ?? []).length : (w.canales ?? []).includes(v)),
-    },
-  })
-  const roleOptions = (roles?.roles ?? []).map((r) => [r.id, r.nombre])
-  const nFav = workers.filter((w) => w.favorito).length
+  const [flash, setFlash] = useState(null)
+  const [term, setTerm] = useState('')
+  const [estado, setEstado] = useState('todos')
+  const [rol, setRol] = useState('')
+  const [canal, setCanal] = useState('')
+  const [onlyFav, setOnlyFav] = useState(false)
+  const [limit, setLimit] = useState(STEP)
+
+  useEffect(() => {
+    if (!flash) return
+    const t = setTimeout(() => setFlash(null), 1600)
+    return () => clearTimeout(t)
+  }, [flash])
+
+  const ping = async (id) => { await refresh(); setFlash(id) }
+  const fav = useMutation({ mutationFn: ({ id, favorito }) => api(`/orgs/${orgId}/workers/${id}`, { method: 'PATCH', body: { favorito } }), onSuccess: (_, v) => ping(v.id) })
+  const reinvite = useMutation({ mutationFn: (id) => api(`/orgs/${orgId}/workers/${id}/reinvitar`, { method: 'POST' }), onSuccess: (_, id) => ping(id) })
+
+  const workers = q.data?.workers
+  const roleList = roles.data?.roles ?? []
+  const n = (f) => workers?.filter(f).length ?? 0
+  const needle = norm(term.trim())
+  const view = (workers ?? []).filter((w) =>
+    (estado === 'todos' || (estado === 'fuera' ? GONE.includes(w.estado) : w.estado === estado)) &&
+    (!rol || w.roleId === rol) &&
+    (!canal || (canal === 'ninguno' ? !(w.canales ?? []).length : (w.canales ?? []).includes(canal))) &&
+    (!onlyFav || w.favorito) &&
+    (!needle || norm(`${w.nombre} ${roleName(roles.data, w.roleId)}`).includes(needle)))
+  const filtered = needle || estado !== 'todos' || rol || canal || onlyFav
+  const clear = () => { setTerm(''); setEstado('todos'); setRol(''); setCanal(''); setOnlyFav(false) }
 
   return (
-    <>
-      <TableTools t={t} placeholder="Buscar por nombre o rol" filters={[
-        { key: 'estado', label: 'Todos los estados', options: ESTADOS },
-        { key: 'rol', label: 'Todos los roles', options: roleOptions },
-        { key: 'canal', label: 'Cualquier canal', options: CANALES },
-        { key: 'favorito', label: 'Todas las personas', options: [['1', `Favoritos (${nFav})`]] },
-      ]} />
-      <p className="small muted row tt-key" style={{ gap: 14 }} aria-label="Leyenda de canales">
-        <span className="row" style={{ gap: 6 }}><span className="chan is-on"><Ico name="whatsapp" size={14} /></span><span className="chan is-on"><Ico name="telegram" size={14} /></span><span className="chan is-on"><Ico name="email" size={14} /></span>activo</span>
-        <span className="row" style={{ gap: 6 }}><span className="chan"><Ico name="telegram" size={14} /></span>sin activar</span>
-        <span className="row" style={{ gap: 6 }}><span className="chan is-on is-last"><Ico name="email" size={14} /></span>respondió por ahí la última vez</span>
-      </p>
-      {t.total === 0 ? <NoMatch t={t} /> : (
-        <div className="tbl-wrap">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <SortTh t={t} k="nombre">Nombre</SortTh>
-                <SortTh t={t} k="rol">Rol</SortTh>
-                <th>Celular</th>
-                <SortTh t={t} k="canales">Canales</SortTh>
-                <SortTh t={t} k="estado">Estado</SortTh>
-                <SortTh t={t} k="alta">Alta</SortTh>
-                <th><span className="sr-only">Acciones</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {t.view.map((w) => (
-                <Fragment key={w.id}>
-                  <tr>
-                    <td>{w.favorito && <span className="tt-star" title="Favorito" aria-label="Favorito">★ </span>}{w.nombre}</td>
-                    <td>{roleName(roles, w.roleId)}</td>
-                    <td className="mono">{w.celular}</td>
-                    <td><Channels w={w} /></td>
-                    <td><Badge value={w.estado} /></td>
-                    <td className="mono small muted">{fmtDate(w.createdAt)}</td>
-                    <td className="tbl__end">
-                      <span className="row" style={{ justifyContent: 'flex-end' }}>
-                        <Btn size="sm" variant="ghost" aria-pressed={w.favorito} onClick={() => fav.mutate({ id: w.id, favorito: !w.favorito })}>{w.favorito ? '★ Favorito' : '☆ Favorito'}</Btn>
-                        <Btn size="sm" variant="ghost" aria-expanded={open === w.id} onClick={() => setOpen(open === w.id ? null : w.id)}>Documentos</Btn>
-                        {['baja', 'baja_org'].includes(w.estado) && <Btn size="sm" onClick={() => reinvite.mutate(w.id)}>Reinvitar</Btn>}
-                      </span>
-                    </td>
-                  </tr>
-                  {open === w.id && <tr><td colSpan={7}><Documents orgId={orgId} workerId={w.id} /></td></tr>}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+    <section className="bn">
+      <Crops />
+      <header className="bn__head">
+        <div className="bn__title">
+          <h1>Banca</h1>
+          <ul className="bn-key" aria-label="Leyenda">
+            <li><span className="bn-chan is-on" aria-hidden="true" />Canal activo</li>
+            <li><span className="bn-chan" aria-hidden="true" />Sin activar</li>
+            <li><span className="bn-chan is-on is-last" aria-hidden="true" />Respondió ahí</li>
+            <li><span className="bn-pinkey" aria-hidden="true" />Favorita</li>
+          </ul>
         </div>
-      )}
-      <Pager t={t} />
-    </>
+        {workers && (
+          <dl className="bn__facts">
+            <div><dt>{n((w) => w.estado === 'activo') === 1 ? 'activa' : 'activas'}</dt><dd>{n((w) => w.estado === 'activo')}</dd></div>
+            <div><dt>sin aceptar</dt><dd>{n((w) => w.estado === 'pendiente')}</dd></div>
+            <div><dt>{n((w) => w.favorito) === 1 ? 'favorita' : 'favoritas'}</dt><dd>{n((w) => w.favorito)}</dd></div>
+          </dl>
+        )}
+      </header>
+
+      <div className="bn__body">
+        <div className="bn__main">
+          <div className="bn__tools">
+            <label className="bn-search">
+              <Ico name="people" size={14} />
+              <input type="search" placeholder="Buscar nombre o rol" aria-label="Buscar por nombre o rol" value={term} onChange={(e) => setTerm(e.target.value)} />
+            </label>
+            <div className="bn-seg" role="radiogroup" aria-label="Estado">
+              {ESTADOS.map(([v, l]) => (
+                <button key={v} type="button" role="radio" aria-checked={estado === v} className={estado === v ? 'is-on' : ''} onClick={() => setEstado(v)}>{l}</button>
+              ))}
+            </div>
+            <select className="bn-select" aria-label="Rol" value={rol} onChange={(e) => setRol(e.target.value)}>
+              <option value="">Todos los roles</option>
+              {roleList.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+            </select>
+            <select className="bn-select" aria-label="Canal" value={canal} onChange={(e) => setCanal(e.target.value)}>
+              <option value="">Cualquier canal</option>
+              {CHANNELS.map((c) => <option key={c} value={c}>{CHANNEL_LABEL[c]}</option>)}
+              <option value="ninguno">Sin canal activo</option>
+            </select>
+            <button type="button" className={`bn-favbtn${onlyFav ? ' is-on' : ''}`} aria-pressed={onlyFav} onClick={() => setOnlyFav(!onlyFav)}>
+              <span className="bn-pinkey" aria-hidden="true" />Favoritas
+            </button>
+          </div>
+
+          {(fav.error || reinvite.error) && <p className="bn-err" role="alert">{errorText(fav.error || reinvite.error)}</p>}
+
+          {q.isError ? (
+            <div className="bn-err" role="alert">{errorText(q.error)} <Btn size="sm" onClick={() => q.refetch()}>Reintentar</Btn></div>
+          ) : (
+            <ul className="bn-file">
+              {q.isPending
+                ? Array.from({ length: 6 }, (_, i) => <li key={i} className="bn-card is-skel" style={{ '--d': `${i * 0.06}s` }}><div className="bn-card__paper" /></li>)
+                : view.slice(0, limit).map((w, i) => (
+                  <Card key={w.id} w={w} i={i} roles={roles.data} roleList={roleList} orgId={orgId}
+                    isOpen={open === w.id} flash={flash === w.id}
+                    onOpen={() => setOpen(w.id)} onClose={() => setOpen(null)}
+                    onFav={() => fav.mutate({ id: w.id, favorito: !w.favorito })} favBusy={fav.isPending && fav.variables?.id === w.id}
+                    onReinvite={() => reinvite.mutate(w.id)} reinviteBusy={reinvite.isPending && reinvite.variables === w.id}
+                    onSaved={() => ping(w.id)} />
+                ))}
+              {!q.isPending && !filtered && (
+                <NewCard orgId={orgId} roleList={roleList} i={Math.min(view.length, limit)}
+                  onCreated={async (id) => { await refresh(); setOpen(null); setFlash(id) }} />
+              )}
+            </ul>
+          )}
+          {workers && view.length > limit && (
+            <button type="button" className="bn-more" onClick={() => setLimit(limit + STEP)}>Ver {Math.min(STEP, view.length - limit)} más de {view.length - limit}</button>
+          )}
+          {workers && filtered && view.length === 0 && (
+            <p className="bn-none">Ninguna tarjeta coincide. <button type="button" className="bn-link" onClick={clear}>Ver todas</button></p>
+          )}
+        </div>
+        <Poster orgId={orgId} />
+      </div>
+    </section>
   )
 }
 
-// Canales que la persona activó. Encendido = puede recibir ofertas ahí; con punto = por ahí respondió la última vez.
-function Channels({ w }) {
+// Luces de canal. Encendida = recibe ofertas ahí; aro de brasa = por ahí respondió la última vez.
+function Lights({ w }) {
   const on = new Set(w.canales ?? [])
   return (
-    <span className="chans" role="list" aria-label="Canales activos">
-      {['whatsapp', 'telegram', 'email'].map((c) => {
+    <span className="bn-lights" role="list" aria-label="Canales">
+      {CHANNELS.map((c) => {
         const lit = on.has(c)
         const last = w.respondioPor === c
         const label = `${CHANNEL_LABEL[c]}: ${lit ? 'activo' : 'sin activar'}${last ? ` · respondió por aquí${w.respondioAt ? ` el ${fmtDate(w.respondioAt)}` : ''}` : ''}`
         return (
-          <span key={c} role="listitem" className={`chan${lit ? ' is-on' : ''}${last ? ' is-last' : ''}`} title={label} aria-label={label}>
-            <Ico name={c} size={14} />
+          <span key={c} role="listitem" className={`bn-chan${lit ? ' is-on' : ''}${last ? ' is-last' : ''}`} title={label} aria-label={label}>
+            <Ico name={c} size={13} />
           </span>
         )
       })}
@@ -139,95 +158,251 @@ function Channels({ w }) {
   )
 }
 
-function AddWorker({ orgId, roles, onAdded }) {
-  const [f, setF] = useState({ nombre: '', celular: '', roleId: '' })
+const STAMP = { pendiente: 'Sin aceptar', baja: 'Se dio de baja', baja_org: 'Salió' }
+
+function Card({ w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, onFav, favBusy, onReinvite, reinviteBusy, onSaved }) {
+  const gone = GONE.includes(w.estado)
+  const cls = `bn-card is-${w.estado}${gone ? ' is-gone' : ''}${isOpen ? ' is-open' : ''}${flash ? ' is-flash' : ''}${w.favorito ? ' is-fav' : ''}`
+  const rn = roleName(roles, w.roleId)
+  return (
+    <li className={cls} style={{ '--d': `${Math.min(i, 12) * 0.04}s`, '--tilt': `${((i * 7) % 5) - 2}` }}>
+      <span className="bn-card__tab">{rn}</span>
+      <div className="bn-card__paper">
+        <button type="button" className={`bn-pin${w.favorito ? ' is-on' : ''}`} aria-pressed={w.favorito} disabled={favBusy}
+          aria-label={w.favorito ? `Quitar a ${w.nombre} de favoritas` : `Marcar a ${w.nombre} como favorita`}
+          title={w.favorito ? 'Favorita · toca para quitar' : 'Marcar favorita'} onClick={onFav}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle className="bn-pin__head" cx="12" cy="9" r="6" /><path className="bn-pin__needle" d="M12 15v6" /></svg>
+        </button>
+        {isOpen
+          ? <Editor w={w} roleList={roleList} orgId={orgId} onClose={onClose} onSaved={onSaved} />
+          : (
+            <button type="button" className="bn-face" aria-expanded="false" onClick={onOpen}
+              aria-label={`${w.nombre}, ${rn}, ${STAMP[w.estado] ?? 'activa'}. Abrir tarjeta`}>
+              <strong className="bn-name">{w.nombre}</strong>
+              <span className="bn-phone">{w.celular}</span>
+              <span className="bn-face__foot">
+                <Lights w={w} />
+                <span className="bn-since">desde {fmtDate(w.createdAt)}</span>
+              </span>
+            </button>
+          )}
+        {STAMP[w.estado] && !isOpen && <span className={`bn-stamp${gone ? ' is-gone' : ''}`} aria-hidden="true">{STAMP[w.estado]}</span>}
+        {gone && !isOpen && (
+          <button type="button" className="bn-reinvite" disabled={reinviteBusy} aria-busy={reinviteBusy || undefined} onClick={onReinvite}>
+            <Ico name="send" size={13} />{reinviteBusy ? 'Enviando' : 'Reinvitar'}
+          </button>
+        )}
+        <span className="bn-saved" aria-hidden="true"><Ico name="check" size={12} />Listo</span>
+      </div>
+    </li>
+  )
+}
+
+function Editor({ w, roleList, orgId, onClose, onSaved }) {
+  const [nombre, setNombre] = useState(w.nombre)
+  const [roleId, setRoleId] = useState(w.roleId)
+  const ref = useRef(null)
+  useEffect(() => { ref.current?.focus() }, [])
+  const body = {}
+  if (nombre.trim() !== w.nombre && nombre.trim().length >= 2) body.nombre = nombre.trim()
+  if (roleId !== w.roleId) body.roleId = roleId
+  const dirty = Object.keys(body).length > 0
+  const save = useMutation({ mutationFn: () => api(`/orgs/${orgId}/workers/${w.id}`, { method: 'PATCH', body }), onSuccess: () => { onSaved(); onClose() } })
+
+  return (
+    <div className="bn-edit" role="group" aria-label={`Tarjeta de ${w.nombre}`} tabIndex={-1} ref={ref}
+      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }}>
+      <input className="bn-name-in" aria-label="Nombre" value={nombre} minLength={2} maxLength={120} onChange={(e) => setNombre(e.target.value)} />
+      <div className="bn-edit__row">
+        <span className="bn-phone">{w.celular}</span>
+        <Lights w={w} />
+      </div>
+      <label className="bn-line">
+        <span>Rol</span>
+        <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
+          {!roleList.some((r) => r.id === w.roleId) && <option value={w.roleId}>Rol no habilitado</option>}
+          {roleList.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+        </select>
+      </label>
+      <Docs orgId={orgId} workerId={w.id} />
+      {save.error && <p className="bn-err" role="alert">{errorText(save.error)}</p>}
+      <div className="bn-edit__foot">
+        <span>desde {fmtDate(w.createdAt)}</span>
+        <Btn size="sm" variant="ghost" onClick={onClose}>Cerrar</Btn>
+        <Btn size="sm" variant="primary" loading={save.isPending} disabled={!dirty} onClick={() => save.mutate()}>Guardar</Btn>
+      </div>
+    </div>
+  )
+}
+
+// Documentos como papelitos grapados a la tarjeta; se aprueban o rechazan con un sello.
+function Docs({ orgId, workerId }) {
+  const qc = useQueryClient()
+  const key = orgKey(orgId, 'workers', 'docs', workerId)
+  const q = useQuery({ queryKey: key, queryFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`) })
+  const refresh = () => qc.invalidateQueries({ queryKey: key })
+  const review = useMutation({ mutationFn: ({ id, estado }) => api(`/orgs/${orgId}/documents/${id}`, { method: 'PATCH', body: { estado } }), onSuccess: refresh })
+  const [f, setF] = useState({ tipo: '', vence: '' })
+  const tipo = f.tipo.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60)
+  const add = useMutation({
+    mutationFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`, { method: 'POST', body: { tipoDocumento: tipo, venceAt: f.vence || null } }),
+    onSuccess: () => { setF({ tipo: '', vence: '' }); refresh() },
+  })
+
+  return (
+    <div className="bn-docs">
+      {q.isPending ? <div className="bn-slip is-skel" /> : q.isError ? <p className="bn-err">{errorText(q.error)}</p> : (
+        q.data.documents.length === 0
+          ? <p className="bn-docs__none">Sin documentos</p>
+          : (
+            <ul className="bn-slips">
+              {q.data.documents.map((d, j) => {
+                const name = d.tipoDocumento.replace(/_/g, ' ')
+                const busy = review.isPending && review.variables?.id === d.id
+                return (
+                  <li key={d.id} className={`bn-slip is-${d.estado}`} style={{ '--j': j }}>
+                    <span className="bn-slip__staple" aria-hidden="true" />
+                    <span className="bn-slip__name">{name}</span>
+                    <span className="bn-slip__when">{d.venceAt ? `vence ${fmtDate(d.venceAt)}` : 'sin vencimiento'}</span>
+                    {d.estado !== 'pendiente' && (
+                      <span key={d.estado} className="bn-seal" aria-label={d.estado === 'aprobado' ? 'Aprobado' : 'Rechazado'}>
+                        <Ico name={d.estado === 'aprobado' ? 'check' : 'x'} size={12} />{d.estado === 'aprobado' ? 'Aprobado' : 'Rechazado'}
+                      </span>
+                    )}
+                    <span className="bn-slip__acts">
+                      <button type="button" className="bn-sealbtn is-ok" disabled={busy || d.estado === 'aprobado'} aria-label={`Aprobar ${name}`} title="Aprobar" onClick={() => review.mutate({ id: d.id, estado: 'aprobado' })}><Ico name="check" size={14} /></button>
+                      <button type="button" className="bn-sealbtn is-bad" disabled={busy || d.estado === 'rechazado'} aria-label={`Rechazar ${name}`} title="Rechazar" onClick={() => review.mutate({ id: d.id, estado: 'rechazado' })}><Ico name="x" size={14} /></button>
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )
+      )}
+      <form className="bn-slip is-new" onSubmit={(e) => { e.preventDefault(); if (tipo) add.mutate() }}>
+        <Ico name="doc" size={14} />
+        <input aria-label="Tipo de documento" placeholder="Agregar documento" maxLength={60} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })} />
+        <input type="date" aria-label="Vence (opcional)" title="Vence (opcional)" value={f.vence} onChange={(e) => setF({ ...f, vence: e.target.value })} />
+        <button type="submit" className="bn-slip__go" disabled={!tipo || add.isPending} aria-busy={add.isPending || undefined}>Grapar</button>
+      </form>
+      {(review.error || add.error) && <p className="bn-err" role="alert">{errorText(review.error || add.error)}</p>}
+    </div>
+  )
+}
+
+// Tarjeta en blanco al final del fichero: se llena sobre ella y entra como pendiente.
+function NewCard({ orgId, roleList, i, onCreated }) {
+  const [on, setOn] = useState(false)
+  const empty = { nombre: '', celular: '', roleId: '' }
+  const [f, setF] = useState(empty)
   const add = useMutation({
     mutationFn: () => api(`/orgs/${orgId}/workers`, { method: 'POST', body: { ...f, nombre: f.nombre.trim() } }),
-    onSuccess: () => { setF({ nombre: '', celular: '', roleId: '' }); onAdded() },
+    onSuccess: (r) => { setF(empty); setOn(false); onCreated(r.id) },
   })
+  const cancel = () => { setOn(false); setF(empty); add.reset() }
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
+  const ok = f.nombre.trim().length >= 2 && f.celular.trim() && f.roleId
+
   return (
-    <Card title="Agregar a la banca">
-      <form className="formgrid" onSubmit={(e) => { e.preventDefault(); add.mutate() }}>
-        <Field wide label="Nombre" required minLength={2} value={f.nombre} onChange={set('nombre')} />
-        <Field label="Celular" type="tel" placeholder="300 123 4567" required value={f.celular} onChange={set('celular')} />
-        <Field label="Rol" as="select" required value={f.roleId} onChange={set('roleId')}>
-          <option value="">Elige</option>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-        </Field>
-        <div className="field--wide stack">
-          <FormError error={add.error} />
-          <Btn type="submit" variant="primary" loading={add.isPending}>Agregar como pendiente</Btn>
-        </div>
-      </form>
-    </Card>
+    <li className={`bn-card is-blank${on ? ' is-open is-typing' : ''}`} style={{ '--d': `${Math.min(i, 12) * 0.04}s`, '--tilt': '0' }}>
+      <span className="bn-card__tab">Nueva</span>
+      <div className="bn-card__paper">
+        {on ? (
+          <form className="bn-edit" onSubmit={(e) => { e.preventDefault(); if (ok) add.mutate() }} onKeyDown={(e) => { if (e.key === 'Escape') cancel() }} aria-busy={add.isPending || undefined}>
+            <input className="bn-name-in" autoFocus aria-label="Nombre" placeholder="Nombre" required minLength={2} maxLength={120} value={f.nombre} onChange={set('nombre')} />
+            <label className="bn-line"><span>Celular</span><input type="tel" inputMode="tel" placeholder="300 123 4567" required maxLength={30} value={f.celular} onChange={set('celular')} /></label>
+            <label className="bn-line">
+              <span>Rol</span>
+              <select required value={f.roleId} onChange={set('roleId')}>
+                <option value="">Elige</option>
+                {roleList.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+              </select>
+            </label>
+            {add.error && <p className="bn-err" role="alert">{errorText(add.error)}</p>}
+            <div className="bn-edit__foot">
+              <span>Queda sin aceptar</span>
+              <Btn size="sm" variant="ghost" onClick={cancel}>Cancelar</Btn>
+              <Btn size="sm" variant="primary" type="submit" loading={add.isPending} disabled={!ok}>Agregar</Btn>
+            </div>
+          </form>
+        ) : (
+          <button type="button" className="bn-face bn-face--blank" onClick={() => setOn(true)}>
+            <span className="bn-plus" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" /></svg></span>
+            <strong className="bn-name">Agregar persona</strong>
+          </button>
+        )}
+      </div>
+    </li>
   )
 }
 
-// Código de ALTA, enlace de WhatsApp y QR para que la persona se una.
-function Invite({ orgId }) {
+// Afiche pegado en la placa: dos caminos de alta con el mismo peso (WhatsApp y Telegram), cada uno con su QR.
+const PATHS = {
+  whatsapp: { url: 'whatsappUrl', steps: [['qr', 'Escanea'], ['whatsapp', 'Envía el mensaje']], off: 'Número de WhatsApp sin configurar', qr: 'QR que abre WhatsApp con el mensaje de alta' },
+  telegram: { url: 'telegramUrl', steps: [['qr', 'Escanea'], ['telegram', 'Toca «Iniciar»'], ['phone', 'Comparte tu celular']], off: 'Bot de Telegram sin conectar', qr: 'QR que abre el bot de Telegram con el código de alta' },
+}
+
+function Poster({ orgId }) {
   const q = useQuery({ queryKey: orgKey(orgId, 'invitacion'), queryFn: () => api(`/orgs/${orgId}/invitacion`) })
   const ref = useRef(null)
-  const link = q.data?.whatsappUrl
-  useEffect(() => { if (ref.current && link) QRCode.toCanvas(ref.current, link, { width: 168, margin: 0 }) }, [link])
-  return (
-    <Card title="Invitar con QR">
-      <Async skeleton="card" q={q}>
-        {(d) => (
-          <div className="stack">
-            {link ? (
-              <div className="row" style={{ alignItems: 'flex-start', gap: 20 }}>
-                <div className="access__qr"><canvas ref={ref} role="img" aria-label="QR para abrir WhatsApp con el mensaje de alta" /></div>
-                <div className="stack">
-                  <p className="muted small">La persona escanea, WhatsApp abre con el mensaje listo y solo lo envía.</p>
-                  <a className="btn btn--sm" href={link} target="_blank" rel="noreferrer">Abrir enlace</a>
-                </div>
-              </div>
-            ) : <p className="notice notice--warn">El número público de WhatsApp aún no está configurado: comparte el mensaje de abajo.</p>}
-            <p className="small muted">Mensaje de alta</p>
-            <p className="access__code">{d.texto}</p>
-            <Btn size="sm" onClick={() => navigator.clipboard?.writeText(d.texto)}>Copiar mensaje</Btn>
-          </div>
-        )}
-      </Async>
-    </Card>
-  )
-}
+  const [pick, setPick] = useState(null)
+  const d = q.data
+  const via = pick ?? (d && !d.whatsappUrl && d.telegramUrl ? 'telegram' : 'whatsapp')
+  const path = PATHS[via]
+  const link = d?.[path.url]
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    if (!ref.current || !link) return
+    // El QR toma la tinta del papel desde el tema; el fondo queda transparente sobre el afiche.
+    const css = getComputedStyle(document.documentElement)
+    const dark = css.getPropertyValue('--on-paper').trim() || 'black'
+    const light = css.getPropertyValue('--paper').trim() || 'white'
+    QRCode.toCanvas(ref.current, link, { width: 156, margin: 0, color: { dark, light } })
+  }, [link])
+  useEffect(() => {
+    if (!copied) return
+    const t = setTimeout(() => setCopied(false), 1800)
+    return () => clearTimeout(t)
+  }, [copied])
+  const copy = async (text) => { try { await navigator.clipboard.writeText(text); setCopied(true) } catch { /* sin portapapeles */ } }
+  const copyText = via === 'whatsapp' ? d?.texto : link
 
-function Documents({ orgId, workerId }) {
-  const qc = useQueryClient()
-  const q = useQuery({ queryKey: orgKey(orgId, 'workers', 'docs', workerId), queryFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`) })
-  const refresh = () => qc.invalidateQueries({ queryKey: orgKey(orgId, 'workers', 'docs', workerId) })
-  const review = useMutation({ mutationFn: ({ id, estado }) => api(`/orgs/${orgId}/documents/${id}`, { method: 'PATCH', body: { estado } }), onSuccess: refresh })
-  const [f, setF] = useState({ tipoDocumento: '', venceAt: '' })
-  const add = useMutation({
-    mutationFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`, {
-      method: 'POST', body: { tipoDocumento: f.tipoDocumento.trim().toLowerCase().replace(/\s+/g, '_'), venceAt: f.venceAt || null },
-    }),
-    onSuccess: () => { setF({ tipoDocumento: '', venceAt: '' }); refresh() },
-  })
   return (
-    <div className="stack" style={{ padding: '8px 0 16px' }}>
-      <Async skeleton="text" q={q}>
-        {({ documents }) => documents.length === 0 ? <p className="muted small">Sin documentos registrados.</p> : (
-          <ul className="plain">
-            {documents.map((d) => (
-              <li key={d.id} className="row row--between">
-                <span>{d.tipoDocumento.replace(/_/g, ' ')} <span className="muted small">{d.venceAt ? `vence ${fmtDate(d.venceAt)}` : 'sin vencimiento'}</span> <Badge value={d.estado} /></span>
-                <span className="row">
-                  <Btn size="sm" onClick={() => review.mutate({ id: d.id, estado: 'aprobado' })}>Aprobar</Btn>
-                  <Btn size="sm" variant="ghost" onClick={() => review.mutate({ id: d.id, estado: 'rechazado' })}>Rechazar</Btn>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Async>
-      <form className="row" onSubmit={(e) => { e.preventDefault(); add.mutate() }}>
-        <Field label="Tipo de documento" placeholder="carnet_manipulacion" required pattern="[A-Za-z0-9_ ]+" value={f.tipoDocumento} onChange={(e) => setF({ ...f, tipoDocumento: e.target.value })} />
-        <Field label="Vence" hint="(opcional)" type="date" value={f.venceAt} onChange={(e) => setF({ ...f, venceAt: e.target.value })} />
-        <Btn type="submit" size="sm" loading={add.isPending} style={{ alignSelf: 'flex-end' }}>Registrar</Btn>
-      </form>
-      <FormError error={review.error ?? add.error} />
-    </div>
+    <aside className="bn-poster" aria-label="Invitar con QR">
+      <span className="bn-tape bn-tape--l" aria-hidden="true" />
+      <span className="bn-tape bn-tape--r" aria-hidden="true" />
+      <h2>Únete a la banca</h2>
+      <div className="bn-via" role="tablist" aria-label="Canal de alta">
+        {Object.keys(PATHS).map((c) => {
+          const off = d && !d[PATHS[c].url]
+          return (
+            <button key={c} type="button" role="tab" aria-selected={via === c} className={`bn-via__tab${via === c ? ' is-on' : ''}${off ? ' is-off' : ''}`}
+              onClick={() => { setPick(c); setCopied(false) }}>
+              <Ico name={c} size={14} />{CHANNEL_LABEL[c]}
+            </button>
+          )
+        })}
+      </div>
+      {q.isPending ? <div className="bn-poster__qr is-skel" /> : q.isError ? <p className="bn-err">{errorText(q.error)}</p> : (
+        <div className="bn-via__panel" role="tabpanel" key={via}>
+          {link
+            ? <div className="bn-poster__qr"><canvas ref={ref} role="img" aria-label={path.qr} /></div>
+            : <div className="bn-poster__qr is-off"><Ico name={via} size={30} /><span>{path.off}</span></div>}
+          <ol className="bn-poster__steps">
+            {path.steps.map(([i, t]) => <li key={t}><Ico name={i} size={13} />{t}</li>)}
+          </ol>
+          {via === 'whatsapp' && <code className="bn-poster__code">{d.texto}</code>}
+          <div className="bn-poster__acts">
+            {copyText && (
+              <button type="button" className={`bn-poster__btn${copied ? ' is-done' : ''}`} onClick={() => copy(copyText)}>
+                <Ico name={copied ? 'check' : 'doc'} size={13} />{copied ? 'Copiado' : via === 'whatsapp' ? 'Copiar mensaje' : 'Copiar enlace'}
+              </button>
+            )}
+            {link && <a className="bn-poster__btn" href={link} target="_blank" rel="noreferrer"><Ico name="send" size={13} />Abrir {CHANNEL_LABEL[via]}</a>}
+          </div>
+          <span className="sr-only" role="status">{copied ? (via === 'whatsapp' ? 'Mensaje copiado' : 'Enlace copiado') : ''}</span>
+        </div>
+      )}
+    </aside>
   )
 }

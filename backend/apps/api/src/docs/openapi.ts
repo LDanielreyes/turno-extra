@@ -91,13 +91,21 @@ add('get', '/terms/current', { tag: P, summary: 'Términos vigentes', params: [{
 add('get', '/me/notification-prefs', { tag: P, summary: 'Mis preferencias de aviso por evento' });
 add('put', '/me/notification-prefs', {
   tag: P, summary: 'Guardar preferencias de aviso',
-  body: obj({ prefs: { type: 'array', items: obj({ evento: str('turno_vencido', { enum: ['cancelacion_asistencia', 'baja_con_turnos', 'turno_vencido', 'disputa_abierta'] }), panel: bool(true), email: bool(true), whatsapp: bool(false) }) } }),
-  note: 'whatsapp=true exige tener el WhatsApp verificado (409 whatsapp_not_verified).',
+  body: obj({ prefs: { type: 'array', items: obj({ evento: str('turno_vencido', { enum: ['cancelacion_asistencia', 'baja_con_turnos', 'turno_vencido', 'disputa_abierta'] }), panel: bool(true), email: bool(true), whatsapp: bool(false), telegram: bool(false) }) } }),
+  note: 'whatsapp=true exige tener el WhatsApp verificado (409 whatsapp_not_verified); telegram=true exige Telegram vinculado (409 telegram_not_linked). telegram es opcional: si falta se conserva el valor guardado.',
 });
 add('get', '/me/notification-whatsapp', { tag: P, summary: 'Estado de mi WhatsApp para avisos urgentes' });
 add('put', '/me/notification-whatsapp', { tag: P, summary: 'Registrar mi WhatsApp y recibir un código', status: 202, body: obj({ celular: str('300 123 4567'), consentimiento: bool(true) }) });
 add('post', '/me/notification-whatsapp/verify', { tag: P, summary: 'Verificar el código recibido', body: obj({ codigo: str('123456', { pattern: '^\\d{6}$' }) }) });
 add('delete', '/me/notification-whatsapp', { tag: P, summary: 'Retirar mi consentimiento y borrar el número' });
+const tgState = obj({ disponible: bool(true), vinculado: bool(false), vinculadoAt: str('2026-11-18T12:00:00.000Z', { nullable: true }) });
+add('get', '/me/notification-telegram', { tag: P, summary: 'Estado de mi Telegram para avisos', res: tgState });
+add('post', '/me/notification-telegram', {
+  tag: P, summary: 'Enlace de un solo uso para vincular mi Telegram',
+  res: obj({ url: str('https://t.me/turnoextra_bot?start=G-1A2B3C4D5E6F'), expiresAt: str('2026-11-18T12:15:00.000Z') }),
+  note: 'Abrir el enlace en Telegram y tocar «Iniciar» vincula ese chat. Vence a los 15 minutos. 409 telegram_off si el bot no está configurado.',
+});
+add('delete', '/me/notification-telegram', { tag: P, summary: 'Desvincular mi Telegram y apagar sus avisos', res: tgState });
 
 // --- Empresa ------------------------------------------------------------------------------------
 const E = 'Empresa · términos, equipo y roles';
@@ -105,7 +113,7 @@ add('get', '/orgs/{orgId}/terms/status', { tag: E, who: 'gerente', summary: '¿A
 add('post', '/orgs/{orgId}/terms/accept', { tag: E, who: 'gerente', summary: 'Aceptar los términos vigentes', params: [orgId], body: obj({ termsVersionId: uuidS() }) });
 add('get', '/orgs/{orgId}/team', { tag: E, who: 'gerente', summary: 'Gerentes e invitaciones pendientes', params: [orgId] });
 add('get', '/orgs/{orgId}/roles', { tag: E, who: 'gerente', summary: 'Roles habilitados y sus requisitos', params: [orgId] });
-add('get', '/orgs/{orgId}/invitacion', { tag: E, who: 'gerente', summary: 'Código y enlace de WhatsApp para dar de alta a la banca', params: [orgId] });
+add('get', '/orgs/{orgId}/invitacion', { tag: E, who: 'gerente', summary: 'Código y enlaces de WhatsApp y Telegram para dar de alta a la banca', params: [orgId] });
 add('get', '/orgs/{orgId}/settings', { tag: E, who: 'gerente', summary: 'Parámetros de la organización', params: [orgId] });
 add('patch', '/orgs/{orgId}/settings', {
   tag: E, who: 'gerente', summary: 'Cambiar parámetros de la organización', params: [orgId],

@@ -29,7 +29,7 @@ export const alerts = pgTable(
   ],
 );
 
-/** Preferencias de aviso por persona y evento. Panel y correo vienen activos; WhatsApp solo si se pide (y está verificado). */
+/** Preferencias de aviso por persona y evento. Panel y correo vienen activos; WhatsApp y Telegram solo si se piden (y están verificados/vinculados). */
 export const notificationPrefs = pgTable(
   'notification_prefs',
   {
@@ -38,6 +38,7 @@ export const notificationPrefs = pgTable(
     panel: boolean('panel').notNull().default(true),
     email: boolean('email').notNull().default(true),
     whatsapp: boolean('whatsapp').notNull().default(false),
+    telegram: boolean('telegram').notNull().default(false),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.evento] }),
@@ -57,4 +58,16 @@ export const managerContacts = pgTable('manager_contacts', {
   codeHash: text('code_hash'),
   codeExpiresAt: timestamp('code_expires_at', { withTimezone: true }),
   attempts: integer('attempts').notNull().default(0),
+});
+
+/**
+ * Telegram del gerente para alertas. Se vincula abriendo `t.me/<bot>?start=G-<código>` desde su propia cuenta:
+ * el código es de un solo uso, vence a los 15 minutos y solo se guarda su hash.
+ */
+export const managerTelegram = pgTable('manager_telegram', {
+  userId: text('user_id').primaryKey(),
+  chatId: text('chat_id').unique(),
+  linkedAt: timestamp('linked_at', { withTimezone: true }),
+  codeHash: text('code_hash').unique(),
+  codeExpiresAt: timestamp('code_expires_at', { withTimezone: true }),
 });

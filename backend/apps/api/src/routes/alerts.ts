@@ -3,10 +3,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import {
-  ALERT_TYPES, alerts, emit, managerContacts, notificationPrefs, orgWorkers, roles, shifts, withOrg, withSuper,
+  ALERT_TYPES, alerts, emit, managerContacts, managerTelegram, notificationPrefs, orgWorkers, roles, shifts, withOrg, withSuper,
   type DomainEvent, type Db,
 } from '@turnoextra/db';
-import { enqueue } from '@turnoextra/channels';
+import { MANAGER_TG_TTL_MIN, enqueue, managerTelegramCodeHash, newManagerTelegramCode } from '@turnoextra/channels';
 import { normalizeCoPhone } from '@turnoextra/shared';
 import type { Guards } from '../auth/guards.js';
 import type { Realtime } from '../realtime.js';
@@ -30,7 +30,11 @@ const hashCode = (userId: string, code: string) => createHash('sha256').update(`
  * Tiempo real (SSE), alertas del gerente, preferencias de aviso y WhatsApp del gerente para alertas urgentes.
  * Los eventos SSE llevan solo ids y tipo; el panel vuelve a pedir los datos con su propia sesión.
  */
-export function alertRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards; gate: Gate; realtime?: Realtime; /** Intentos por minuto en las rutas de código por WhatsApp (5 por defecto). */ codeRateMax?: number }) {
+export function alertRoutes(app: FastifyInstance, deps: {
+  db: Db; guards: Guards; gate: Gate; realtime?: Realtime;
+  /** Usuario del bot de Telegram (sin @); sin él no se puede vincular Telegram. */ telegramBot?: string;
+  /** Intentos por minuto en las rutas de código por WhatsApp y Telegram (5 por defecto). */ codeRateMax?: number;
+}) {
   const { db, guards, gate, realtime } = deps;
   const pre = [guards.requireOrgAdmin, gate];
   const org = (req: FastifyRequest) => (req.params as { orgId: string }).orgId;
@@ -147,7 +151,7 @@ export function alertRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
       const rows = await tx.select().from(notificationPrefs).where(eq(notificationPrefs.userId, userId));
       return ALERT_TYPES.map((evento) => {
         const p = rows.find((r) => r.evento === evento);
-        return { evento, panel: p?.panel ?? true, email: p?.email ?? true, whatsapp: p?.whatsapp ?? false };
+        return { evento, panel: p?.panel ?? true, email: p?.email ?? true, whatsapp: p?.whatsapp ?? false, telegram: p?.telegram ?? false };
       });
     });
 
@@ -155,22 +159,39 @@ export function alertRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
 
   app.put('/me/notification-prefs', { preHandler: guards.requireUser }, async (req, reply) => {
     const b = z
-      .object({ prefs: z.array(z.object({ evento: eventoSchema, panel: z.boolean(), email: z.boolean(), whatsapp: z.boolean() })).min(1).max(ALERT_TYPES.length) })
+      .object({
+        prefs: z
+          // `telegram` es opcional: un cliente que no lo conoce conserva el valor guardado.
+          .array(z.object({ evento: eventoSchema, panel: z.boolean(), email: z.boolean(), whatsapp: z.boolean(), telegram: z.boolean().optional() }))
+          .min(1)
+          .max(ALERT_TYPES.length),
+      })
       .parse(req.body);
     const userId = req.user!.id;
+    const current = await prefsOf(userId);
+    const prefs = b.prefs.map((p) => ({ ...p, telegram: p.telegram ?? current.find((c) => c.evento === p.evento)?.telegram ?? false }));
     const bad = await withSuper(db, async (tx) => {
       // WhatsApp solo con número verificado y consentimiento: sin eso no se puede activar.
-      if (b.prefs.some((p) => p.whatsapp)) {
+      if (prefs.some((p) => p.whatsapp)) {
         const [c] = await tx.select({ v: managerContacts.verifiedAt }).from(managerContacts).where(eq(managerContacts.userId, userId));
-        if (!c?.v) return true;
+        if (!c?.v) return 'whatsapp' as const;
       }
-      for (const p of b.prefs) {
+      // Telegram solo con un chat vinculado desde la propia cuenta del gerente.
+      if (prefs.some((p) => p.telegram)) {
+        const [t] = await tx.select({ chat: managerTelegram.chatId }).from(managerTelegram).where(eq(managerTelegram.userId, userId));
+        if (!t?.chat) return 'telegram' as const;
+      }
+      for (const p of prefs) {
         await tx.insert(notificationPrefs).values({ userId, ...p })
-          .onConflictDoUpdate({ target: [notificationPrefs.userId, notificationPrefs.evento], set: { panel: p.panel, email: p.email, whatsapp: p.whatsapp } });
+          .onConflictDoUpdate({
+            target: [notificationPrefs.userId, notificationPrefs.evento],
+            set: { panel: p.panel, email: p.email, whatsapp: p.whatsapp, telegram: p.telegram },
+          });
       }
-      return false;
+      return null;
     });
-    if (bad) return reply.status(409).send({ error: 'whatsapp_not_verified', message: 'Verifica tu WhatsApp antes de activar los avisos por ese canal' });
+    if (bad === 'whatsapp') return reply.status(409).send({ error: 'whatsapp_not_verified', message: 'Verifica tu WhatsApp antes de activar los avisos por ese canal' });
+    if (bad === 'telegram') return reply.status(409).send({ error: 'telegram_not_linked', message: 'Vincula tu Telegram antes de activar los avisos por ese canal' });
     return { prefs: await prefsOf(userId) };
   });
 
@@ -217,6 +238,37 @@ export function alertRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
       await tx.update(managerContacts).set({ verifiedAt: sql`now()`, codeHash: null, codeExpiresAt: null, attempts: 0 }).where(eq(managerContacts.userId, userId));
       return { configurado: true, verificado: true, celular: maskPhone(c.celular) };
     });
+  });
+
+  // --- Telegram del gerente ------------------------------------------------------------------------
+  // Se vincula abriendo t.me/<bot>?start=G-<código> desde su propia cuenta (el bot recibe el /start y guarda el chat).
+  const tgState = async (userId: string) => {
+    const [t] = await withSuper(db, (tx) => tx.select().from(managerTelegram).where(eq(managerTelegram.userId, userId)));
+    return { disponible: !!deps.telegramBot, vinculado: !!t?.chatId, vinculadoAt: t?.linkedAt ? t.linkedAt.toISOString() : null };
+  };
+
+  app.get('/me/notification-telegram', me, async (req) => tgState(req.user!.id));
+
+  app.post('/me/notification-telegram', { ...me, ...strict }, async (req, reply) => {
+    if (!deps.telegramBot) return reply.status(409).send({ error: 'telegram_off', message: 'Telegram no está disponible por ahora' });
+    const userId = req.user!.id;
+    const code = newManagerTelegramCode();
+    const expiresAt = new Date(Date.now() + MANAGER_TG_TTL_MIN * 60_000);
+    await withSuper(db, async (tx) => {
+      const row = { codeHash: managerTelegramCodeHash(code), codeExpiresAt: expiresAt };
+      await tx.insert(managerTelegram).values({ userId, ...row }).onConflictDoUpdate({ target: managerTelegram.userId, set: row });
+    });
+    return { url: `https://t.me/${deps.telegramBot}?start=G-${code}`, expiresAt: expiresAt.toISOString() };
+  });
+
+  // Desvincular: se olvida el chat y se apagan los avisos por Telegram.
+  app.delete('/me/notification-telegram', me, async (req) => {
+    const userId = req.user!.id;
+    await withSuper(db, async (tx) => {
+      await tx.delete(managerTelegram).where(eq(managerTelegram.userId, userId));
+      await tx.update(notificationPrefs).set({ telegram: false }).where(eq(notificationPrefs.userId, userId));
+    });
+    return tgState(userId);
   });
 
   // Retirar el consentimiento: se borra el número y se apagan los avisos por WhatsApp.

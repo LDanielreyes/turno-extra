@@ -10,7 +10,7 @@ import { currentTerms, makeTermsGate } from '../auth/terms-gate.js';
 
 const uuid = z.string().uuid();
 
-export function orgRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards }) {
+export function orgRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards; /** Usuario del bot (sin @); sin él no hay QR de Telegram. */ telegramBot?: string }) {
   const { db, guards } = deps;
 
   const validOrg = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -107,6 +107,8 @@ export function orgRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards }
         codigo: o!.code,
         texto: `ALTA ${o!.code}`,
         whatsappUrl: num ? `https://wa.me/${num}?text=${encodeURIComponent(`ALTA ${o!.code}`)}` : null,
+        // Alta directa por Telegram: el bot pide el celular de la cuenta y sigue el mismo flujo que por WhatsApp.
+        telegramUrl: deps.telegramBot ? `https://t.me/${deps.telegramBot}?start=ALTA-${o!.code}` : null,
       };
     });
   });

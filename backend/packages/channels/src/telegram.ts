@@ -12,7 +12,7 @@ export class TelegramChannel implements Channel {
     const body = {
       chat_id: to,
       text: msg.text,
-      ...(msg.buttons?.length ? { reply_markup: { inline_keyboard: [msg.buttons.map((b) => ({ text: b.title, callback_data: b.id }))] } } : {}),
+      ...(replyMarkup(msg) ? { reply_markup: replyMarkup(msg) } : {}),
     };
     let res: Response;
     try {
@@ -36,6 +36,14 @@ export class TelegramChannel implements Channel {
   }
 }
 
+/** Telegram admite un solo teclado por mensaje: botones en línea, pedir contacto o quitar el teclado. */
+function replyMarkup(msg: OutMessage) {
+  if (msg.buttons?.length) return { inline_keyboard: [msg.buttons.map((b) => ({ text: b.title, callback_data: b.id }))] };
+  if (msg.requestContact) return { keyboard: [[{ text: msg.requestContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true };
+  if (msg.removeKeyboard) return { remove_keyboard: true };
+  return undefined;
+}
+
 /** Telegram manda el secreto del webhook en `X-Telegram-Bot-Api-Secret-Token`; se compara en tiempo constante. */
 export function verifyTelegramSecret(header: string | undefined, secret: string): boolean {
   if (!header) return false;
@@ -46,7 +54,12 @@ export function verifyTelegramSecret(header: string | undefined, secret: string)
 
 type TgUpdate = {
   update_id?: number;
-  message?: { chat?: { id?: number; type?: string }; text?: string };
+  message?: {
+    chat?: { id?: number; type?: string };
+    from?: { id?: number };
+    text?: string;
+    contact?: { phone_number?: string; user_id?: number };
+  };
   callback_query?: { id?: string; data?: string; message?: { chat?: { id?: number; type?: string } } };
 };
 
@@ -59,6 +72,12 @@ export function parseTelegramUpdate(payload: unknown): InboundEvent[] {
     return [{ canal: 'telegram', externalId, from: String(u.callback_query.message.chat.id), buttonId: u.callback_query.data }];
   }
   if (u.message?.chat?.type === 'private' && u.message.chat.id !== undefined) {
+    const c = u.message.contact;
+    if (c?.phone_number) {
+      // Solo cuenta como propio si el contacto es el de quien escribe (no una tarjeta reenviada de otra persona).
+      const own = c.user_id !== undefined && u.message.from?.id !== undefined && c.user_id === u.message.from.id;
+      return [{ canal: 'telegram', externalId, from: String(u.message.chat.id), contact: { phone: c.phone_number, own } }];
+    }
     return [{ canal: 'telegram', externalId, from: String(u.message.chat.id), text: u.message.text ?? '' }];
   }
   return [];

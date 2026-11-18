@@ -1,0 +1,165 @@
+/* Reportes (Reportes.jsx): calendario de pared + impresora. La hoja impresa trae las filas reales del CSV. */
+
+.rp {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; padding: clamp(22px, 3vw, 36px) clamp(16px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted); background: var(--ink);
+}
+.rp::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 40%);
+}
+.rp::after {
+  content: ''; position: absolute; z-index: -1; right: -10%; bottom: -30%; width: 70%; aspect-ratio: 1.4;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 11%, transparent), transparent);
+}
+
+.rp__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; }
+.rp__title { display: grid; gap: 14px; }
+.rp h1 { margin: 0; font: 800 clamp(34px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; }
+.rp-key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--color-text-muted); }
+.rp-key li { display: inline-flex; align-items: center; gap: 8px; }
+.rp-k { width: 12px; height: 14px; border-radius: 2px; border: 1.5px solid var(--hair-strong); }
+.rp-k--on { background: var(--paper); border-color: var(--paper); }
+.rp-k--done { border-color: var(--color-accent); }
+.rp__facts { display: flex; flex-wrap: wrap; margin: 0; border-top: 1px solid var(--hair); }
+.rp__facts > div { display: grid; gap: 2px; padding: 12px 22px 0 0; margin-right: 22px; border-right: 1px solid var(--hair); }
+.rp__facts > div:last-child { border-right: 0; margin-right: 0; }
+.rp__facts dt { order: 2; font-size: 12px; color: var(--color-text-muted); }
+.rp__facts dd { margin: 0; font: 700 22px/1.1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.rp__facts dd::first-letter { text-transform: uppercase; }
+
+/* ---------- calendario ---------- */
+.rp > * { min-width: 0; }
+.rp-cal { min-width: 0; display: flex; align-items: end; gap: 16px; padding-top: 20px; border-top: 1px solid var(--hair); }
+.rp-cal__strip {
+  display: flex; gap: 8px; flex: 1; min-width: 0; margin: 0; padding: 8px 2px 10px; list-style: none;
+  overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--hair-strong) transparent; scroll-snap-type: x proximity;
+}
+.rp-cal__strip li { flex: none; scroll-snap-align: end; }
+.rp-page {
+  position: relative; display: grid; justify-items: center; align-content: start; gap: 2px; width: 64px; height: 78px; padding: 14px 0 0;
+  border: 1px solid var(--hair-strong); border-radius: 4px; background: var(--graphite); color: var(--color-text-muted);
+  font: inherit; cursor: pointer; transition: translate 0.2s var(--ease-out), background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.rp-page:hover { color: var(--color-text); border-color: color-mix(in srgb, var(--color-text) 30%, transparent); translate: 0 -2px; }
+.rp-page:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.rp-page__rings { position: absolute; top: -5px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; }
+.rp-page__rings i { width: 4px; height: 11px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 1.5px var(--color-text-muted); }
+.rp-page__m { font: 700 19px/1 var(--font-display); letter-spacing: -0.02em; text-transform: capitalize; }
+.rp-page__y { font: 500 11px var(--font-mono); font-variant-numeric: tabular-nums; opacity: 0.8; }
+.rp-page.is-done { border-color: color-mix(in srgb, var(--ember) 55%, transparent); }
+.rp-page__tick { position: absolute; right: 4px; bottom: 4px; width: 14px; height: 14px; fill: none; stroke: var(--color-accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.rp-page.is-on {
+  background: var(--paper); color: var(--on-paper); border-color: var(--paper-line); translate: 0 -6px;
+  box-shadow: 0 14px 20px -12px var(--shadow-deep);
+}
+.rp-page.is-on .rp-page__rings i { box-shadow: 0 0 0 1.5px var(--on-paper-muted); }
+.rp-page.is-on .rp-page__tick { stroke: var(--ember-deep); }
+.rp-other { display: grid; gap: 6px; flex: none; padding-bottom: 10px; font-size: 12px; color: var(--color-text-muted); }
+.rp-other input {
+  min-height: 36px; padding: 0 10px; border: 1px solid var(--hair-strong); border-radius: 3px; background: var(--color-bg);
+  color: var(--color-text); font: 500 13px var(--font-mono); color-scheme: dark;
+}
+.rp-other input:focus-visible { outline: 0; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--ember-soft); }
+.rp-other.is-on input { border-color: var(--color-accent); }
+
+/* ---------- impresora ---------- */
+.rp-press { display: grid; justify-items: center; gap: 0; }
+.rp-printer { position: relative; z-index: 2; width: min(620px, 100%); }
+.rp-printer__top {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px 22px;
+  border: 1px solid var(--hair-strong); border-bottom: 0; border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, var(--graphite-2), var(--graphite));
+  box-shadow: 0 18px 30px -18px var(--shadow-deep);
+}
+.rp-printer__top .btn { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.rp-ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.rp-led { width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--line); box-shadow: inset 0 0 0 1.5px var(--hair-strong); }
+.rp-led.is-ok { background: var(--ok); box-shadow: none; }
+.rp-led.is-busy { background: var(--color-accent); box-shadow: 0 0 10px var(--ember-glow); animation: rp-blink 0.7s ease-in-out infinite alternate; }
+.rp-led.is-jam { background: var(--color-danger); box-shadow: none; }
+@keyframes rp-blink { to { opacity: 0.35; } }
+.rp-printer__lcd {
+  min-width: 0; padding: 6px 12px; border-radius: 3px; background: var(--ink); border: 1px solid var(--hair);
+  font: 500 13px var(--font-mono); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rp-printer__lcd::first-letter { text-transform: uppercase; }
+.rp-printer__slot {
+  height: 16px; margin: 0 -10px; border-radius: 6px; background: var(--ink);
+  box-shadow: inset 0 3px 6px var(--shadow-deep), 0 0 0 1px var(--hair-strong);
+}
+.rp-printer.is-busy .rp-printer__top { animation: rp-hum 0.18s linear infinite; }
+@keyframes rp-hum { 50% { translate: 0.6px 0; } }
+.rp-printer.is-jam .rp-printer__slot { box-shadow: inset 0 3px 6px var(--shadow-deep), 0 0 0 1px color-mix(in srgb, var(--color-danger) 50%, transparent); }
+
+/* la hoja sale por debajo de la ranura */
+.rp-feed { position: relative; z-index: 1; width: min(580px, calc(100% - 24px)); margin-top: -8px; overflow: hidden; padding: 0 12px 28px; }
+.rp-sheet {
+  position: relative; display: grid; gap: 14px; padding: 26px 22px 18px;
+  background: var(--paper); color: var(--on-paper); border-radius: 0 0 4px 4px;
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 22px 28px -18px var(--shadow-deep);
+}
+.rp-sheet.is-blank { opacity: 0.5; transform-origin: top; clip-path: inset(0 0 72% 0); transition: clip-path 0.5s var(--ease-out), opacity 0.3s; }
+.rp-sheet.is-blank.is-printing { opacity: 0.85; clip-path: inset(0 0 30% 0); transition-duration: 4s; }
+.rp-sheet.is-out { animation: rp-print 1.1s var(--ease-out) backwards; }
+@keyframes rp-print { from { translate: 0 -100%; } }
+.rp-sheet.is-jam { justify-items: center; text-align: center; padding: 30px 22px 22px; animation: rp-jam 0.5s var(--ease-out) backwards; rotate: -1.5deg; }
+@keyframes rp-jam { from { translate: 0 -60%; rotate: 4deg; } }
+.rp-jam { width: 38px; height: 38px; fill: none; stroke: var(--ember-deep); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rp-sheet.is-jam strong { font: 700 17px var(--font-display); }
+.rp-sheet.is-jam p { margin: 0; font-size: 14px; color: var(--on-paper-muted); }
+.rp-sheet.is-jam .btn { color: var(--on-paper); background: transparent; border-color: var(--paper-line); }
+
+.rp-sheet__head { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--on-paper); }
+.rp-sheet__brand { font: 700 11px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-paper-muted); }
+.rp-sheet__head strong { font: 800 22px/1 var(--font-display); letter-spacing: -0.02em; text-transform: capitalize; }
+.rp-sheet__n { font: 500 12px var(--font-mono); color: var(--on-paper-muted); font-variant-numeric: tabular-nums; }
+.rp-sheet__empty { margin: 0; padding: 18px 0 8px; font-size: 14px; color: var(--on-paper-muted); }
+
+.rp-tbl-wrap { overflow-x: auto; margin: 0 -6px; padding: 0 6px; scrollbar-color: var(--paper-line) transparent; }
+.rp-tbl { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rp-tbl th, .rp-tbl td { padding: 6px 6px; text-align: right; white-space: nowrap; }
+.rp-tbl thead th { font-size: 11px; font-weight: 600; color: var(--on-paper-muted); border-bottom: 1px solid var(--paper-line); }
+.rp-tbl abbr { text-decoration: none; cursor: help; }
+.rp-tbl thead th:first-child, .rp-tbl tbody th, .rp-tbl tfoot th { text-align: left; }
+.rp-tbl tbody th { font-weight: 600; }
+.rp-who { display: grid; gap: 1px; max-width: 180px; }
+.rp-who span { overflow: hidden; text-overflow: ellipsis; }
+.rp-who small { font: 400 11px var(--font-mono); color: var(--on-paper-muted); }
+.rp-tbl tbody tr { border-bottom: 1px dashed var(--paper-line); animation: rp-line 0.3s calc(0.6s + var(--r, 0) * 0.08s) var(--ease-out) backwards; }
+@keyframes rp-line { from { opacity: 0; } }
+.rp-tbl td { font-family: var(--font-mono); font-size: 12.5px; }
+.rp-tbl td.is-zero { color: color-mix(in srgb, var(--on-paper-muted) 60%, transparent); }
+.rp-tbl td.is-warn { color: var(--ember-deep); font-weight: 700; }
+.rp-tbl tfoot tr { border-top: 2px solid var(--on-paper); }
+.rp-tbl tfoot th, .rp-tbl tfoot td { padding-top: 8px; font-weight: 700; }
+.rp-tbl__more th { padding: 8px 6px; font: 500 12px var(--font-body) !important; color: var(--on-paper-muted); }
+.rp-bar { display: block; height: 7px; border-radius: 4px; background: var(--paper-2); }
+.rp-bar--n { width: 18px; margin-left: auto; }
+.rp-sheet.is-printing .rp-bar { animation: rp-blink 0.6s ease-in-out infinite alternate; }
+
+.rp-sheet__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-top: 10px; border-top: 1px dashed var(--paper-line); }
+.rp-stamp {
+  padding: 3px 9px; border: 2px solid var(--ember-deep); border-radius: 3px; rotate: -6deg;
+  font: 800 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember-deep);
+  animation: rp-stamp 0.45s 1s var(--ease-drop) backwards;
+}
+@keyframes rp-stamp { from { scale: 1.8; opacity: 0; } }
+.rp-file { font: 500 12px var(--font-mono); color: var(--on-paper-muted); overflow-wrap: anywhere; }
+.rp-again { margin-left: auto; padding: 0; border: 0; background: none; font: 600 13px var(--font-body); color: var(--on-paper); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--paper-line); }
+.rp-again:hover { text-decoration-color: currentColor; }
+.rp-again:focus-visible { outline: 2px solid var(--ember-deep); outline-offset: 2px; }
+.rp-sheet ::selection { background: var(--ember); color: var(--on-ember); }
+
+@media (max-width: 640px) {
+  .rp-cal { flex-direction: column; align-items: stretch; }
+  .rp-printer__top { flex-wrap: wrap; }
+  .rp-printer__top .btn { width: 100%; justify-content: center; margin-left: 0; }
+  .rp-sheet { padding: 22px 14px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-sheet.is-out, .rp-sheet.is-jam, .rp-tbl tbody tr, .rp-stamp, .rp-led.is-busy, .rp-printer.is-busy .rp-printer__top, .rp-sheet.is-printing .rp-bar { animation: none; }
+  .rp-sheet.is-blank { transition: none; }
+}

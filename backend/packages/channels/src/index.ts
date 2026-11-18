@@ -9,5 +9,6 @@ export * from './eligibility.js';
 export * from './offers.js';
 export * from './alerts.js';
 export * from './telegram.js';
+export * from './manager-telegram.js';
 export * from './email.js';
 export * from './attendance.js';

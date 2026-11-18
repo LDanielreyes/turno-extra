@@ -2,8 +2,8 @@ import type { OutMessage } from './types.js';
 
 /** Textos W1–W19 del documento «Mensajes WhatsApp — para revisar». Borradores a validar con el dueño y un abogado. */
 export const msg = {
-  w1Consent: (org: string, orgId: string, policyUrl: string): OutMessage => ({
-    text: `${org} quiere enviarte ofertas de turnos extra por WhatsApp. Para eso necesitamos tu autorización: tratamos tu nombre y tu celular, y los compartimos con ${org} solo para ofrecerte turnos. Puedes retirarla cuando quieras escribiendo BAJA. Política completa: ${policyUrl}. ¿Aceptas?`,
+  w1Consent: (org: string, orgId: string, policyUrl: string, via = 'WhatsApp'): OutMessage => ({
+    text: `${org} quiere enviarte ofertas de turnos extra por ${via}. Para eso necesitamos tu autorización: tratamos tu nombre y tu celular, y los compartimos con ${org} solo para ofrecerte turnos. Puedes retirarla cuando quieras escribiendo BAJA. Política completa: ${policyUrl}. ¿Aceptas?`,
     buttons: [
       { id: `CONSENT_YES:${orgId}`, title: 'Acepto' },
       { id: `CONSENT_NO:${orgId}`, title: 'No acepto' },
@@ -98,6 +98,34 @@ export const msg = {
     text: 'Ese código venció o no es válido. Escribe TELEGRAM por WhatsApp para pedir uno nuevo.',
   }),
   w21cLinkTaken: (): OutMessage => ({ text: 'Ese canal ya está vinculado a otra cuenta.' }),
+
+  // --- H8: alta directa por Telegram ------------------------------------------------------------
+  w23AskContact: (org: string): OutMessage => ({
+    text: `Para unirte a la lista de ${org} por Telegram, toca «Compartir mi celular». Lo usamos solo para encontrarte en la lista donde te registró la empresa.`,
+    requestContact: 'Compartir mi celular',
+  }),
+  w23bContactNotOwn: (): OutMessage => ({
+    text: 'Necesitamos el celular de tu propia cuenta de Telegram. Tócalo con el botón «Compartir mi celular».',
+    requestContact: 'Compartir mi celular',
+  }),
+  w23cContactReceived: (): OutMessage => ({ text: 'Recibimos tu celular.', removeKeyboard: true }),
+  w23dAltaExpired: (): OutMessage => ({
+    text: 'Ese enlace venció. Vuelve a escanear el código de la empresa para unirte.',
+    removeKeyboard: true,
+  }),
+  w23eInvalidPhone: (): OutMessage => ({
+    text: 'Ese celular no es un número colombiano válido. Pídele a la empresa que te registre con tu número.',
+    removeKeyboard: true,
+  }),
+
+  // --- H8: Telegram del gerente -----------------------------------------------------------------
+  g1TelegramLinked: (): OutMessage => ({
+    text: 'Listo, Telegram quedó vinculado a tu panel de TurnoExtra. Los avisos que actives para Telegram en Ajustes te llegarán por aquí.',
+  }),
+  g1bTelegramInvalid: (): OutMessage => ({
+    text: 'Ese enlace venció o ya se usó. Pide uno nuevo en Ajustes, en tu panel de TurnoExtra.',
+  }),
+  g1cTelegramTaken: (): OutMessage => ({ text: 'Este Telegram ya está vinculado a otra cuenta del panel de TurnoExtra.' }),
   w22EmailSent: (): OutMessage => ({
     text: 'Te enviamos un correo para confirmar la dirección. Toca el enlace del correo; vale 24 horas.',
   }),

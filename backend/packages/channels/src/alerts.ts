@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
-  alerts, emit, managerContacts, member, notificationPrefs, roles, shifts, user, type AlertType, type Tx,
+  alerts, emit, managerContacts, managerTelegram, member, notificationPrefs, roles, shifts, user, type AlertType, type Tx,
 } from '@turnoextra/db';
 import { enqueue } from './outbox.js';
 import { slotLabel } from './messages.js';
@@ -39,7 +39,7 @@ async function alertText(tx: Tx, tipo: AlertType, shiftId: string | null, urgent
 }
 
 /**
- * Crea la alerta del panel, avisa por SSE (solo el id) y encola correo y, si es urgente, WhatsApp según las
+ * Crea la alerta del panel, avisa por SSE (solo el id) y encola correo, Telegram y, si es urgente, WhatsApp según las
  * preferencias de cada administrador. Todo dentro de la transacción del cambio que la origina.
  * Requiere contexto de sistema (encola en la cola de salida).
  */
@@ -59,6 +59,8 @@ export async function raiseAlert(
       email: user.email,
       emailPref: notificationPrefs.email,
       waPref: notificationPrefs.whatsapp,
+      tgPref: notificationPrefs.telegram,
+      tgChat: managerTelegram.chatId,
       celular: managerContacts.celular,
       verifiedAt: managerContacts.verifiedAt,
     })
@@ -66,6 +68,7 @@ export async function raiseAlert(
     .innerJoin(user, eq(user.id, member.userId))
     .leftJoin(notificationPrefs, and(eq(notificationPrefs.userId, member.userId), eq(notificationPrefs.evento, a.tipo)))
     .leftJoin(managerContacts, eq(managerContacts.userId, member.userId))
+    .leftJoin(managerTelegram, eq(managerTelegram.userId, member.userId))
     .where(and(eq(member.organizationId, a.orgId), inArray(member.role, ['admin', 'owner']), or(isNull(user.banned), eq(user.banned, false))));
 
   const { subject, text } = await alertText(tx, a.tipo, a.shiftId ?? null, urgente);
@@ -75,6 +78,8 @@ export async function raiseAlert(
     if (urgente && (r.waPref ?? false) && r.celular && r.verifiedAt) {
       await enqueue(tx, { canal: 'whatsapp', to: r.celular, msg: { text }, orgId: a.orgId });
     }
+    // Telegram no tiene costo por mensaje: llega para todo evento que la persona activó (urgente o no).
+    if ((r.tgPref ?? false) && r.tgChat) await enqueue(tx, { canal: 'telegram', to: r.tgChat, msg: { text }, orgId: a.orgId });
   }
   return row!.id;
 }

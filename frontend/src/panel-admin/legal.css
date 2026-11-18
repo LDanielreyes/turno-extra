@@ -1,0 +1,201 @@
+/* Parámetros legales (Legal.jsx): el reloj de recargos es el control; cada parámetro es una ficha de papel. */
+
+.lg {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; gap: 22px; padding: clamp(22px, 3vw, 36px) clamp(16px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+.lg::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 40%);
+}
+.lg::after {
+  content: ''; position: absolute; z-index: -1; left: -10%; bottom: -30%; width: 60%; aspect-ratio: 1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 11%, transparent), transparent);
+}
+.lg__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; animation: mh-in 0.7s var(--ease-out) backwards; }
+.lg__title { display: grid; gap: 14px; }
+.lg h1 { margin: 0; font: 800 clamp(34px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; text-wrap: balance; }
+.lg__facts { margin: 0; }
+.lg-k { width: 18px; height: 6px; flex: none; border-radius: 3px; background: var(--color-accent); }
+.lg__warn { display: inline-flex; align-items: center; gap: 10px; justify-self: start; margin: 0; padding: 8px 12px; border: 1px dashed color-mix(in srgb, var(--ember) 55%, transparent); border-radius: 3px; font-size: 13px; color: var(--color-text); }
+.lg__msg { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.lg__stage {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start;
+  padding-top: 20px; border-top: 1px solid var(--hair);
+}
+@media (max-width: 1080px) { .lg__stage { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- escena ---------- */
+.lg-scene { position: relative; position: sticky; top: var(--space-4); min-width: 0; }
+@media (max-width: 1080px) { .lg-scene { position: relative; top: auto; } }
+.lg-scene__tag {
+  position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px;
+  border: 1px dashed var(--color-accent); border-radius: 3px; font-size: 12px; font-weight: 600; color: var(--color-text);
+  opacity: 0; translate: 0 -4px; transition: opacity 0.2s, translate 0.2s var(--ease-out); pointer-events: none;
+}
+.lg-scene.is-preview .lg-scene__tag { opacity: 1; translate: 0 0; }
+.lg-dial { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font-body); }
+.lg-dial text { fill: var(--color-text-muted); font-size: 12px; }
+.lg-dial * { transform-box: view-box; }
+.lg-dial__halo { fill: color-mix(in srgb, var(--ember) 6%, transparent); }
+.lg-dial__face { fill: var(--graphite); stroke: var(--hair-strong); stroke-width: 1.2; }
+.lg-dial__hr { stroke: color-mix(in srgb, var(--color-text) 55%, transparent); stroke-width: 1.4; }
+.lg-dial__min { stroke: color-mix(in srgb, var(--color-text) 20%, transparent); stroke-width: 1; }
+.lg-dial .lg-dial__num { fill: var(--color-text-muted); font: 500 11px var(--font-mono); }
+.lg-dial__night-bg { fill: none; stroke: var(--ember-soft); stroke-width: 14; stroke-linecap: round; transition: stroke 0.2s; }
+.lg-dial__night-bg.is-empty { stroke: var(--hair-strong); stroke-dasharray: 3 6; stroke-width: 2; }
+.lg-dial__hitband { fill: none; stroke: transparent; stroke-width: 34; stroke-linecap: round; }
+.lg-dial__hitring { fill: none; stroke: transparent; stroke-width: 26; }
+.lg-dial__night { fill: none; stroke: var(--color-accent); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; animation: lg-draw 1.2s 0.2s var(--ease-out) backwards; }
+@keyframes lg-draw { from { stroke-dashoffset: 100; } }
+.lg-dial .lg-dial__tag { fill: var(--color-accent); font: 700 13px var(--font-body); font-variant-numeric: tabular-nums; }
+.lg-dial .lg-dial__label { fill: var(--color-text); font: 700 18px var(--font-display); letter-spacing: -0.02em; }
+.lg-dial .lg-dial__range { fill: var(--color-text-muted); font: 500 12px var(--font-mono); }
+.lg-dial__now { stroke: var(--paper); stroke-width: 2; stroke-linecap: round; }
+.lg-dial__nowdot { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.lg-dial__pv { fill: var(--color-accent); stroke: var(--ink); stroke-width: 2; }
+.lg-handle { fill: var(--paper); stroke: var(--color-accent); stroke-width: 2.4; transition: r 0.2s var(--ease-out); }
+.lg-handle.is-end { fill: var(--color-accent); stroke: var(--paper); }
+.lg-handle__hit { fill: transparent; }
+.lg-day { animation: lg-rise 0.7s var(--d) var(--ease-out) backwards; }
+@keyframes lg-rise { from { translate: 0 18px; opacity: 0; } }
+.lg-day__col { fill: var(--graphite); stroke: var(--hair-strong); transition: stroke 0.2s, fill 0.2s; }
+.lg-day__night { fill: color-mix(in srgb, var(--ember) 30%, transparent); animation: lg-fade 0.4s var(--ease-out) backwards; }
+@keyframes lg-fade { from { opacity: 0; } }
+.lg-dial .lg-day__l { fill: var(--color-text-muted); font-weight: 600; }
+.lg-day.is-sun .lg-day__col { fill: var(--ember-soft); stroke: var(--color-accent); }
+.lg-dial .lg-day.is-sun .lg-day__l { fill: var(--color-accent); }
+.lg-pay__hit { fill: transparent; transition: fill 0.15s; }
+.lg-dial .lg-pay__l { fill: var(--color-text-muted); font-size: 13px; }
+.lg-dial .lg-pay__v { fill: var(--color-text); font: 600 14px var(--font-body); font-variant-numeric: tabular-nums; animation: lg-fade 0.35s var(--ease-out) backwards; }
+.lg-dial .lg-pay__v.is-new { fill: var(--color-accent); }
+.lg-pay__rule { stroke: var(--hair); stroke-dasharray: 1 3; }
+
+/* zonas tocables: se encienden al pasar, enfocar o mientras su ficha está abierta */
+.lg-hit { cursor: pointer; outline: none; }
+.lg-hit:hover .lg-dial__night-bg:not(.is-empty), .lg-hit:focus-visible .lg-dial__night-bg:not(.is-empty), .lg-hit.is-sel .lg-dial__night-bg:not(.is-empty) { stroke: color-mix(in srgb, var(--ember) 32%, transparent); }
+.lg-hit:hover .lg-dial__night-bg.is-empty, .lg-hit:focus-visible .lg-dial__night-bg.is-empty { stroke: var(--color-accent); }
+.lg-hit:hover .lg-handle, .lg-hit:focus-visible .lg-handle, .lg-hit.is-sel .lg-handle { r: 10px; }
+.lg-hit:hover .lg-day__col, .lg-hit:focus-visible .lg-day__col, .lg-hit.is-sel .lg-day__col { fill: color-mix(in srgb, var(--ember) 24%, transparent); }
+.lg-hit:hover .lg-pay__hit, .lg-hit.is-sel .lg-pay__hit { fill: var(--hair); }
+.lg-hit:focus-visible .lg-pay__hit { fill: var(--hair); stroke: var(--color-focus); stroke-width: 2; }
+.lg-hit:focus-visible .lg-handle__hit, .lg-hit:focus-visible .lg-dial__hitring { stroke: var(--color-focus); stroke-width: 2; }
+.lg-hit:focus-visible .lg-dial__hitband { stroke: color-mix(in srgb, var(--color-focus) 30%, transparent); }
+.lg-skel { fill: var(--hair-strong); animation: skel-pulse 1.6s ease-in-out infinite; }
+
+/* ---------- fichas ---------- */
+.lg-tags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 14px; margin: 0; padding: 0; list-style: none; align-items: start; }
+@media (max-width: 480px) { .lg-tags { grid-template-columns: minmax(0, 1fr); } }
+.lg-tag { position: relative; min-width: 0; animation: lg-rise 0.6s calc(0.1s + var(--i) * 0.05s) var(--ease-out) backwards; }
+.lg-tag.is-open { grid-column: 1 / -1; }
+/* hojas de valores anteriores, asomando detrás de la ficha */
+.lg-tag__old { position: absolute; inset: 0; border-radius: 6px; background: var(--paper-2); box-shadow: inset 0 0 0 1px var(--paper-line);
+  translate: calc(var(--j) * 4px) calc(var(--j) * 4px); opacity: calc(0.75 - var(--j) * 0.25); }
+.lg-tag__face, .lg-edit {
+  position: relative; width: 100%; border-radius: 6px; background: var(--paper); color: var(--on-paper);
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 14px 22px -14px var(--shadow-deep);
+}
+/* muescas de boleto a los lados */
+.lg-tag__face::before, .lg-tag__face::after { content: ''; position: absolute; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--ink); box-shadow: inset 0 0 0 1px var(--paper-line); }
+.lg-tag__face::before { left: -6px; }
+.lg-tag__face::after { right: -6px; }
+.lg-tag__face {
+  display: grid; justify-items: start; align-content: start; gap: 4px; min-height: 132px; padding: 14px 18px 14px;
+  border: 0; font: inherit; text-align: left; cursor: pointer; transition: translate 0.2s var(--ease-out), box-shadow 0.2s;
+}
+.lg-tag__face:hover { translate: 0 -2px; box-shadow: inset 0 0 0 1px var(--paper-line), 0 20px 26px -14px var(--shadow-deep), 0 0 0 3px var(--ember-soft); }
+.lg-tag__face:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.lg-tag__label { font-size: 12px; font-weight: 600; color: var(--on-paper-muted); }
+.lg-tag__val { font: 700 24px/1.1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; animation: lg-print 0.5s var(--ease-out) backwards; }
+@keyframes lg-print { from { opacity: 0; translate: 0 6px; filter: blur(3px); } }
+.lg-tag__val.is-none { color: var(--on-paper-muted); font-weight: 600; }
+.lg-tag__since, .lg-tag__next { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--on-paper-muted); font-variant-numeric: tabular-nums; }
+.lg-tag__next { padding: 2px 7px; margin-top: 2px; border: 1px dashed var(--on-paper-muted); border-radius: 3px; color: var(--on-paper); animation: lg-print 0.4s var(--ease-out) backwards; }
+.lg-tag__hist { margin-top: auto; padding-top: 6px; font-size: 11.5px; color: var(--on-paper-muted); }
+.lg-dot { display: inline-block; width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--ember-deep); }
+.lg-dot.is-next { background: transparent; box-shadow: inset 0 0 0 1.4px var(--on-paper-muted); border: 0; outline: 1px dashed transparent; }
+.lg-dot.is-old { background: var(--paper-line); }
+.lg-tag.is-missing .lg-tag__face { background: transparent; color: var(--color-text); box-shadow: none; outline: 1.5px dashed var(--hair-strong); outline-offset: -1.5px; }
+.lg-tag.is-missing .lg-tag__face::before, .lg-tag.is-missing .lg-tag__face::after { box-shadow: inset 0 0 0 1.5px var(--hair-strong); }
+.lg-tag.is-missing .lg-tag__label, .lg-tag.is-missing .lg-tag__since { color: var(--color-text-muted); }
+.lg-tag.is-missing .lg-tag__val { color: var(--color-accent); }
+.lg-tag.is-missing .lg-tag__face:hover { outline-color: var(--color-accent); box-shadow: none; }
+.lg-tag.is-skel .lg-tag__face { min-height: 132px; background: var(--graphite-2); box-shadow: none; animation: skel-pulse 1.6s calc(var(--i) * 0.1s) ease-in-out infinite; }
+.lg-tag.is-skel .lg-tag__face::before, .lg-tag.is-skel .lg-tag__face::after { display: none; }
+
+/* recién registrado */
+.lg-tag__ok {
+  position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px;
+  background: var(--ember); color: var(--on-ember); font-size: 12px; font-weight: 700; opacity: 0; pointer-events: none;
+}
+.lg-tag__ok .ak-ico { width: 13px; height: 13px; stroke-width: 2.4; }
+.lg-tag.is-flash .lg-tag__ok { animation: lg-toast 1.8s var(--ease-out); }
+@keyframes lg-toast { 0% { opacity: 0; translate: 0 6px; } 12%, 78% { opacity: 1; translate: 0 0; } 100% { opacity: 0; } }
+.lg-tag.is-flash .lg-tag__face { animation: lg-punch 0.6s var(--ease-out); box-shadow: inset 0 0 0 1px var(--paper-line), 0 14px 22px -14px var(--shadow-deep), 0 0 0 3px var(--ember-glow); }
+@keyframes lg-punch { 30% { scale: 1.03; } }
+
+/* ---------- ficha abierta ---------- */
+.lg-edit { display: grid; gap: 12px; padding: 16px 18px 16px; animation: lg-open 0.3s var(--ease-out); }
+@keyframes lg-open { from { opacity: 0.4; translate: 0 6px; } }
+.lg-edit__top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.lg-edit__now { font-size: 12px; color: var(--on-paper-muted); }
+.lg-edit__now b { color: var(--on-paper); font-variant-numeric: tabular-nums; }
+.lg-big { display: flex; align-items: baseline; gap: 8px; padding: 4px 0 6px; border-bottom: 2px solid var(--on-paper); transition: border-color 0.15s; }
+.lg-big:focus-within { border-color: var(--ember-deep); }
+.lg-big input {
+  flex: 1; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; caret-color: var(--ember-deep);
+  font: 700 clamp(26px, 3vw, 34px)/1.1 var(--font-display); letter-spacing: -0.02em; color: var(--on-paper); font-variant-numeric: tabular-nums;
+}
+.lg-big input::placeholder { color: color-mix(in srgb, var(--on-paper-muted) 45%, transparent); }
+.lg-big__fix { font-size: 14px; font-weight: 600; color: var(--on-paper-muted); white-space: nowrap; }
+.lg-edit__read { min-height: 1.3em; margin-top: -6px; font-size: 12px; color: var(--on-paper-muted); }
+
+.lg-effect { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px dashed var(--paper-line); border-radius: 4px; }
+.lg-effect > div { display: grid; gap: 2px; padding: 8px 10px; }
+.lg-effect > div + div { border-left: 1px dashed var(--paper-line); }
+.lg-effect span { font-size: 11.5px; color: var(--on-paper-muted); }
+.lg-effect b { font: 700 15px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.lg-effect .is-new b { color: var(--ember-deep); }
+@media (max-width: 480px) { .lg-effect { grid-template-columns: minmax(0, 1fr); } .lg-effect > div + div { border-left: 0; border-top: 1px dashed var(--paper-line); } }
+
+.lg-edit__row { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+.lg-edit__row .lg-in { flex: 1 1 180px; }
+.lg-in { display: grid; gap: 4px; min-width: 0; }
+.lg-in > span { font-size: 12px; font-weight: 600; color: var(--on-paper-muted); }
+.lg-in small { font-weight: 400; }
+.lg-in input {
+  min-height: 36px; padding: 6px 10px; border: 1px solid var(--paper-line); border-radius: 4px; background: color-mix(in srgb, var(--paper-2) 45%, transparent);
+  font: 400 14px var(--font-body); color: var(--on-paper); color-scheme: light; caret-color: var(--ember-deep);
+}
+.lg-in input::placeholder { color: color-mix(in srgb, var(--on-paper-muted) 70%, transparent); }
+.lg-in input:focus { outline: 0; border-color: var(--ember-deep); }
+.lg-chips { display: flex; gap: 6px; padding-bottom: 4px; }
+.lg-chips button { min-height: 28px; padding: 2px 10px; border: 1px solid var(--paper-line); border-radius: 99px; background: transparent; color: var(--on-paper-muted); font: 500 12px var(--font-body); cursor: pointer; transition: background-color 0.15s, color 0.15s, border-color 0.15s; }
+.lg-chips button:hover { background: var(--paper-2); color: var(--on-paper); }
+.lg-chips button.is-on { border-color: var(--ember-deep); color: var(--on-paper); background: color-mix(in srgb, var(--ember) 12%, transparent); }
+.lg-chips button:focus-visible { outline: 2px solid var(--ember-deep); outline-offset: 1px; }
+
+/* tira de historial dentro de la ficha */
+.lg-hist { display: grid; margin: 0; padding: 8px 0 0; list-style: none; border-top: 1px dashed var(--paper-line); max-height: 220px; overflow: auto; scrollbar-color: var(--paper-line) transparent; }
+.lg-hist li { display: grid; grid-template-columns: 10px auto minmax(0, 1fr) auto; align-items: center; column-gap: 10px; padding: 5px 0; font-size: 13px; }
+.lg-hist b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.lg-hist span { color: var(--on-paper-muted); font-size: 12px; }
+.lg-hist em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--on-paper-muted); }
+.lg-hist li.is-now em { color: var(--ember-deep); }
+.lg-hist li.is-old b { font-weight: 400; color: var(--on-paper-muted); }
+.lg-hist small { grid-column: 2 / -1; font-size: 11.5px; color: var(--on-paper-muted); overflow-wrap: anywhere; }
+
+.lg-edit__foot { display: flex; justify-content: flex-end; gap: 6px; padding-top: 2px; }
+.lg-edit .btn--ghost { color: var(--on-paper-muted); border-color: var(--paper-line); background: transparent; }
+.lg-edit .btn--ghost:hover { color: var(--on-paper); background: var(--paper-2); }
+.lg-edit .ak-alert { color: var(--on-paper); font-size: 13px; }
+.lg-edit ::selection, .lg-tag__face ::selection { background: var(--ember); color: var(--on-ember); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg__head, .lg-day, .lg-tag, .lg-dial__night, .lg-day__night, .lg-dial .lg-pay__v, .lg-tag__val, .lg-tag__next, .lg-edit, .lg-tag.is-flash .lg-tag__face { animation: none !important; }
+  .lg-tag__face, .lg-scene__tag, .lg-handle { transition: none; }
+}

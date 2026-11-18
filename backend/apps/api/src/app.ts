@@ -85,14 +85,14 @@ export async function buildApp(
   if (deps.auth && deps.db) {
     const guards = createGuards(deps.auth, deps.db);
     mountAuth(app, deps.auth);
-    orgRoutes(app, { db: deps.db, guards });
+    orgRoutes(app, { db: deps.db, guards, telegramBot: env.TELEGRAM_BOT_USERNAME });
     const gate = makeTermsGate(deps.db);
     bancaRoutes(app, { db: deps.db, guards, gate });
     shiftRoutes(app, { db: deps.db, guards, gate });
     attendanceRoutes(app, { db: deps.db, guards, gate });
     const realtime = deps.listen ? await createRealtime(deps.listen) : undefined;
     if (realtime) app.addHook('onClose', async () => void (await realtime.close()));
-    alertRoutes(app, { db: deps.db, guards, gate, realtime, codeRateMax: env.RATE_LIMIT_MAX ? env.RATE_LIMIT_MAX : undefined });
+    alertRoutes(app, { db: deps.db, guards, gate, realtime, telegramBot: env.TELEGRAM_BOT_USERNAME, codeRateMax: env.RATE_LIMIT_MAX ? env.RATE_LIMIT_MAX : undefined });
     adminRoutes(app, { db: deps.db, auth: deps.auth, guards });
     // Panel del candidato (/yo): sesión propia firmada con el secreto de la app; sin secreto no se monta.
     if (env.BETTER_AUTH_SECRET) {

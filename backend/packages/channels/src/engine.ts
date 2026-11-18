@@ -1,6 +1,6 @@
-import { and, desc, eq, gt, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
 import {
-  orgWorkers, orgs, pendingConfirmations, inboundMessages, termsVersions, workerChannels, workerConsents, workers,
+  orgWorkers, orgs, pendingConfirmations, inboundMessages, telegramAltaPending, termsVersions, workerChannels, workerConsents, workers,
   audit, withSuper, type Db, type Tx,
 } from '@turnoextra/db';
 import { linkChannel, release, requestEmail, requestTelegram } from './commands.js';
@@ -9,6 +9,7 @@ import { enqueue } from './outbox.js';
 import { msg } from './messages.js';
 import { releaseSeat, respondOffer } from './offers.js';
 import { openDispute } from './attendance.js';
+import { linkManagerTelegram } from './manager-telegram.js';
 export { linkChannel, handleLinkButton } from './commands.js';
 import { deleteWorkerData, workerBaja, workerSalir } from './services.js';
 import type { InboundEvent, OutMessage } from './types.js';
@@ -19,6 +20,8 @@ export const norm = (s: string) =>
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DELETE_TTL_MIN = 10;
+/** Tiempo para compartir el celular después de abrir `/start ALTA-<código>`. */
+const TG_ALTA_TTL_MIN = 15;
 
 export type EngineDeps = {
   policyUrl: string;
@@ -74,10 +77,17 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
   const replyAnon = (m: OutMessage) => enqueue(tx, { canal: ev.canal, to: ev.from, msg: m, workerId: null, orgId: null });
   if (ev.buttonId) return button(tx, ev, ev.buttonId, w, reply, replyAnon);
 
+  // Telegram: el celular compartido con el botón completa un alta directa por Telegram.
+  if (ev.canal === 'telegram' && ev.contact) return telegramContact(tx, deps, ev, ev.contact);
+
   // Telegram: «/start CÓDIGO» vincula el chat al candidato que pidió el código (lo inició él).
-  const start = ev.canal === 'telegram' ? /^\/start(?:\s+([A-Za-z0-9]+))?$/.exec((ev.text ?? '').trim()) : null;
+  // «/start ALTA-<código org>» es el alta directa (QR del afiche) y «/start G-<código>» vincula el Telegram de un gerente.
+  const start = ev.canal === 'telegram' ? /^\/start(?:\s+([A-Za-z0-9_-]+))?$/.exec((ev.text ?? '').trim()) : null;
   if (start) {
-    const r = start[1] ? await linkChannel(tx, start[1], 'telegram', ev.from) : 'invalid';
+    const arg = start[1] ?? '';
+    if (/^G-/i.test(arg)) return linkManagerTelegram(tx, arg.slice(2), ev.from, replyAnon);
+    if (/^ALTA-/i.test(arg)) return telegramAltaStart(tx, deps, arg.slice(5), ev, w, reply);
+    const r = /^[A-Za-z0-9]+$/.test(arg) ? await linkChannel(tx, arg, 'telegram', ev.from) : 'invalid';
     await reply(r === 'linked' ? msg.w21TelegramLinked() : r === 'taken' ? msg.w21cLinkTaken() : msg.w21bLinkInvalid());
     return { handled: `telegram_${r}` };
   }
@@ -102,7 +112,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
   if (text === 'salir' || text.startsWith('salir ')) return salir(tx, text.slice(5).trim(), w, reply);
 
   if (text === 'hola' || text === 'alta' || /^alta [a-z0-9]+$/.test(text)) {
-    return alta(tx, deps, text.split(' ')[1], w, reply);
+    return alta(tx, deps, text.split(' ')[1], w, reply, ev.canal);
   }
 
   // Texto libre de quien tiene un no_show reciente: es su explicación (disputa, W19).
@@ -121,7 +131,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
 type Reply = (m: OutMessage, orgId?: string) => Promise<void>;
 type Worker = typeof workers.$inferSelect | undefined;
 
-async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worker, reply: Reply): Promise<Handled> {
+async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worker, reply: Reply, canal: InboundEvent['canal']): Promise<Handled> {
   let orgId: string | undefined;
   if (code) {
     const [o] = await tx.select({ id: orgs.id }).from(orgs).where(eq(orgs.inviteCode, code.toUpperCase()));
@@ -153,7 +163,7 @@ async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worke
     await reply(msg.w2bAlready(o!.nombre), orgId);
     return { handled: 'alta_already' };
   }
-  await reply(msg.w1Consent(o!.nombre, orgId, deps.policyUrl), orgId);
+  await reply(msg.w1Consent(o!.nombre, orgId, deps.policyUrl, canal === 'telegram' ? 'Telegram' : 'WhatsApp'), orgId);
   return { handled: 'consent_requested' };
 }
 
@@ -208,12 +218,14 @@ async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Re
     }
     const [terms] = await tx.select({ id: termsVersions.id }).from(termsVersions)
       .where(eq(termsVersions.audience, 'candidato')).orderBy(desc(termsVersions.version)).limit(1);
+    // El candidato aceptó por este canal (WhatsApp, o Telegram si se dio de alta desde el QR de Telegram).
+    const via = ev.canal === 'telegram' ? 'telegram' : 'whatsapp';
     await tx.update(orgWorkers).set({ estado: 'activo' }).where(eq(orgWorkers.id, link.id));
-    await tx.insert(workerConsents).values({ orgId: arg, workerId: w.id, termsVersionId: terms?.id ?? null, canal: 'whatsapp' });
+    await tx.insert(workerConsents).values({ orgId: arg, workerId: w.id, termsVersionId: terms?.id ?? null, canal: via });
     // El candidato inició el contacto por este canal: queda habilitado y prioritario.
     await tx.insert(workerChannels)
-      .values({ workerId: w.id, canal: 'whatsapp', identificador: w.celular!, habilitado: true, prioridad: 10, verificadoAt: sql`now()` })
-      .onConflictDoUpdate({ target: [workerChannels.workerId, workerChannels.canal], set: { habilitado: true, verificadoAt: sql`now()` } });
+      .values({ workerId: w.id, canal: via, identificador: via === 'telegram' ? ev.from : w.celular!, habilitado: true, prioridad: 10, verificadoAt: sql`now()` })
+      .onConflictDoUpdate({ target: [workerChannels.workerId, workerChannels.canal], set: { habilitado: true, prioridad: 10, verificadoAt: sql`now()` } });
     await audit(tx, { orgId: arg, actorId: `worker:${w.id}`, accion: 'worker.consent_accepted', entidad: 'worker', entidadId: w.id });
     await reply(msg.w2Joined(o.nombre), arg);
     return { handled: 'consent_accepted' };
@@ -261,4 +273,73 @@ async function salir(tx: Tx, name: string, w: Worker, reply: Reply): Promise<Han
   await workerSalir(tx, w.id, match.orgId, { actorId: `worker:${w.id}` });
   await reply(msg.w16Salir(match.nombre), match.orgId);
   return { handled: 'salir' };
+}
+
+/**
+ * `/start ALTA-<código>`: alta directa por Telegram. Un chat ya vinculado sigue el camino de un ALTA normal;
+ * uno nuevo debe compartir el celular de su propia cuenta para encontrarlo en la lista de la empresa.
+ */
+async function telegramAltaStart(tx: Tx, deps: EngineDeps, code: string, ev: InboundEvent, w: Worker, reply: Reply): Promise<Handled> {
+  if (w) return alta(tx, deps, code, w, reply, 'telegram');
+  const [o] = /^[A-Za-z0-9]+$/.test(code)
+    ? await tx.select({ nombre: orgs.nombre }).from(orgs).where(eq(orgs.inviteCode, code.toUpperCase()))
+    : [];
+  if (!o) {
+    await reply(msg.w4Help());
+    return { handled: 'help' };
+  }
+  const expiresAt = sql`now() + make_interval(mins => ${TG_ALTA_TTL_MIN})`;
+  await tx.insert(telegramAltaPending)
+    .values({ chatId: ev.from, inviteCode: code.toUpperCase(), expiresAt })
+    .onConflictDoUpdate({ target: telegramAltaPending.chatId, set: { inviteCode: code.toUpperCase(), expiresAt } });
+  await reply(msg.w23AskContact(o.nombre));
+  return { handled: 'telegram_alta_contact_requested' };
+}
+
+/**
+ * Celular compartido tras `/start ALTA-<código>`. Solo vale el de la propia cuenta (Telegram lo verificó por SMS):
+ * con él se encuentra a la persona registrada por la empresa, se vincula este chat y sigue el mismo alta que por WhatsApp.
+ */
+async function telegramContact(tx: Tx, deps: EngineDeps, ev: InboundEvent, contact: { phone: string; own: boolean }): Promise<Handled> {
+  const send = (m: OutMessage, workerId: string | null = null, orgId: string | null = null) =>
+    enqueue(tx, { canal: 'telegram', to: ev.from, msg: m, workerId, orgId });
+  const [p] = await tx.select().from(telegramAltaPending)
+    .where(and(eq(telegramAltaPending.chatId, ev.from), gt(telegramAltaPending.expiresAt, sql`now()`)));
+  if (!p) {
+    await tx.delete(telegramAltaPending).where(eq(telegramAltaPending.chatId, ev.from));
+    await send(msg.w23dAltaExpired());
+    return { handled: 'telegram_alta_expired' };
+  }
+  if (!contact.own) {
+    await send(msg.w23bContactNotOwn());
+    return { handled: 'telegram_contact_not_own' };
+  }
+  await tx.delete(telegramAltaPending).where(eq(telegramAltaPending.chatId, ev.from));
+  const phone = normalizeCoPhone(contact.phone);
+  if (!phone) {
+    await send(msg.w23eInvalidPhone());
+    return { handled: 'telegram_contact_invalid' };
+  }
+  const [person] = await tx.select().from(workers).where(eq(workers.celular, phone));
+  await send(msg.w23cContactReceived(), person?.id ?? null);
+
+  const [o] = await tx.select({ id: orgs.id }).from(orgs).where(eq(orgs.inviteCode, p.inviteCode));
+  const [link] = person && o
+    ? await tx.select({ estado: orgWorkers.estado }).from(orgWorkers).where(and(eq(orgWorkers.workerId, person.id), eq(orgWorkers.orgId, o.id)))
+    : [];
+  if (person && o && link && (link.estado === 'pendiente' || link.estado === 'activo')) {
+    const [other] = await tx.select({ w: workerChannels.workerId }).from(workerChannels)
+      .where(and(eq(workerChannels.canal, 'telegram'), eq(workerChannels.identificador, ev.from), ne(workerChannels.workerId, person.id)));
+    if (other) {
+      await send(msg.w21cLinkTaken(), person.id);
+      return { handled: 'telegram_taken' };
+    }
+    // Su Telegram queda habilitado ya: el «Acepto» que sigue llega por este chat y debe reconocerlo.
+    await tx.insert(workerChannels)
+      .values({ workerId: person.id, canal: 'telegram', identificador: ev.from, habilitado: true, prioridad: 20, verificadoAt: sql`now()` })
+      .onConflictDoUpdate({ target: [workerChannels.workerId, workerChannels.canal], set: { identificador: ev.from, habilitado: true, verificadoAt: sql`now()` } });
+    await audit(tx, { orgId: o.id, actorId: `worker:${person.id}`, accion: 'worker.channel_enabled', entidad: 'worker', entidadId: person.id, detalle: { canal: 'telegram' } });
+  }
+  const reply: Reply = (m, orgId) => send(m, person?.id ?? null, orgId ?? null);
+  return alta(tx, deps, p.inviteCode, person, reply, 'telegram');
 }

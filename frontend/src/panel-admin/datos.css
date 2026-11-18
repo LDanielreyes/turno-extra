@@ -1,0 +1,151 @@
+/* Datos personales: la ficha de la persona y la trituradora (Datos.jsx). Placa de instrumento; ficha y comprobante en papel. */
+
+.dt {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; gap: 26px; padding: clamp(22px, 3vw, 36px) clamp(16px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+.dt::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 38%);
+}
+.dt::after {
+  content: ''; position: absolute; z-index: -1; left: 50%; bottom: -45%; width: 80%; aspect-ratio: 2; translate: -50% 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 10%, transparent), transparent);
+}
+.dt__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; animation: mh-in 0.7s var(--ease-out) backwards; }
+.dt__title { display: grid; gap: 14px; }
+.dt h1 { margin: 0; font: 800 clamp(34px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; }
+.dt__facts { margin: 0; }
+.dt-k { display: grid; place-items: center; width: 16px; height: 16px; }
+.dt-k .ak-ico { width: 14px; height: 14px; stroke-width: 2.2; }
+.dt-k--gone { color: var(--color-danger); }
+.dt-k--kept { color: var(--ok); }
+
+/* ---------- escenario ---------- */
+.dt-stage { position: relative; display: grid; justify-items: center; padding-top: 6px; }
+.dt-file, .dt-receipt { position: relative; z-index: 1; width: min(640px, 100%); }
+
+/* ---------- ficha ---------- */
+.dt-file { animation: dt-in 0.6s var(--ease-out) backwards; transition: translate 0.9s var(--ease-drop), clip-path 0.9s var(--ease-drop); clip-path: inset(-40px -40px -40px -40px); }
+@keyframes dt-in { from { opacity: 0; translate: 0 -18px; } }
+.dt-file__tab {
+  display: inline-block; margin-left: 22px; padding: 6px 16px 8px; border-radius: 8px 8px 0 0;
+  background: var(--paper-2); color: var(--on-paper-muted); font: 600 12px var(--font-body);
+  box-shadow: inset 0 1px 0 var(--paper-line), inset 1px 0 0 var(--paper-line), inset -1px 0 0 var(--paper-line);
+}
+.dt-file__sheet {
+  display: grid; gap: 22px; margin-top: -2px; padding: clamp(18px, 3vw, 28px);
+  border-radius: 4px 10px 10px 10px; background: var(--paper); color: var(--on-paper);
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 24px 34px -20px var(--shadow-deep);
+}
+.dt-file ::selection { background: var(--ember); color: var(--on-ember); }
+
+.dt-who { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 16px; }
+.dt-photo { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--paper-2); box-shadow: inset 0 0 0 1.5px var(--paper-line); transition: box-shadow 0.3s; }
+.dt-photo svg { width: 62%; height: 62%; fill: var(--paper-line); transition: fill 0.3s; }
+.dt-photo.is-on { box-shadow: inset 0 0 0 1.5px var(--on-paper-muted); }
+.dt-photo.is-on svg { fill: var(--on-paper-muted); }
+
+.dt-id, .dt-word { display: grid; gap: 4px; min-width: 0; }
+.dt-id > span, .dt-word > span { font-size: 12px; font-weight: 600; color: var(--on-paper-muted); }
+.dt-id input, .dt-word input {
+  width: 100%; min-width: 0; padding: 6px 2px 7px; border: 0; border-bottom: 1.5px solid var(--paper-line); border-radius: 0; background: transparent;
+  font: 500 clamp(13px, 1.8vw, 16px) var(--font-mono); color: var(--on-paper); letter-spacing: 0.01em; transition: border-color 0.15s;
+}
+.dt-id input::placeholder { color: color-mix(in srgb, var(--on-paper-muted) 55%, transparent); }
+.dt-id input:focus, .dt-word input:focus { outline: 0; border-bottom-color: var(--ember-deep); }
+.dt-id input[aria-invalid='true'] { border-bottom-color: var(--color-danger); }
+.dt-id input:disabled, .dt-word input:disabled { opacity: 0.55; cursor: not-allowed; }
+.dt-id small, .dt-word small { font-size: 12px; color: var(--on-paper-muted); }
+.dt-id small.is-ok { color: color-mix(in srgb, var(--ok) 45%, var(--on-paper)); font-weight: 600; }
+.dt-id small.is-bad { color: color-mix(in srgb, var(--color-danger) 60%, var(--on-paper)); font-weight: 600; }
+
+.dt-scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block: 1px dashed var(--paper-line); }
+.dt-scope > div { padding: 14px 0; }
+.dt-scope > div + div { padding-left: 20px; margin-left: 20px; border-left: 1px dashed var(--paper-line); }
+.dt-scope h2 { margin: 0 0 10px; font: 700 14px/1.2 var(--font-display); letter-spacing: -0.01em; }
+.dt-scope ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.dt-scope li { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 13.5px; }
+.dt-mark { display: grid; place-items: center; width: 18px; height: 18px; }
+.dt-mark .ak-ico { width: 15px; height: 15px; stroke-width: 2; }
+.is-gone .dt-mark { color: color-mix(in srgb, var(--color-danger) 65%, var(--on-paper)); }
+.is-kept .dt-mark { color: color-mix(in srgb, var(--ok) 50%, var(--on-paper)); }
+/* el tachón se dibuja cuando la ficha ya identifica a alguien */
+.dt-strike { position: relative; justify-self: start; }
+.dt-strike::after {
+  content: ''; position: absolute; left: -2px; right: -2px; top: 54%; height: 1.5px; background: var(--on-paper);
+  scale: 0 1; transform-origin: left; transition: scale 0.35s calc(var(--i) * 60ms) var(--ease-out);
+}
+.dt-stage:not(.is-idle) .dt-strike::after { scale: 1 1; }
+.dt-stage:not(.is-idle) .is-gone .dt-strike { color: var(--on-paper-muted); }
+
+.dt-confirm { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 16px; }
+.dt-word input { font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; }
+.dt-go { min-height: 44px; }
+.dt-stage.is-armed .dt-go { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-danger) 22%, transparent); }
+.dt-err .ak-alert { color: var(--on-paper); font-size: 13px; }
+.dt-file.is-bad { animation: dt-shake 0.45s var(--ease-out); }
+@keyframes dt-shake { 20% { translate: -8px 0; } 40% { translate: 7px 0; } 60% { translate: -4px 0; } 80% { translate: 2px 0; } }
+
+/* mientras el backend borra, la ficha baja hacia la trituradora */
+.dt-stage.is-shred .dt-file { translate: 0 64px; clip-path: inset(-40px -40px 64px -40px); }
+
+/* ---------- trituradora ---------- */
+.dt-shredder {
+  position: relative; z-index: 2; width: min(700px, 100%); height: 40px; margin-top: -8px;
+  border-radius: 6px 6px 10px 10px; background: var(--graphite-2);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-text) 10%, transparent), 0 16px 24px -16px var(--shadow-deep);
+}
+.dt-shredder__mouth { position: absolute; left: 6%; right: 6%; top: 8px; height: 6px; border-radius: 3px; background: var(--ink); box-shadow: inset 0 2px 3px var(--shadow-deep); }
+.dt-shredder__led { position: absolute; right: 18px; bottom: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--hair-strong); }
+.dt-stage.is-armed .dt-shredder__led { background: var(--color-danger); }
+.dt-stage.is-shred .dt-shredder__led { background: var(--color-accent); animation: dt-blink 0.3s ease-in-out infinite alternate; }
+.dt-stage.is-done .dt-shredder__led { background: var(--ok); }
+@keyframes dt-blink { to { opacity: 0.3; } }
+.dt-stage.is-shred .dt-shredder { animation: dt-rumble 0.12s linear infinite; }
+@keyframes dt-rumble { 50% { translate: 0.6px 0; } }
+.dt-strips { position: absolute; left: 50%; top: 100%; display: flex; gap: 5px; translate: -50% 0; }
+.dt-strips i { display: block; width: 7px; height: var(--h); border-radius: 0 0 2px 2px; background: var(--paper); opacity: 0.85; animation: dt-fall 0.8s calc(var(--i) * 40ms) var(--ease-out) backwards; }
+@keyframes dt-fall { from { height: 0; } }
+.dt-stage.is-done { padding-bottom: 60px; }
+
+/* ---------- comprobante ---------- */
+.dt-receipt {
+  display: grid; gap: 14px; width: min(480px, 100%); padding: 26px clamp(18px, 3vw, 28px) 22px;
+  background: var(--paper); color: var(--on-paper); border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 24px 34px -20px var(--shadow-deep);
+  animation: dt-in 0.6s 0.15s var(--ease-out) backwards;
+}
+.dt-receipt h2 { margin: 0; font: 700 20px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.dt-receipt dl { display: grid; gap: 10px; margin: 0; padding-top: 12px; border-top: 1px dashed var(--paper-line); }
+.dt-receipt dl div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
+.dt-receipt dt { font-size: 12px; font-weight: 600; color: var(--on-paper-muted); }
+.dt-receipt dd { margin: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+.dt-receipt dd.mono { font: 500 12.5px var(--font-mono); }
+.dt-receipt__foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.dt-receipt .btn--ghost { color: var(--on-paper-muted); border-color: var(--paper-line); background: transparent; }
+.dt-receipt .btn--ghost:hover { color: var(--on-paper); background: var(--paper-2); }
+.dt-stamp {
+  position: absolute; top: 18px; right: 18px; rotate: -12deg; padding: 6px 12px;
+  border: 2.5px solid var(--ember-deep); border-radius: 4px; color: var(--ember-deep);
+  font: 800 16px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase;
+  animation: dt-stamp 0.5s 0.6s var(--ease-drop) backwards;
+}
+@keyframes dt-stamp { from { scale: 1.8; opacity: 0; } }
+
+@media (max-width: 640px) {
+  .dt-scope { grid-template-columns: minmax(0, 1fr); }
+  .dt-scope > div + div { padding-left: 0; margin-left: 0; border-left: 0; border-top: 1px dashed var(--paper-line); }
+  .dt-confirm { grid-template-columns: minmax(0, 1fr); }
+  .dt-who { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
+  .dt-photo { width: 48px; height: 48px; }
+  .dt-receipt dl div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .dt-stamp { position: static; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-file, .dt-receipt, .dt-stamp, .dt-strips i, .dt-shredder, .dt-shredder__led, .dt__head, .dt-file.is-bad { animation: none !important; }
+  .dt-file, .dt-strike::after { transition: none; }
+}

@@ -29,6 +29,8 @@ export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; gu
           nombre: orgs.nombre,
           slug: organization.slug,
           admins: sql<number>`(select count(*)::int from ${member} m where m.organization_id = ${orgs.id}::text and m.role = 'admin')`,
+          // Roles habilitados: el panel los dibuja como ventanas encendidas del edificio.
+          roles: sql<number>`(select count(*)::int from ${orgRoles} r where r.org_id = ${orgs.id})`,
           // Correo de la invitación pendiente más reciente, para poder reenviarla desde el panel.
           pendingEmail: sql<string | null>`(select i.email from ${invitation} i where i.organization_id = ${orgs.id}::text and i.status = 'pending' order by i.created_at desc limit 1)`,
           createdAt: orgs.createdAt,

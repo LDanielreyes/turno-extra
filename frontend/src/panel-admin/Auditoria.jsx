@@ -1,13 +1,13 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../shared/api'
 import { fmtTime } from '../shared/format'
-import { Async } from '../shared/ui'
-import { NoMatch, Pager, SortTh, TableTools, useTable } from '../shared/table'
-import Masthead from './Masthead'
-import { ICONS, actionIcon } from './icons'
-import { AuditScene, VacantArt } from './scenes'
-import { Ico, Panel, Vacant } from './kit'
+import { Btn } from '../shared/ui'
+import Crops from '../shared/Crops'
+import { NoMatch, Pager, useTable } from '../shared/table'
+import { actionIcon } from './icons'
+import { AkError, Ico } from './kit'
+import './auditoria.css'
 
 // Nombre legible de las acciones conocidas; las demás se muestran con su clave.
 const ACTIONS = {
@@ -29,8 +29,20 @@ const short = (id) => String(id).slice(0, 8)
 // Actores automáticos llevan el prefijo «system:» (p. ej. system:offers); el resto son ids de personas.
 const isSystem = (id) => !id || String(id).startsWith('system:')
 const actorLabel = (id) => (!id ? 'sistema' : String(id).startsWith('system:') ? `sistema · ${String(id).slice(7)}` : short(id))
+const initials = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '·'
 
-// Bitácora global: solo ids, nunca datos personales (doc §9).
+const ORDERS = [
+  ['at:desc', 'Más reciente'],
+  ['at:asc', 'Más antiguo'],
+  ['accion:asc', 'Acción'],
+  ['entidad:asc', 'Entidad'],
+  ['org:asc', 'Organización'],
+  ['actor:asc', 'Actor'],
+]
+
+// Bitácora global como cinta impresa: la impresora la saca de su ranura y cada evento es una línea.
+// Filtrar por organización = elegir su monograma sobre la ranura; la cinta se reimprime.
+// Solo ids, nunca datos personales (doc §9).
 export default function Auditoria() {
   const [orgId, setOrgId] = useState('')
   const orgs = useQuery({ queryKey: ['admin', 'orgs'], queryFn: () => api('/admin/orgs') })
@@ -38,37 +50,91 @@ export default function Auditoria() {
     queryKey: ['admin', 'audit', orgId],
     queryFn: () => api(`/admin/auditoria?limit=200${orgId ? `&orgId=${orgId}` : ''}`),
     refetchInterval: 30_000,
+    // Al cambiar de organización la cinta vieja sigue a la vista mientras la impresora trabaja.
+    placeholderData: (prev) => prev,
   })
+  // La cinta se reimprime cuando llega la respuesta de la organización elegida, no al tocar el monograma.
+  const shown = useRef(orgId)
+  if (!q.isPlaceholderData) shown.current = orgId
   const orgName = (id) => orgs.data?.orgs.find((o) => o.id === id)?.nombre
   const entries = q.data?.entries ?? []
   const today = entries.filter((e) => dayKey(e.at) === dayKey(new Date())).length
   const actors = new Set(entries.filter((e) => e.actorId).map((e) => e.actorId)).size
   const latest = entries[0]
 
-  return (
-    <>
-      <Masthead title="Auditoría" art={<AuditScene entries={entries} />}
-        facts={q.isSuccess ? [[today, today === 1 ? 'evento hoy' : 'eventos hoy'], [actors, actors === 1 ? 'persona actuó' : 'personas actuaron'], [latest ? fmtTime(latest.at) : '—', 'último evento']] : null}
-        lede="Quién hizo qué y cuándo · sin datos personales · cada 30 s" />
+  const printer = (
+      <div className="au-printer">
+      <div className="au-printer__bar">
+        <span className={`au-led${q.isFetching ? ' is-busy' : ''}${q.isError ? ' is-bad' : ''}`} role="status"
+          aria-label={q.isError ? 'Sin conexión' : q.isFetching ? 'Imprimiendo' : 'Al día · se actualiza cada 30 s'} />
+        <span className="au-printer__state">{q.isError ? 'Sin conexión' : q.isFetching ? 'Imprimiendo…' : 'Al día'}</span>
+        <div className="au-orgs" role="radiogroup" aria-label="Organización">
+          <OrgChip on={!orgId} label="Todas" mono={<svg viewBox="0 0 20 20" className="ak-ico"><path d="M3 17V8l5-3v12M8 17V9l9 3v5M2 17h16" /></svg>} onPick={() => setOrgId('')} />
+          {orgs.data?.orgs.map((o) => (
+            <OrgChip key={o.id} on={orgId === o.id} label={o.nombre} mono={initials(o.nombre)} onPick={() => setOrgId(o.id)} />
+          ))}
+        </div>
+      </div>
+      <div className="au-printer__slot" aria-hidden="true" />
+    </div>
+  )
 
-      <Panel className="ak-panel--flush" title="Registro" icon={ICONS.audit} meta={q.data ? `últimos ${q.data.entries.length}` : null}
-        actions={
-          <div className="ak-filters">
-            <select className="ak-select" aria-label="Organización" value={orgId} onChange={(e) => setOrgId(e.target.value)}>
-              <option value="">Todas las organizaciones</option>
-              {orgs.data?.orgs.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
-            </select>
-          </div>
-        }>
-        <Async skeleton="table" q={q} empty={Object.assign((d) => d.entries.length === 0, { node: <Vacant art={VacantArt.audit} title="Sin registros">Las acciones de administración aparecerán aquí.</Vacant> })}>
-          {({ entries }) => <AuditTable entries={entries} latest={latest} orgName={orgName} />}
-        </Async>
-      </Panel>
-    </>
+  return (
+    <section className="au">
+      <Crops />
+      <header className="au__head">
+        <div className="au__title">
+          <h1>Auditoría</h1>
+          <ul className="mh__key">
+            <li><i className="au-k au-k--person" aria-hidden="true" />Persona</li>
+            <li><i className="au-k au-k--system" aria-hidden="true" />Sistema</li>
+            <li><i className="au-k au-k--last" aria-hidden="true" />Último</li>
+          </ul>
+        </div>
+        {q.isSuccess && (
+          <dl className="mh__facts au__facts">
+            <div><dt>{today === 1 ? 'evento hoy' : 'eventos hoy'}</dt><dd>{today}</dd></div>
+            <div><dt>{actors === 1 ? 'persona actuó' : 'personas actuaron'}</dt><dd>{actors}</dd></div>
+            <div><dt>último evento</dt><dd>{latest ? fmtTime(latest.at) : '—'}</dd></div>
+          </dl>
+        )}
+      </header>
+
+      {q.data ? (
+        <Tape feed={shown.current || 'all'} entries={entries} latest={latest} orgName={orgName} printer={printer} />
+      ) : (
+        <>
+          {printer}
+          {q.isError ? (
+            <div className="au-tape au-tape--msg">
+              <AkError error={q.error} />
+              <Btn size="sm" onClick={() => q.refetch()}>Reintentar</Btn>
+            </div>
+          ) : <TapeSkeleton />}
+        </>
+      )}
+    </section>
   )
 }
 
-function AuditTable({ entries, latest, orgName }) {
+function OrgChip({ on, label, mono, onPick }) {
+  return (
+    <button type="button" role="radio" aria-checked={on} title={label} className={`au-chip${on ? ' is-on' : ''}`} onClick={onPick}>
+      <span className="au-chip__mono" aria-hidden="true">{mono}</span>
+      <span className="au-chip__name">{label}</span>
+    </button>
+  )
+}
+
+function TapeSkeleton() {
+  return (
+    <div className="au-tape is-skel" aria-busy="true" aria-label="Cargando registros">
+      {Array.from({ length: 7 }, (_, i) => <span key={i} className="au-skel" style={{ '--i': i }} />)}
+    </div>
+  )
+}
+
+function Tape({ feed, entries, latest, orgName, printer }) {
   const t = useTable(entries, {
     pageSize: 25,
     initialSort: { key: 'at', dir: 'desc' },
@@ -79,75 +145,128 @@ function AuditTable({ entries, latest, orgName }) {
       org: (e) => (e.orgId ? (orgName(e.orgId) ?? e.orgId) : null),
       actor: (e) => e.actorId ?? null,
     },
-    search: (e) => `${e.accion} ${ACTIONS[e.accion] ?? ''} ${e.entidad}`,
+    search: (e) => `${e.accion} ${ACTIONS[e.accion] ?? ''} ${e.entidad} ${e.entidadId ?? ''} ${e.actorId ?? ''}`,
     filters: {
       accion: (e, v) => e.accion === v,
       entidad: (e, v) => e.entidad === v,
       actor: (e, v) => (v === 'sistema' ? isSystem(e.actorId) : !isSystem(e.actorId)),
     },
   })
-  const acciones = [...new Set(entries.map((e) => e.accion))].sort().map((a) => [a, ACTIONS[a] ?? a])
-  const entidades = [...new Set(entries.map((e) => e.entidad))].sort().map((x) => [x, x])
+  const [open, setOpen] = useState(null)
+  // Líneas que llegan en un refresco posterior: se imprimen con animación; las de la primera carga no.
+  const seen = useRef(null)
+  if (seen.current === null) seen.current = new Set(entries.map((e) => e.id))
+  const fresh = entries.filter((e) => !seen.current.has(e.id)).map((e) => e.id)
+  useEffect(() => { for (const e of entries) seen.current.add(e.id) }, [entries])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { t.setPage(1); setOpen(null) }, [feed])
 
-  // Agrupar por día solo cuando se ordena por hora; con otro orden las filas van planas.
+  const acciones = [...new Set(entries.map((e) => e.accion))].sort().map((a) => [a, ACTIONS[a] ?? a])
+  const entidades = [...new Set(entries.map((e) => e.entidad).filter(Boolean))].sort()
+  const order = t.sort ? `${t.sort.key}:${t.sort.dir}` : 'at:desc'
+  const setOrder = (v) => {
+    const [key, dir] = v.split(':')
+    const cur = t.sort?.key === key ? t.sort.dir : null
+    if (cur === dir) return
+    // toggleSort con clave nueva arranca en su dirección por defecto; un segundo toque la invierte.
+    const first = key === 'at' ? 'desc' : 'asc'
+    t.toggleSort(key)
+    if (cur === null && first !== dir) t.toggleSort(key)
+  }
+
+  // Agrupar por día solo cuando se ordena por hora; con otro orden las líneas van planas.
   const grouped = t.sort?.key === 'at'
   const days = []
-  if (grouped) {
-    for (const e of t.view) {
-      const key = dayKey(e.at)
-      if (days.at(-1)?.key !== key) days.push({ key, label: dayLabel(e.at), items: [] })
-      days.at(-1).items.push(e)
-    }
+  for (const e of t.view) {
+    const key = grouped ? dayKey(e.at) : 'all'
+    if (days.at(-1)?.key !== key) days.push({ key, label: grouped ? dayLabel(e.at) : null, items: [] })
+    days.at(-1).items.push(e)
   }
-  const row = (e) => (
-    <tr key={e.id} className={`ak-row${e === latest ? ' is-latest' : ''}`}>
-      <td className="t dim"><time dateTime={e.at}>{grouped ? fmtTime(e.at) : `${dayLabel(e.at)} · ${fmtTime(e.at)}`}</time></td>
-      <td>
-        <div className="ak-name">
-          <span className="ak-act" aria-hidden="true">{actionIcon(e.accion)}</span>
-          <div className="ak-log__what">
-            <strong>{ACTIONS[e.accion] ?? e.accion}</strong>
-            {ACTIONS[e.accion] && <span>{e.accion}</span>}
-          </div>
-        </div>
-      </td>
-      <td className="mono">{e.entidad}{e.entidadId ? ` · ${short(e.entidadId)}` : ''}</td>
-      <td>{e.orgId ? (orgName(e.orgId) ?? <span className="mono">{short(e.orgId)}</span>) : <span className="dim">Plataforma</span>}</td>
-      <td className="mono">{actorLabel(e.actorId)}</td>
-    </tr>
-  )
 
   return (
     <>
-      <TableTools t={t} placeholder="Acción o entidad" filters={[
-        { key: 'accion', label: 'Todas las acciones', options: acciones },
-        { key: 'entidad', label: 'Todas las entidades', options: entidades },
-        { key: 'actor', label: 'Cualquier actor', options: [['persona', 'Una persona'], ['sistema', 'El sistema']] },
-      ]} />
-      {t.total === 0 ? <NoMatch t={t} /> : (
-        <table className="ak-table">
-          <thead>
-            <tr>
-              <SortTh t={t} k="at">Hora</SortTh>
-              <SortTh t={t} k="accion">Acción</SortTh>
-              <SortTh t={t} k="entidad">Entidad</SortTh>
-              <SortTh t={t} k="org">Organización</SortTh>
-              <SortTh t={t} k="actor">Actor</SortTh>
-            </tr>
-          </thead>
-          <tbody>
-            {grouped
-              ? days.map((d) => (
-                <Fragment key={d.key}>
-                  <tr className="ak-log__day"><td colSpan={5}>{d.label}<span>· {d.items.length}</span></td></tr>
-                  {d.items.map(row)}
-                </Fragment>
-              ))
-              : t.view.map(row)}
-          </tbody>
-        </table>
-      )}
-      <Pager t={t} />
+      {entries.length > 0 && <div className="au-tools" role="search">
+        <label className="ak-search">
+          {Ico.search}
+          <input type="search" placeholder="Acción, entidad o id" aria-label="Buscar acción, entidad o id" value={t.query} onChange={(e) => t.setQuery(e.target.value)} />
+        </label>
+        <select className="ak-select" aria-label="Acción" value={t.values.accion ?? ''} onChange={(e) => t.setFilter('accion', e.target.value)}>
+          <option value="">Todas las acciones</option>
+          {acciones.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <select className="ak-select" aria-label="Entidad" value={t.values.entidad ?? ''} onChange={(e) => t.setFilter('entidad', e.target.value)}>
+          <option value="">Todas las entidades</option>
+          {entidades.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+        <div className="au-seg" role="radiogroup" aria-label="Actor">
+          {[['', 'Todos'], ['persona', 'Persona'], ['sistema', 'Sistema']].map(([v, l]) => (
+            <button key={v || 'all'} type="button" role="radio" aria-checked={(t.values.actor ?? '') === v} className={(t.values.actor ?? '') === v ? 'is-on' : ''} onClick={() => t.setFilter('actor', v)}>{l}</button>
+          ))}
+        </div>
+        <select className="ak-select" aria-label="Orden" value={order} onChange={(e) => setOrder(e.target.value)}>
+          {ORDERS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        {t.active && <button type="button" className="ak-linkbtn" onClick={t.reset}>Limpiar</button>}
+        <span className="au-count" aria-live="polite">{t.active ? `${t.total} de ${t.all}` : t.all} líneas</span>
+      </div>}
+      {printer}
+
+      <div className="au-tape" key={feed}>
+        {entries.length === 0 ? (
+          <div className="au-tape--msg">
+            <svg className="au-blank" viewBox="0 0 120 40" aria-hidden="true"><path d="M8 12h70M8 22h52M8 32h84" /></svg>
+            <strong>Sin registros</strong>
+            <span>Las acciones de administración se imprimen aquí.</span>
+          </div>
+        ) : t.total === 0 ? <div className="au-nomatch"><NoMatch t={t} /></div> : days.map((d, di) => (
+          <Fragment key={d.key}>
+            {d.label && (
+              <div className={`au-cut${di === 0 ? ' is-first' : ''}`}>
+                <span>{d.label}</span><b>{d.items.length}</b>
+              </div>
+            )}
+            <ol className="au-lines">
+              {d.items.map((e, i) => (
+                <Line key={e.id} e={e} i={i} latest={e === latest} fresh={fresh.includes(e.id)} grouped={grouped}
+                  orgName={orgName} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} />
+              ))}
+            </ol>
+          </Fragment>
+        ))}
+        <span className="au-tape__tear" aria-hidden="true" />
+      </div>
+      <div className="au-pager"><Pager t={t} /></div>
     </>
+  )
+}
+
+function Line({ e, i, latest, fresh, grouped, orgName, open, onToggle }) {
+  const sys = isSystem(e.actorId)
+  const org = e.orgId ? orgName(e.orgId) : null
+  const detail = e.detalle && typeof e.detalle === 'object' ? Object.entries(e.detalle) : []
+  return (
+    <li className={`au-line${latest ? ' is-latest' : ''}${fresh ? ' is-fresh' : ''}${open ? ' is-open' : ''}${sys ? ' is-sys' : ''}`} style={{ '--i': Math.min(i, 14) }}>
+      <button type="button" className="au-line__row" aria-expanded={open} onClick={onToggle}>
+        <time className="au-time" dateTime={e.at}>{grouped ? fmtTime(e.at) : `${dayLabel(e.at)} · ${fmtTime(e.at)}`}</time>
+        <span className="au-glyph" aria-hidden="true">{actionIcon(e.accion)}</span>
+        <span className="au-what">
+          <strong>{ACTIONS[e.accion] ?? e.accion}</strong>
+          <span>{e.entidad}{e.entidadId ? ` · ${short(e.entidadId)}` : ''}</span>
+        </span>
+        <span className="au-org">{e.orgId ? (org ?? short(e.orgId)) : 'Plataforma'}</span>
+        <span className="au-actor"><i aria-hidden="true" />{actorLabel(e.actorId)}</span>
+        <span className="au-chev" aria-hidden="true">{Ico.chev}</span>
+      </button>
+      {open && (
+        <dl className="au-detail">
+          <div><dt>Acción</dt><dd>{e.accion}</dd></div>
+          <div><dt>Entidad</dt><dd>{e.entidad ?? '—'}{e.entidadId ? ` · ${e.entidadId}` : ''}</dd></div>
+          <div><dt>Organización</dt><dd>{e.orgId ? `${org ? `${org} · ` : ''}${e.orgId}` : 'Plataforma'}</dd></div>
+          <div><dt>Actor</dt><dd>{e.actorId ?? 'sistema'}</dd></div>
+          <div><dt>Registro</dt><dd>#{e.id} · {new Date(e.at).toISOString()}</dd></div>
+          {detail.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</dd></div>)}
+        </dl>
+      )}
+    </li>
   )
 }

@@ -1,0 +1,127 @@
+/* Alertas: tablero de notas adhesivas (Alertas.jsx). Placa de tinta + notas de papel que se despegan al atenderlas. */
+
+.al {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; gap: 24px; padding: clamp(22px, 3vw, 36px) clamp(16px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+.al::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 40%);
+}
+.al::after {
+  content: ''; position: absolute; z-index: -1; right: -10%; top: -30%; width: 60%; aspect-ratio: 1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 10%, transparent), transparent);
+}
+.al > .form__err { margin: 0; }
+
+.al__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; padding-bottom: 20px; border-bottom: 1px solid var(--hair); }
+.al__title { display: grid; gap: 14px; }
+.al h1 { margin: 0; font: 800 clamp(34px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; }
+.al-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--color-text-muted); }
+.al-key li { display: inline-flex; align-items: center; gap: 7px; }
+.al-key__pin { width: 10px; height: 10px; border-radius: 50%; background: var(--graphite-2); box-shadow: inset 0 0 0 1.5px var(--hair-strong); }
+.al-key__pin.is-urgent { background: var(--color-accent); box-shadow: none; }
+.al__facts { display: flex; flex-wrap: wrap; margin: 0; }
+.al__facts > div { display: grid; gap: 2px; padding-right: 22px; margin-right: 22px; border-right: 1px solid var(--hair); }
+.al__facts > div:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+.al__facts dt { order: 2; font-size: 12px; color: var(--color-text-muted); }
+.al__facts dd { margin: 0; font: 700 26px/1.1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.al__facts .is-hot dd { color: var(--color-accent); }
+
+/* ---------- tablero ---------- */
+.al-board {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 30px 24px;
+  margin: 0; padding: 12px 4px 4px; list-style: none;
+}
+.al-note { position: relative; animation: al-stick 0.5s var(--d) var(--ease-out) backwards; }
+@keyframes al-stick { from { opacity: 0; scale: 1.06; translate: 0 -10px; } }
+.al-note__paper {
+  position: relative; display: grid; gap: 10px; align-content: start; min-height: 196px; height: 100%; padding: 26px 18px 14px;
+  background: var(--paper); color: var(--on-paper); border-radius: 2px;
+  rotate: var(--tilt); transform-origin: 50% 12px;
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 10px 16px -10px var(--shadow-deep);
+  transition: rotate 0.3s var(--ease-out), translate 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+.al-note:hover .al-note__paper, .al-note:focus-within .al-note__paper { rotate: 0deg; translate: 0 -2px; box-shadow: inset 0 0 0 1px var(--paper-line), 0 16px 22px -12px var(--shadow-deep); }
+.al-note__pin {
+  position: absolute; top: 9px; left: 50%; translate: -50% 0; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--graphite-2); box-shadow: 0 2px 2px -1px var(--shadow-deep), inset 0 -2px 0 color-mix(in srgb, var(--ink) 40%, transparent);
+}
+.al-note.is-urgent .al-note__pin { background: var(--color-accent); }
+.al-note__fold {
+  position: absolute; right: 0; bottom: 0; width: 22px; height: 22px;
+  background: linear-gradient(135deg, var(--paper-2) 50%, var(--ink) 50%);
+  box-shadow: -1px -1px 2px -1px color-mix(in srgb, var(--shadow-deep) 60%, transparent);
+}
+.al-note.is-urgent .al-note__paper { box-shadow: inset 0 0 0 1px var(--paper-line), inset 0 3px 0 var(--ember-deep), 0 10px 16px -10px var(--shadow-deep); }
+.al-note__ic { color: var(--on-paper); }
+.al-note.is-urgent .al-note__ic { color: var(--ember-deep); }
+.al-note__txt { font: 700 16px/1.25 var(--font-display); letter-spacing: -0.01em; text-wrap: balance; overflow-wrap: anywhere; }
+.al-note__meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--on-paper-muted); }
+.al-note__meta b { color: var(--ember-deep); font-weight: 700; }
+.al-note__meta .mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.al-note__ago { font-size: 12px; color: var(--on-paper-muted); }
+.al-note__acts { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--paper-line); }
+.al-note__link { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 4px; color: var(--on-paper-muted); transition: background-color 0.15s, color 0.15s; }
+.al-note__link:hover { background: var(--paper-2); color: var(--on-paper); }
+.al-note__ack {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--on-paper); border-radius: 4px;
+  background: var(--on-paper); color: var(--paper); font: 600 13px var(--font-body); cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, translate 0.1s;
+}
+.al-note__ack:hover { background: transparent; color: var(--on-paper); }
+.al-note__ack:active { translate: 0 1px; }
+.al-note__ack:disabled { cursor: progress; opacity: 0.7; }
+.al-note__link:focus-visible, .al-note__ack:focus-visible { outline: 2px solid var(--ember-deep); outline-offset: 2px; }
+
+/* despegando: la nota se levanta mientras el backend responde */
+.al-note.is-lifting .al-note__paper { rotate: calc(var(--tilt) * -1.5); translate: 0 -8px; box-shadow: inset 0 0 0 1px var(--paper-line), 0 26px 30px -14px var(--shadow-deep); }
+/* confirmado: sale volando y deja su marca en el tablero */
+.al-note.is-flying::before {
+  content: ''; position: absolute; inset: 0; border: 1.5px dashed var(--hair-strong); border-radius: 2px; rotate: var(--tilt);
+  animation: al-fade-in 0.3s 0.2s backwards;
+}
+.al-note.is-flying .al-note__paper { animation: al-fly 0.76s cubic-bezier(0.5, 0, 0.75, 0) forwards; pointer-events: none; }
+@keyframes al-fly {
+  0% { rotate: calc(var(--tilt) * -1.5); translate: 0 -8px; opacity: 1; }
+  100% { rotate: calc(var(--fx) * 24deg); translate: calc(var(--fx) * 60px) -140px; opacity: 0; }
+}
+@keyframes al-fade-in { from { opacity: 0; } }
+
+/* ---------- vacío ---------- */
+.al-clear { display: grid; justify-items: center; gap: 4px; padding: 28px 16px 12px; text-align: center; }
+.al-clear svg { width: 150px; height: 100px; margin-bottom: 6px; }
+.al-clear__mark { fill: none; stroke: var(--hair-strong); stroke-width: 1.3; stroke-dasharray: 4 4; }
+.al-clear__pin { fill: var(--graphite-2); stroke: var(--hair-strong); }
+.al-clear__ok { fill: none; stroke: var(--ok); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; animation: al-draw 0.8s 0.2s var(--ease-out) backwards; }
+@keyframes al-draw { from { stroke-dashoffset: 40; } }
+.al-clear strong { font: 700 18px var(--font-display); }
+.al-clear span { font-size: 13px; color: var(--color-text-muted); }
+
+/* ---------- atendidas: marcas que quedaron ---------- */
+.al-done { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--hair); }
+.al-done h2 { margin: 0; font: 600 13px var(--font-body); color: var(--color-text-muted); }
+.al-done ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.al-done li {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 40px; padding: 6px 10px;
+  border: 1px dashed var(--hair-strong); border-radius: 2px; font-size: 13px; color: var(--color-text-muted);
+  animation: al-fade-in 0.4s var(--ease-out) backwards;
+}
+.al-done__ic { display: grid; place-items: center; }
+.al-done__txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-done__when { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap; }
+.al-done__when .lv-ico { color: var(--ok); }
+
+@media (max-width: 560px) {
+  .al-board { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .al-done ul { grid-template-columns: minmax(0, 1fr); }
+  .al__facts > div { padding-right: 14px; margin-right: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .al-note, .al-done li, .al-clear__ok, .al-note.is-flying::before { animation: none; }
+  .al-note.is-flying .al-note__paper { animation: none; opacity: 0; }
+  .al-note__paper { transition: none; }
+}

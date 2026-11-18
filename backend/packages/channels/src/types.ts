@@ -7,6 +7,10 @@ export type OutMessage = {
   subject?: string;
   /** Máx. 3 (límite de WhatsApp); título ≤ 20 caracteres. */
   buttons?: { id: string; title: string }[];
+  /** Solo Telegram: teclado de respuesta con un botón que comparte el celular de la propia cuenta (texto del botón). */
+  requestContact?: string;
+  /** Solo Telegram: quita el teclado de respuesta que haya quedado abierto. */
+  removeKeyboard?: boolean;
 };
 
 export type SendResult = { externalId?: string };
@@ -35,4 +39,6 @@ export type InboundEvent = {
   from: string;
   text?: string;
   buttonId?: string;
+  /** Solo Telegram: contacto compartido. `own` = es el de la propia cuenta del remitente (no uno reenviado). */
+  contact?: { phone: string; own: boolean };
 };

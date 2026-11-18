@@ -286,9 +286,7 @@
 .ak-vacant__art svg { width: 100%; height: 100%; }
 .ak-vacant { justify-items: center; text-align: center; padding: 36px 20px; }
 
-/* filas: el glifo se enciende al pasar */
 .ak-table tbody tr.ak-row { transition: background-color 0.2s; }
-.ak-table tbody tr.ak-row:hover .sc-glyph__w.is-lit { fill: var(--color-accent); }
 .ak-table tbody tr.ak-row:hover .ak-act { color: var(--color-accent); border-color: color-mix(in srgb, var(--ember) 40%, transparent); }
 
 /* invitación: la carta que recibe el contacto, sobre su sobre */
