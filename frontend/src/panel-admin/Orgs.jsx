@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../shared/api'
+import { api, errorText } from '../shared/api'
 import { fmtDate } from '../shared/format'
 import { Async, Btn } from '../shared/ui'
 import { NoMatch, Pager, SortTh, TableTools, useTable } from '../shared/table'
@@ -142,6 +142,7 @@ function OrgsTable({ orgs, open, setOpen }) {
                   <td>{o.admins === 0 ? <Badge tone="next">Invitación pendiente</Badge> : <span className="num">{o.admins} de {MAX_ADMINS}</span>}</td>
                   <td className="t dim">{fmtDate(o.createdAt)}</td>
                   <td className="end">
+                    {o.admins === 0 && o.pendingEmail && <ResendInvite org={o} />}
                     <Btn size="sm" variant="ghost" aria-expanded={open === o.id} onClick={() => setOpen(open === o.id ? null : o.id)}>
                       Roles {Ico.chev}
                     </Btn>
@@ -156,6 +157,20 @@ function OrgsTable({ orgs, open, setOpen }) {
         </table>
       )}
       <Pager t={t} />
+    </>
+  )
+}
+
+// Reenvía la invitación pendiente (y la verificación de correo si el contacto ya creó su cuenta sin verificarla).
+function ResendInvite({ org }) {
+  const m = useMutation({ mutationFn: () => api(`/admin/orgs/${org.id}/reenviar-invitacion`, { method: 'POST' }) })
+  return (
+    <>
+      {m.isSuccess && <span className="small muted" role="status">Enviado a {m.data.email}{m.data.verificacion ? ' · con verificación' : ''}</span>}
+      {m.isError && <span className="small" role="alert">{errorText(m.error)}</span>}
+      <Btn size="sm" variant="ghost" loading={m.isPending} onClick={() => m.mutate()}>
+        {m.isSuccess ? 'Reenviar de nuevo' : 'Reenviar invitación'}
+      </Btn>
     </>
   )
 }

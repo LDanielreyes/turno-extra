@@ -34,6 +34,16 @@ export default function Login() {
     await finish()
   })
 
+  // Sin verificar el correo no hay sesión: se puede pedir otro correo de verificación desde el mismo error.
+  const [resent, setResent] = useState(null) // null | 'sending' | 'ok'
+  const resend = async () => {
+    setResent('sending')
+    try {
+      await auth('/send-verification-email', { email: f.email.trim(), callbackURL: `${window.location.origin}/login` })
+      setResent('ok')
+    } catch (x) { setResent(null); setErr(x) }
+  }
+
   // Candidato: pide código → lo recibe por su canal → lo verifica.
   const askCode = run(async () => {
     await api('/candidato/codigo', { method: 'POST', body: { celular: cand.celular } })
@@ -61,6 +71,13 @@ export default function Login() {
           <Field label="Correo" type="email" autoComplete="username" required value={f.email} onChange={set('email')} />
           <Field label="Contraseña" type="password" autoComplete="current-password" required value={f.password} onChange={set('password')} />
           <FormError error={err} />
+          {err?.code === 'EMAIL_NOT_VERIFIED' && (
+            <p className="small">
+              {resent === 'ok'
+                ? <>Listo. Si ese correo tiene cuenta, te enviamos un nuevo enlace. Revisa también spam o promociones.</>
+                : <>¿No te llegó el correo de verificación? <Btn variant="ghost" size="sm" loading={resent === 'sending'} onClick={resend}>Reenviar correo</Btn></>}
+            </p>
+          )}
           <Btn type="submit" variant="primary" loading={busy}>Entrar</Btn>
           <p className="small muted">¿Te invitaron a una organización? Abre el enlace del correo de invitación.</p>
         </form>

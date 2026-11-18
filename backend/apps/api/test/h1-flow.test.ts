@@ -164,4 +164,25 @@ describe('H1: acceso, organizaciones y equipo', () => {
     const r = await api('POST', '/admin/orgs', { cookie: superCookie, body: { nombre: 'X', slug: 'Slug Malo', contactEmail: 'no-correo' } });
     expect(r.statusCode).toBe(400);
   });
+
+  it('el super admin reenvía la invitación y, si no verificó el correo, también la verificación', async () => {
+    const r0 = await api('POST', '/admin/orgs', { cookie: superCookie, body: { nombre: 'Bistró Reenvío', slug: 'bistro-reenvio', contactEmail: 'dueno@bistro.test' } });
+    const id = r0.json().id as string;
+    const before = email.sent.length;
+    const r1 = await api('POST', `/admin/orgs/${id}/reenviar-invitacion`, { cookie: superCookie });
+    expect(r1.statusCode).toBe(200);
+    expect(r1.json()).toMatchObject({ email: 'dueno@bistro.test', verificacion: false });
+    expect(email.sent.slice(before).map((m) => m.to)).toEqual(['dueno@bistro.test']);
+    expect(email.sent.at(-1)!.text).toMatch(/aceptar-invitacion\//);
+    const listed = (await api('GET', '/admin/orgs', { cookie: superCookie })).json().orgs.find((o: { id: string }) => o.id === id);
+    expect(listed.pendingEmail).toBe('dueno@bistro.test');
+    // Con la cuenta creada pero sin verificar, además llega el correo de verificación.
+    await api('POST', '/api/auth/sign-up/email', { body: { email: 'dueno@bistro.test', name: 'Dueño', password: PASSWORD } });
+    const mid = email.sent.length;
+    const r2 = await api('POST', `/admin/orgs/${id}/reenviar-invitacion`, { cookie: superCookie });
+    expect(r2.json().verificacion).toBe(true);
+    expect(email.sent.slice(mid).map((m) => m.subject.split(' ')[0])).toEqual(expect.arrayContaining(['Invitación', 'Verifica']));
+    expect((await api('POST', '/admin/orgs/33333333-3333-4333-8333-333333333333/reenviar-invitacion', { cookie: superCookie })).statusCode).toBe(404);
+    expect((await api('POST', `/admin/orgs/${id}/reenviar-invitacion`, { cookie: contactCookie })).statusCode).toBe(403);
+  });
 });

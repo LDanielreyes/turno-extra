@@ -3,7 +3,7 @@ import { fromNodeHeaders } from 'better-auth/node';
 import { z } from 'zod';
 import { desc, eq, max, sql, and } from 'drizzle-orm';
 import {
-  audit, auditLog, orgRoles, orgs, roleRequirements, roles, termsVersions, withSuper, organization, member,
+  audit, auditLog, invitation, user, orgRoles, orgs, roleRequirements, roles, termsVersions, withSuper, organization, member,
   type Db,
 } from '@turnoextra/db';
 import { legalParams } from '@turnoextra/db';
@@ -29,6 +29,8 @@ export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; gu
           nombre: orgs.nombre,
           slug: organization.slug,
           admins: sql<number>`(select count(*)::int from ${member} m where m.organization_id = ${orgs.id}::text and m.role = 'admin')`,
+          // Correo de la invitación pendiente más reciente, para poder reenviarla desde el panel.
+          pendingEmail: sql<string | null>`(select i.email from ${invitation} i where i.organization_id = ${orgs.id}::text and i.status = 'pending' order by i.created_at desc limit 1)`,
           createdAt: orgs.createdAt,
         })
         .from(orgs)
@@ -54,6 +56,37 @@ export function adminRoutes(app: FastifyInstance, deps: { db: Db; auth: Auth; gu
       headers,
     });
     return reply.status(201).send({ id: org.id, nombre: body.nombre, slug: body.slug });
+  });
+
+  // Reenvía lo que el contacto necesita para entrar: la invitación pendiente y, si ya creó su cuenta
+  // pero no verificó el correo, también el correo de verificación.
+  app.post('/admin/orgs/:orgId/reenviar-invitacion', opts, async (req, reply) => {
+    const { orgId } = z.object({ orgId: uuid }).parse(req.params);
+    const pending = await withSuper(db, async (tx) => {
+      const [inv] = await tx
+        .select({ email: invitation.email })
+        .from(invitation)
+        .where(and(eq(invitation.organizationId, orgId), eq(invitation.status, 'pending')))
+        .orderBy(desc(invitation.createdAt))
+        .limit(1);
+      return inv;
+    });
+    if (!pending) return reply.status(404).send({ error: 'not_found', message: 'Esta organización no tiene una invitación pendiente' });
+    const headers = fromNodeHeaders(req.headers);
+    // resend: reutiliza la invitación vigente, renueva su vencimiento y vuelve a enviar el correo.
+    await auth.api.createInvitation({
+      body: { email: pending.email, role: 'admin', organizationId: orgId, resend: true },
+      headers,
+    });
+    const unverified = await withSuper(db, async (tx) => {
+      const [u] = await tx.select({ v: user.emailVerified }).from(user).where(eq(user.email, pending.email));
+      return u ? !u.v : false;
+    });
+    if (unverified) await auth.api.sendVerificationEmail({ body: { email: pending.email } });
+    await withSuper(db, (tx) =>
+      audit(tx, { orgId, actorId: actor(req), accion: 'org.invitation_resent', entidad: 'org', entidadId: orgId }),
+    );
+    return { email: pending.email, verificacion: unverified };
   });
 
   // Roles habilitados hoy: el editor parte de aquí (el PUT reemplaza el conjunto completo).
