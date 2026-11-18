@@ -9,9 +9,16 @@ export const msg = {
       { id: `CONSENT_NO:${orgId}`, title: 'No acepto' },
     ],
   }),
-  w2Joined: (org: string): OutMessage => ({
-    text: `Listo, quedas en la lista de ${org}. Te avisaremos de turnos extra. Escribe BAJA cuando quieras dejar de recibirlos.`,
+  w2Joined: (org: string, docs: string[] = [], portalUrl?: string): OutMessage => ({
+    text: `Listo, quedas en la lista de ${org}. Te avisaremos de turnos extra. Escribe BAJA cuando quieras dejar de recibirlos.${
+      docs.length && portalUrl
+        ? `
+
+Último paso: para recibir ofertas debes subir tus documentos (${docs.map((d) => d.replace(/_/g, ' ')).join(', ')}). Entra a ${portalUrl} con tu celular (te llega un código por aquí), ve a «Mis documentos» y sube una foto o PDF de cada uno. ${org} los revisa y, cuando estén aprobados, empiezan a llegarte ofertas.`
+        : ''
+    }`,
   }),
+  w24InviteInvalid: (): OutMessage => ({ text: 'Ese enlace venció, ya se usó o no es válido. Pídele a tu empresa que te genere uno nuevo.' }),
   w2bAlready: (org: string): OutMessage => ({ text: `Ya estás en la lista de ${org}. Te avisaremos de turnos extra.` }),
   w2cDeclined: (org: string): OutMessage => ({
     text: `Entendido, no te enviaremos ofertas de ${org}. Si fue un error, pídele a la empresa que te invite de nuevo.`,

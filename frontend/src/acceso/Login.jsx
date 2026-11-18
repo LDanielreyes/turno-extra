@@ -85,7 +85,7 @@ export default function Login() {
 
       {mode === 'candidato' && !cand.sent && (
         <form className="stack" onSubmit={askCode}>
-          <p className="muted">Escribe tu celular. Te enviamos un código por el canal que tienes activo (WhatsApp, Telegram o correo).</p>
+          <p className="muted">Aquí ves tus turnos y subes los documentos que tu empresa te pide (por ejemplo, certificados o carnés). Escribe tu celular y te enviamos un código por el canal que tienes activo (WhatsApp, Telegram o correo).</p>
           <Field label="Celular" type="tel" inputMode="tel" autoComplete="tel" placeholder="300 123 4567" required value={cand.celular} onChange={(e) => setCand({ ...cand, celular: e.target.value })} />
           <FormError error={err} />
           <Btn type="submit" variant="primary" loading={busy}>Enviarme el código</Btn>

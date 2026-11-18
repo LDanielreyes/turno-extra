@@ -1,6 +1,7 @@
-import { and, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
+import { createHash } from 'node:crypto';
+import { and, desc, eq, gt, inArray, isNull, ne, sql } from 'drizzle-orm';
 import {
-  orgWorkers, orgs, pendingConfirmations, inboundMessages, telegramAltaPending, termsVersions, workerChannels, workerConsents, workers,
+  orgWorkers, orgs, pendingConfirmations, inboundMessages, roleRequirements, telegramAltaPending, termsVersions, workerChannels, workerConsents, workerInvites, workers,
   audit, withSuper, type Db, type Tx,
 } from '@turnoextra/db';
 import { linkChannel, release, requestEmail, requestTelegram } from './commands.js';
@@ -27,6 +28,8 @@ export type EngineDeps = {
   policyUrl: string;
   /** Usuario del bot de Telegram (sin @); sin él, el comando TELEGRAM responde que no está disponible. */
   telegramBot?: string;
+  /** URL pública de la app: el candidato sube ahí sus documentos (`/yo`). */
+  appUrl?: string;
 };
 /** Resultado sin datos personales; sirve para logs y pruebas. */
 export type Handled = { handled: string };
@@ -75,7 +78,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
 
   // Tras borrar, el último mensaje no puede quedar atado al candidato (sus filas de la cola se eliminan).
   const replyAnon = (m: OutMessage) => enqueue(tx, { canal: ev.canal, to: ev.from, msg: m, workerId: null, orgId: null });
-  if (ev.buttonId) return button(tx, ev, ev.buttonId, w, reply, replyAnon);
+  if (ev.buttonId) return button(tx, deps, ev, ev.buttonId, w, reply, replyAnon);
 
   // Telegram: el celular compartido con el botón completa un alta directa por Telegram.
   if (ev.canal === 'telegram' && ev.contact) return telegramContact(tx, deps, ev, ev.contact);
@@ -86,6 +89,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
   if (start) {
     const arg = start[1] ?? '';
     if (/^G-/i.test(arg)) return linkManagerTelegram(tx, arg.slice(2), ev.from, replyAnon);
+    if (/^I-/i.test(arg)) return telegramInviteStart(tx, deps, arg.slice(2), ev, w, reply);
     if (/^ALTA-/i.test(arg)) return telegramAltaStart(tx, deps, arg.slice(5), ev, w, reply);
     const r = /^[A-Za-z0-9]+$/.test(arg) ? await linkChannel(tx, arg, 'telegram', ev.from) : 'invalid';
     await reply(r === 'linked' ? msg.w21TelegramLinked() : r === 'taken' ? msg.w21cLinkTaken() : msg.w21bLinkInvalid());
@@ -167,7 +171,7 @@ async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worke
   return { handled: 'consent_requested' };
 }
 
-async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Reply, replyAnon: (m: OutMessage) => Promise<void>): Promise<Handled> {
+async function button(tx: Tx, deps: EngineDeps, ev: InboundEvent, id: string, w: Worker, reply: Reply, replyAnon: (m: OutMessage) => Promise<void>): Promise<Handled> {
   if (!w) {
     await reply(msg.w4Help(ev.canal));
     return { handled: 'help' };
@@ -227,7 +231,11 @@ async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Re
       .values({ workerId: w.id, canal: via, identificador: via === 'telegram' ? ev.from : w.celular!, habilitado: true, prioridad: 10, verificadoAt: sql`now()` })
       .onConflictDoUpdate({ target: [workerChannels.workerId, workerChannels.canal], set: { habilitado: true, prioridad: 10, verificadoAt: sql`now()` } });
     await audit(tx, { orgId: arg, actorId: `worker:${w.id}`, accion: 'worker.consent_accepted', entidad: 'worker', entidadId: w.id });
-    await reply(msg.w2Joined(o.nombre), arg);
+    const docs = link.roleId
+      ? (await tx.select({ t: roleRequirements.tipoDocumento }).from(roleRequirements)
+          .where(and(eq(roleRequirements.roleId, link.roleId), eq(roleRequirements.obligatorio, true)))).map((d) => d.t)
+      : [];
+    await reply(msg.w2Joined(o.nombre, docs, deps.appUrl ? `${deps.appUrl}/yo` : undefined), arg);
     return { handled: 'consent_accepted' };
   }
 
@@ -273,6 +281,44 @@ async function salir(tx: Tx, name: string, w: Worker, reply: Reply): Promise<Han
   await workerSalir(tx, w.id, match.orgId, { actorId: `worker:${w.id}` });
   await reply(msg.w16Salir(match.nombre), match.orgId);
   return { handled: 'salir' };
+}
+
+/**
+ * `/start I-<token>`: enlace personal que la empresa generó para alguien ya registrado en su banca. El token (de un solo
+ * uso y con vencimiento) identifica a la persona, así que no se le pide el celular: se vincula el chat y sigue el
+ * mismo alta de siempre, con su «Acepto» explícito.
+ */
+async function telegramInviteStart(tx: Tx, deps: EngineDeps, token: string, ev: InboundEvent, w: Worker, reply: Reply): Promise<Handled> {
+  const invalid = async (): Promise<Handled> => {
+    await reply(msg.w24InviteInvalid());
+    return { handled: 'telegram_invite_invalid' };
+  };
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) return invalid();
+  const hash = createHash('sha256').update(token).digest('hex');
+  const [inv] = await tx.select().from(workerInvites)
+    .where(and(eq(workerInvites.tokenHash, hash), isNull(workerInvites.usedAt), gt(workerInvites.expiresAt, sql`now()`)));
+  if (!inv) return invalid();
+  const [row] = await tx
+    .select({ workerId: orgWorkers.workerId, orgId: orgWorkers.orgId, estado: orgWorkers.estado, code: orgs.inviteCode })
+    .from(orgWorkers).innerJoin(orgs, eq(orgs.id, orgWorkers.orgId))
+    .where(eq(orgWorkers.id, inv.orgWorkerId));
+  if (!row || row.estado !== 'pendiente') return invalid();
+
+  const send: Reply = (m, orgId) => enqueue(tx, { canal: 'telegram', to: ev.from, msg: m, workerId: row.workerId, orgId: orgId ?? null });
+  const [other] = await tx.select({ w: workerChannels.workerId }).from(workerChannels)
+    .where(and(eq(workerChannels.canal, 'telegram'), eq(workerChannels.identificador, ev.from), ne(workerChannels.workerId, row.workerId)));
+  if ((w && w.id !== row.workerId) || other) {
+    await reply(msg.w21cLinkTaken());
+    return { handled: 'telegram_taken' };
+  }
+  await tx.update(workerInvites).set({ usedAt: sql`now()` }).where(eq(workerInvites.tokenHash, hash));
+  // Su Telegram queda habilitado ya: el «Acepto» que sigue llega por este chat y debe reconocerlo.
+  await tx.insert(workerChannels)
+    .values({ workerId: row.workerId, canal: 'telegram', identificador: ev.from, habilitado: true, prioridad: 20, verificadoAt: sql`now()` })
+    .onConflictDoUpdate({ target: [workerChannels.workerId, workerChannels.canal], set: { identificador: ev.from, habilitado: true, verificadoAt: sql`now()` } });
+  await audit(tx, { orgId: row.orgId, actorId: `worker:${row.workerId}`, accion: 'worker.channel_enabled', entidad: 'worker', entidadId: row.workerId, detalle: { canal: 'telegram', via: 'enlace_personal' } });
+  const [person] = await tx.select().from(workers).where(eq(workers.id, row.workerId));
+  return alta(tx, deps, row.code, person, send, 'telegram');
 }
 
 /**

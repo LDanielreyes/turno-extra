@@ -1,7 +1,8 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
-import { audit, shifts, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
+import { createHash, randomBytes } from 'node:crypto';
+import { audit, orgs, shifts, workerInvites, withSuper, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
 import type { Guards } from '../auth/guards.js';
 import { normalizeCoPhone, maskPhone } from '../phone.js';
 import { shiftFit } from '../services/eligibility.js';
@@ -14,10 +15,45 @@ const idParam = (req: FastifyRequest, key: string) => z.object({ [key]: uuid }).
 type Gate = (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
 
 /** Banca de trabajadores y revisión de documentos (panel de empresa). */
-export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards; gate: Gate }) {
+export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards; gate: Gate; telegramBot?: string; appUrl?: string }) {
   const { db, guards, gate } = deps;
   const pre = [guards.requireOrgAdmin, gate];
   const org = (req: FastifyRequest) => (req.params as { orgId: string }).orgId;
+
+  type Tx = Parameters<Parameters<typeof withOrg>[2]>[0];
+  type Created = { ok: true; id: string } | { ok: false; error: 'invalid_phone' | 'role_not_enabled' | 'conflict' };
+
+  /** Alta de una persona en la banca: queda `pendiente` hasta que dé su consentimiento. Corre dentro de `withOrg`. */
+  async function createWorker(tx: Tx, orgId: string, actorId: string, p: { nombre: string; celular: string; roleId: string }, enabled: Set<string>): Promise<Created> {
+    const celular = normalizeCoPhone(p.celular);
+    if (!celular) return { ok: false, error: 'invalid_phone' };
+    if (!enabled.has(p.roleId)) return { ok: false, error: 'role_not_enabled' };
+    const r = await tx.execute(sql`SELECT ensure_worker(${celular}) AS id`);
+    const workerId = ((r as unknown as { rows?: { id: string }[] }).rows ?? (r as unknown as { id: string }[]))[0]!.id;
+    const [row] = await tx
+      .insert(orgWorkers)
+      .values({ orgId, workerId, nombre: p.nombre, roleId: p.roleId })
+      .onConflictDoNothing()
+      .returning({ id: orgWorkers.id });
+    if (!row) return { ok: false, error: 'conflict' };
+    await audit(tx, { orgId, actorId, accion: 'worker.created', entidad: 'org_worker', entidadId: row.id });
+    return { ok: true, id: row.id };
+  }
+
+  const enabledRoles = async (tx: Tx, orgId: string) =>
+    new Set(
+      (await tx
+        .select({ id: orgRoles.roleId })
+        .from(orgRoles)
+        .innerJoin(roles, eq(roles.id, orgRoles.roleId))
+        .where(and(eq(orgRoles.orgId, orgId), eq(roles.activo, true)))).map((r) => r.id),
+    );
+
+  const CREATE_ERR = {
+    invalid_phone: [422, 'Celular colombiano inválido'],
+    role_not_enabled: [422, 'Ese rol no está habilitado para tu organización'],
+    conflict: [409, 'Ese celular ya está en tu banca'],
+  } as const;
 
   // La empresa registra nombre, celular y rol. Queda `pendiente`: no se envía nada hasta que el
   // candidato dé su consentimiento por WhatsApp (flujo ALTA, H3).
@@ -26,28 +62,79 @@ export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
     const body = z
       .object({ nombre: z.string().trim().min(2).max(120), celular: z.string().max(30), roleId: uuid })
       .parse(req.body);
-    const celular = normalizeCoPhone(body.celular);
-    if (!celular) return reply.status(422).send({ error: 'invalid_phone', message: 'Celular colombiano inválido' });
     return withOrg(db, orgId, async (tx) => {
-      const [enabled] = await tx
-        .select({ id: orgRoles.roleId })
-        .from(orgRoles)
-        .innerJoin(roles, eq(roles.id, orgRoles.roleId))
-        .where(and(eq(orgRoles.orgId, orgId), eq(orgRoles.roleId, body.roleId), eq(roles.activo, true)));
-      if (!enabled) {
-        return reply.status(422).send({ error: 'role_not_enabled', message: 'Ese rol no está habilitado para tu organización' });
+      const r = await createWorker(tx, orgId, req.user!.id, body, await enabledRoles(tx, orgId));
+      if (!r.ok) {
+        const [status, message] = CREATE_ERR[r.error];
+        return reply.status(status).send({ error: r.error, message });
       }
-      const r = await tx.execute(sql`SELECT ensure_worker(${celular}) AS id`);
-      const workerId = ((r as unknown as { rows?: { id: string }[] }).rows ?? (r as unknown as { id: string }[]))[0]!.id;
-      const [row] = await tx
-        .insert(orgWorkers)
-        .values({ orgId, workerId, nombre: body.nombre, roleId: body.roleId })
-        .onConflictDoNothing()
-        .returning({ id: orgWorkers.id });
-      if (!row) return reply.status(409).send({ error: 'conflict', message: 'Ese celular ya está en tu banca' });
-      await audit(tx, { orgId, actorId: req.user!.id, accion: 'worker.created', entidad: 'org_worker', entidadId: row.id });
-      return reply.status(201).send({ id: row.id, estado: 'pendiente' });
+      return reply.status(201).send({ id: r.id, estado: 'pendiente' });
     });
+  });
+
+  // Carga masiva: una lista de nombre + celular (+ rol propio opcional). Cada fila se resuelve por separado:
+  // las que fallan no frenan a las demás y vuelven con su motivo para corregirlas.
+  app.post('/orgs/:orgId/workers/import', { preHandler: pre, bodyLimit: 512 * 1024 }, async (req) => {
+    const orgId = org(req);
+    const body = z
+      .object({
+        roleId: uuid,
+        personas: z.array(z.object({ nombre: z.string().trim().min(2).max(120), celular: z.string().max(30), roleId: uuid.optional() })).min(1).max(500),
+      })
+      .parse(req.body);
+    return withOrg(db, orgId, async (tx) => {
+      const enabled = await enabledRoles(tx, orgId);
+      const out = { creados: 0, errores: [] as { fila: number; error: string; message: string }[] };
+      for (const [i, p] of body.personas.entries()) {
+        const r = await createWorker(tx, orgId, req.user!.id, { nombre: p.nombre, celular: p.celular, roleId: p.roleId ?? body.roleId }, enabled);
+        if (r.ok) out.creados++;
+        else out.errores.push({ fila: i + 1, error: r.error, message: CREATE_ERR[r.error][1] });
+      }
+      return out;
+    });
+  });
+
+  // Enlace de alta personal para quien aún no acepta: el token lo identifica en Telegram sin pedirle el celular.
+  // Es de un solo uso, caduca y reemplaza al anterior; solo se guarda su hash.
+  const INVITE_TTL_DAYS = 7;
+  app.post('/orgs/:orgId/workers/:id/enlace', { preHandler: pre }, async (req, reply) => {
+    const orgId = org(req);
+    const id = idParam(req, 'id');
+    if (!id) return notFound(reply);
+    const found = await withOrg(db, orgId, async (tx) => {
+      const [row] = await tx
+        .select({ nombre: orgWorkers.nombre, estado: orgWorkers.estado, code: orgs.inviteCode, orgNombre: orgs.nombre, roleId: orgWorkers.roleId })
+        .from(orgWorkers)
+        .innerJoin(orgs, eq(orgs.id, orgWorkers.orgId))
+        .where(and(eq(orgWorkers.id, id), eq(orgWorkers.orgId, orgId)));
+      if (!row) return null;
+      const docs = row.roleId
+        ? (await tx.select({ t: roleRequirements.tipoDocumento }).from(roleRequirements).where(and(eq(roleRequirements.roleId, row.roleId), eq(roleRequirements.obligatorio, true)))).map((d) => d.t)
+        : [];
+      return { ...row, docs };
+    });
+    if (!found) return notFound(reply);
+    if (found.estado !== 'pendiente') {
+      return reply.status(409).send({ error: 'not_pending', message: 'Solo se puede generar el enlace de quien aún no acepta' });
+    }
+    const token = randomBytes(18).toString('base64url');
+    const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 86400_000);
+    await withSuper(db, async (tx) => {
+      await tx.delete(workerInvites).where(eq(workerInvites.orgWorkerId, id));
+      await tx.insert(workerInvites).values({ tokenHash: createHash('sha256').update(token).digest('hex'), orgWorkerId: id, expiresAt });
+    });
+    const num = process.env.WHATSAPP_PUBLIC_NUMBER?.replace(/\D/g, '');
+    const telegramUrl = deps.telegramBot ? `https://t.me/${deps.telegramBot}?start=I-${token}` : null;
+    const whatsappUrl = num ? `https://wa.me/${num}?text=${encodeURIComponent(`ALTA ${found.code}`)}` : null;
+    const portal = deps.appUrl ? `${deps.appUrl}/yo` : null;
+    const docs = found.docs.map((d) => d.replace(/_/g, ' '));
+    const mensaje = [
+      `Hola ${found.nombre.split(' ')[0]}, ${found.orgNombre} te agregó a su banca de turnos extra.`,
+      telegramUrl ? `Para aceptar por Telegram, abre este enlace (es personal y vence en ${INVITE_TTL_DAYS} días): ${telegramUrl}` : null,
+      whatsappUrl ? `Si prefieres WhatsApp, toca: ${whatsappUrl}` : null,
+      docs.length && portal ? `Después sube tus documentos (${docs.join(', ')}) en ${portal}: entras con tu celular y te llega un código.` : null,
+    ].filter(Boolean).join('\n\n');
+    return { telegramUrl, whatsappUrl, mensaje, venceAt: expiresAt.toISOString() };
   });
 
   // Quien salió (BAJA/SALIR/«No acepto») puede volver: la empresa lo invita de nuevo y él repite ALTA y «Acepto».

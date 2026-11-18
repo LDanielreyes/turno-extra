@@ -283,6 +283,11 @@ const routes = [
       { id: 'd-2', tipoDocumento: 'certificado_eps', venceAt: null, estado: 'pendiente' },
     ],
   })],
+  ['POST', /^\/orgs\/[^/]+\/workers\/import$/, (_s, body) => ({ creados: body.personas.length, errores: [] })],
+  ['POST', /^\/orgs\/[^/]+\/workers\/[^/]+\/enlace$/, () => ({
+    telegramUrl: 'https://t.me/TurnoExtraBot?start=I-demo', whatsappUrl: 'https://wa.me/?text=ALTA%20HOTELDEMO',
+    mensaje: 'Hola, Hotel Demo te agregó a su banca de turnos extra.', venceAt: new Date(Date.now() + 7 * 86400e3).toISOString(),
+  })],
   ['GET', /^\/orgs\/[^/]+\/invitacion$/, () => ({
     codigo: 'HOTELDEMO', texto: 'ALTA HOTELDEMO',
     whatsappUrl: 'https://wa.me/?text=ALTA%20HOTELDEMO',

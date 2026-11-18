@@ -120,3 +120,19 @@ export const telegramAltaPending = pgTable('telegram_alta_pending', {
   inviteCode: text('invite_code').notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
+
+/**
+ * Enlace de alta personal: la empresa lo genera para una persona ya registrada en su banca y lo abre en Telegram.
+ * Solo se guarda el hash del token; es de un solo uso y caduca. Dato de acceso: solo el contexto de sistema lo toca.
+ */
+export const workerInvites = pgTable(
+  'worker_invites',
+  {
+    tokenHash: text('token_hash').primaryKey(),
+    orgWorkerId: uuid('org_worker_id').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('worker_invites_ow_idx').on(t.orgWorkerId)],
+);

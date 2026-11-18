@@ -18,7 +18,7 @@ type ChannelEnv = Pick<
 /** Webhook de WhatsApp (firmado) y simulador /demo (plan B). Ambos entran por `handleInbound`. */
 export function channelRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards; env: ChannelEnv }) {
   const { db, guards, env } = deps;
-  const engine = { policyUrl: env.POLICY_URL ?? `${env.APP_URL}/legal`, telegramBot: env.TELEGRAM_BOT_USERNAME };
+  const engine = { policyUrl: env.POLICY_URL ?? `${env.APP_URL}/legal`, telegramBot: env.TELEGRAM_BOT_USERNAME, appUrl: env.APP_URL };
 
   // Plugin encapsulado: aquí el cuerpo llega crudo (hace falta para la firma HMAC); el resto de rutas no cambia.
   void app.register(async (wa) => {

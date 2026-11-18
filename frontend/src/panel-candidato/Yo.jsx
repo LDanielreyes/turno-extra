@@ -54,6 +54,8 @@ export default function Yo() {
       </header>
 
       {q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
+        <>
+        <DocsAviso />
         <div className="yo__stage">
           <Turnos loading={q.isPending} upcoming={upcoming} past={past} ventana={d?.ventanaDisputaDias} />
           <aside className="yo__side">
@@ -62,6 +64,7 @@ export default function Yo() {
             <Datos />
           </aside>
         </div>
+        </>
       )}
     </section>
   )
@@ -212,6 +215,28 @@ function Canales({ loading, canales }) {
 const ESTADO_DOC = { pendiente: 'En revisión', aprobado: 'Aprobado', rechazado: 'Rechazado' }
 const fechaDoc = (iso) => { const d = day(`${String(iso).slice(0, 10)}T12:00:00`); return d ? `${d.getDate()} ${MES[d.getMonth()]} ${d.getFullYear()}` : '' }
 const hoy = () => new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 10)
+
+// Aviso arriba de todo: sin los documentos obligatorios aprobados no llegan ofertas, y el candidato no tiene por qué adivinarlo.
+function DocsAviso() {
+  const q = useQuery({ queryKey: ['yo', 'documentos'], queryFn: () => api('/yo/documentos') })
+  const reqs = (q.data?.organizaciones ?? []).flatMap((o) => o.requisitos.filter((r) => r.obligatorio).map((r) => ({ org: o.org, ...r })))
+  const vigente = (r) => r.documento?.estado === 'aprobado' && (!r.vigenciaRequerida || (r.documento.venceAt && String(r.documento.venceAt).slice(0, 10) >= hoy()))
+  const subir = reqs.filter((r) => !r.documento || r.documento.estado === 'rechazado' || (r.documento.estado === 'aprobado' && !vigente(r)))
+  const revision = reqs.filter((r) => r.documento?.estado === 'pendiente')
+  if (!subir.length && !revision.length) return null
+  const names = [...new Set(subir.map((r) => r.tipo.replace(/_/g, ' ')))]
+  return (
+    <div className={`yo-alert${subir.length ? ' is-todo' : ''}`} role={subir.length ? 'alert' : 'status'}>
+      <Ico name="doc" size={16} />
+      <p>
+        {subir.length
+          ? <><strong>Te falta subir {names.join(', ')}.</strong> Sin los documentos obligatorios aprobados no te llegan ofertas. Súbelos en «Mis documentos».</>
+          : <><strong>Tus documentos están en revisión.</strong> Cuando la empresa los apruebe empezarán a llegarte ofertas.</>}
+      </p>
+      <a href="#yo-dc" className="yo-alert__go" onClick={(e) => { e.preventDefault(); document.getElementById('yo-dc')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }}>Ir a mis documentos</a>
+    </div>
+  )
+}
 
 // Lo que cada organización te pide según tu rol. Tú subes el archivo; la empresa lo revisa.
 function Documentos() {

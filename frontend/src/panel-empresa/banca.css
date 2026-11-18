@@ -277,3 +277,23 @@
 .bn-eleg.is-no .bn-eleg__h { color: var(--ember-deep); }
 .bn-eleg__why { color: var(--on-paper-muted); }
 .bn-select--turno { max-width: 260px; }
+
+/* pendientes: el botón de invitar ocupa el pie */
+.bn-card.is-pendiente .bn-face__foot { visibility: hidden; }
+.bn-poster__docs { margin: 0; font-size: 12px; line-height: 1.35; color: var(--on-paper-muted); }
+
+/* importar lista */
+.bn-import { display: grid; gap: 10px; padding: 16px 18px; border-radius: 3px; border: 1px solid var(--hair-strong); background: var(--color-surface-2); }
+.bn-import__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bn-import__head h2 { margin: 0; font: 700 15px/1.2 var(--font-display); }
+.bn-import__hint { margin: 0; font-size: 13px; line-height: 1.45; color: var(--color-text-muted); max-width: 70ch; }
+.bn-import__text { width: 100%; box-sizing: border-box; resize: vertical; padding: 10px 12px; border-radius: 3px; border: 1px solid var(--hair-strong); background: var(--color-bg); color: var(--color-text); font: 400 13px/1.5 var(--font-mono, ui-monospace, monospace); }
+.bn-import__text:focus { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.bn-import__row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.bn-import .bn-line { display: grid; gap: 4px; font-size: 12px; color: var(--color-text-muted); }
+.bn-import .bn-line select { min-height: 32px; border-radius: 3px; border: 1px solid var(--hair-strong); background: var(--color-bg); color: var(--color-text); font: 400 13px var(--font-body); padding: 0 8px; }
+.bn-import__count { flex: 1; min-width: 120px; font-size: 13px; color: var(--color-text-muted); }
+.bn-import__done { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; }
+.bn-import__bad { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.bn-import__bad li { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 6px 10px; border-radius: 3px; border-left: 3px solid var(--ember-deep); background: var(--color-bg); }
+.bn-import__bad em { font-style: normal; color: var(--ember-deep); font-weight: 600; }

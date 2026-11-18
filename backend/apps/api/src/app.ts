@@ -87,7 +87,7 @@ export async function buildApp(
     mountAuth(app, deps.auth);
     orgRoutes(app, { db: deps.db, guards, telegramBot: env.TELEGRAM_BOT_USERNAME });
     const gate = makeTermsGate(deps.db);
-    bancaRoutes(app, { db: deps.db, guards, gate });
+    bancaRoutes(app, { db: deps.db, guards, gate, telegramBot: env.TELEGRAM_BOT_USERNAME, appUrl: env.APP_URL });
     shiftRoutes(app, { db: deps.db, guards, gate });
     attendanceRoutes(app, { db: deps.db, guards, gate });
     const realtime = deps.listen ? await createRealtime(deps.listen) : undefined;

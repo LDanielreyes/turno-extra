@@ -52,6 +52,7 @@ export default function Banca() {
   const [canal, setCanal] = useState('')
   const [onlyFav, setOnlyFav] = useState(false)
   const [limit, setLimit] = useState(STEP)
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     if (!flash) return
@@ -61,6 +62,14 @@ export default function Banca() {
 
   const ping = async (id) => { await refresh(); setFlash(id) }
   const fav = useMutation({ mutationFn: ({ id, favorito }) => api(`/orgs/${orgId}/workers/${id}`, { method: 'PATCH', body: { favorito } }), onSuccess: (_, v) => ping(v.id) })
+  const invite = useMutation({
+    mutationFn: async (id) => {
+      const r = await api(`/orgs/${orgId}/workers/${id}/enlace`, { method: 'POST' })
+      await navigator.clipboard.writeText(r.mensaje)
+      return r
+    },
+    onSuccess: (_, id) => setFlash(id),
+  })
   const reinvite = useMutation({ mutationFn: (id) => api(`/orgs/${orgId}/workers/${id}/reinvitar`, { method: 'POST' }), onSuccess: (_, id) => ping(id) })
 
   const workers = q.data?.workers
@@ -131,12 +140,19 @@ export default function Banca() {
               {CHANNELS.map((c) => <option key={c} value={c}>{CHANNEL_LABEL[c]}</option>)}
               <option value="ninguno">Sin canal activo</option>
             </select>
+            <button type="button" className={`bn-favbtn${importing ? ' is-on' : ''}`} aria-pressed={importing} onClick={() => setImporting(!importing)}>
+              <Ico name="doc" size={13} />Importar lista
+            </button>
             <button type="button" className={`bn-favbtn${onlyFav ? ' is-on' : ''}`} aria-pressed={onlyFav} onClick={() => setOnlyFav(!onlyFav)}>
               <span className="bn-pinkey" aria-hidden="true" />Favoritas
             </button>
           </div>
 
-          {(fav.error || reinvite.error) && <p className="bn-err" role="alert">{errorText(fav.error || reinvite.error)}</p>}
+          {importing && (
+            <Importar orgId={orgId} roleList={roleList} onClose={() => setImporting(false)} onDone={refresh} />
+          )}
+
+          {(fav.error || reinvite.error || invite.error) && <p className="bn-err" role="alert">{invite.error ? 'No se pudo copiar la invitación. Intenta de nuevo.' : errorText(fav.error || reinvite.error)}</p>}
 
           {q.isError ? (
             <div className="bn-err" role="alert">{errorText(q.error)} <Btn size="sm" onClick={() => q.refetch()}>Reintentar</Btn></div>
@@ -150,6 +166,7 @@ export default function Banca() {
                     onOpen={() => setOpen(w.id)} onClose={() => setOpen(null)}
                     onFav={() => fav.mutate({ id: w.id, favorito: !w.favorito })} favBusy={fav.isPending && fav.variables?.id === w.id}
                     onReinvite={() => reinvite.mutate(w.id)} reinviteBusy={reinvite.isPending && reinvite.variables === w.id}
+                    onInvite={() => invite.mutate(w.id)} inviteBusy={invite.isPending && invite.variables === w.id} invited={invite.isSuccess && invite.variables === w.id}
                     onSaved={() => ping(w.id)} />
                 ))}
               {!q.isPending && !filtered && (
@@ -204,7 +221,7 @@ function Lights({ w }) {
 
 const STAMP = { pendiente: 'Sin aceptar', baja: 'Se dio de baja', baja_org: 'Salió' }
 
-function Card({ shift, w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, onFav, favBusy, onReinvite, reinviteBusy, onSaved }) {
+function Card({ shift, w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, onFav, favBusy, onReinvite, reinviteBusy, onInvite, inviteBusy, invited, onSaved }) {
   const gone = GONE.includes(w.estado)
   const cls = `bn-card is-${w.estado}${gone ? ' is-gone' : ''}${isOpen ? ' is-open' : ''}${flash ? ' is-flash' : ''}${w.favorito ? ' is-fav' : ''}`
   const rn = roleName(roles, w.roleId)
@@ -235,6 +252,12 @@ function Card({ shift, w, i, roles, roleList, orgId, isOpen, flash, onOpen, onCl
         {gone && !isOpen && (
           <button type="button" className="bn-reinvite" disabled={reinviteBusy} aria-busy={reinviteBusy || undefined} onClick={onReinvite}>
             <Ico name="send" size={13} />{reinviteBusy ? 'Enviando' : 'Reinvitar'}
+          </button>
+        )}
+        {w.estado === 'pendiente' && !isOpen && (
+          <button type="button" className="bn-reinvite" disabled={inviteBusy} aria-busy={inviteBusy || undefined} onClick={onInvite}
+            title="Copia un mensaje con su enlace personal de Telegram y WhatsApp, listo para enviarle">
+            <Ico name={invited ? 'check' : 'send'} size={13} />{inviteBusy ? 'Generando' : invited ? 'Mensaje copiado' : 'Copiar invitación'}
           </button>
         )}
         <span className="bn-saved" aria-hidden="true"><Ico name="check" size={12} />Listo</span>
@@ -342,6 +365,79 @@ function Docs({ orgId, workerId }) {
   )
 }
 
+// Carga masiva: se pega una lista (nombre, celular y, si quiere, rol) desde Excel, Sheets o un chat; cada fila se revisa antes de enviar.
+const CELL = /\D/g
+function parseList(text, roleList) {
+  const byName = new Map(roleList.map((r) => [norm(r.nombre), r.id]))
+  return text.split(/\r?\n/).map((line, i) => ({ line: line.trim(), n: i + 1 })).filter((l) => l.line)
+    .map(({ line, n }) => {
+      const [nombre = '', celular = '', rol = ''] = line.split(/\t|;|,/).map((c) => c.trim())
+      const base = { n, nombre, celular }
+      if (/^(nombre|name)$/i.test(nombre) && !celular.replace(CELL, '')) return { ...base, skip: true }
+      if (nombre.length < 2) return { ...base, error: 'Falta el nombre' }
+      if (celular.replace(CELL, '').length < 10) return { ...base, error: 'Celular incompleto' }
+      if (rol) {
+        const id = byName.get(norm(rol))
+        if (!id) return { ...base, error: `El rol «${rol}» no está habilitado` }
+        return { ...base, roleId: id }
+      }
+      return base
+    })
+    .filter((r) => !r.skip)
+}
+
+function Importar({ orgId, roleList, onClose, onDone }) {
+  const [text, setText] = useState('')
+  const [roleId, setRoleId] = useState(roleList.length === 1 ? roleList[0].id : '')
+  const [result, setResult] = useState(null)
+  const rows = parseList(text, roleList)
+  const ok = rows.filter((r) => !r.error)
+  const bad = rows.filter((r) => r.error)
+  const send = useMutation({
+    mutationFn: () => api(`/orgs/${orgId}/workers/import`, { method: 'POST', body: { roleId, personas: ok.map((r) => ({ nombre: r.nombre, celular: r.celular, ...(r.roleId ? { roleId: r.roleId } : {}) })) } }),
+    onSuccess: (r) => {
+      setResult({ creados: r.creados, errores: r.errores.map((e) => ({ ...ok[e.fila - 1], error: e.message })) })
+      setText('')
+      onDone()
+    },
+  })
+  const failed = [...bad, ...(result?.errores ?? [])]
+
+  return (
+    <section className="bn-import" aria-label="Importar lista de personas" onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}>
+      <div className="bn-import__head">
+        <h2>Importar lista</h2>
+        <Btn size="sm" variant="ghost" onClick={onClose}>Cerrar</Btn>
+      </div>
+      <p className="bn-import__hint">Pega una persona por línea: <strong>nombre, celular</strong> (separados por coma, punto y coma o tabulador, como al copiar de Excel). Opcional: un tercer dato con el rol. Todas quedan «Sin aceptar» hasta que acepten por Telegram o WhatsApp.</p>
+      <textarea className="bn-import__text" rows={6} aria-label="Lista de personas" placeholder={'Ana Pérez, 300 123 4567\nLuis Gómez, 311 555 0101, Bartender'}
+        value={text} onChange={(e) => { setText(e.target.value); setResult(null); send.reset() }} />
+      <div className="bn-import__row">
+        <label className="bn-line">
+          <span>Rol para todas</span>
+          <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
+            <option value="">Elige</option>
+            {roleList.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+          </select>
+        </label>
+        <span className="bn-import__count" role="status">
+          {rows.length ? `${ok.length} lista${ok.length === 1 ? '' : 's'} para agregar${bad.length ? ` · ${bad.length} con error` : ''}` : ''}
+        </span>
+        <Btn size="sm" variant="primary" loading={send.isPending} disabled={!ok.length || !roleId} onClick={() => send.mutate()}>
+          Agregar {ok.length || ''}
+        </Btn>
+      </div>
+      {send.error && <p className="bn-err" role="alert">{errorText(send.error)}</p>}
+      {result && <p className="bn-import__done" role="status"><Ico name="check" size={13} />{result.creados} {result.creados === 1 ? 'persona agregada' : 'personas agregadas'}{result.errores.length ? `, ${result.errores.length} no se pudieron agregar` : ''}.</p>}
+      {failed.length > 0 && (
+        <ul className="bn-import__bad" aria-label="Filas con error">
+          {failed.map((r, i) => <li key={`${r.n}-${i}`}><strong>{r.nombre || '—'}</strong> {r.celular && <span>{r.celular}</span>}<em>{r.error}</em></li>)}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 // Tarjeta en blanco al final del fichero: se llena sobre ella y entra como pendiente.
 function NewCard({ orgId, roleList, i, onCreated }) {
   const [on, setOn] = useState(false)
@@ -424,6 +520,7 @@ function Poster({ orgId }) {
       <span className="bn-tape bn-tape--l" aria-hidden="true" />
       <span className="bn-tape bn-tape--r" aria-hidden="true" />
       <h2>Únete a la banca</h2>
+      <p className="bn-poster__docs">Después de aceptar, cada persona sube sus documentos en <strong>Mi espacio</strong>.</p>
       <div className="bn-via" role="tablist" aria-label="Canal de alta">
         {Object.keys(PATHS).map((c) => {
           const off = d && !d[PATHS[c].url]
