@@ -39,7 +39,7 @@ export class TelegramChannel implements Channel {
 /** Telegram admite un solo teclado por mensaje: botones en línea, pedir contacto o quitar el teclado. */
 function replyMarkup(msg: OutMessage) {
   if (msg.buttons?.length) return { inline_keyboard: [msg.buttons.map((b) => ({ text: b.title, callback_data: b.id }))] };
-  if (msg.requestContact) return { keyboard: [[{ text: msg.requestContact, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true };
+  if (msg.requestContact) return { keyboard: [[{ text: msg.requestContact, request_contact: true }]], resize_keyboard: true, is_persistent: true, input_field_placeholder: 'Toca el botón de abajo' };
   if (msg.removeKeyboard) return { remove_keyboard: true };
   return undefined;
 }

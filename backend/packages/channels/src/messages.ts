@@ -19,8 +19,10 @@ export const msg = {
   w3NotFound: (org: string): OutMessage => ({
     text: `No encontramos tu número en la lista de ${org}. Pídele a la empresa que te registre.`,
   }),
-  w4Help: (): OutMessage => ({
-    text: 'Para unirte escribe ALTA y el código de tu empresa. Para dejar de recibir mensajes escribe BAJA.',
+  w4Help: (canal: 'whatsapp' | 'telegram' | 'email' | 'simulator' = 'whatsapp'): OutMessage => ({
+    text: canal === 'telegram'
+      ? 'Para unirte, abre el enlace o escanea el código QR que te dio tu empresa y toca «Iniciar». Para dejar de recibir mensajes escribe BAJA.'
+      : 'Para unirte escribe ALTA y el código de tu empresa. Para dejar de recibir mensajes escribe BAJA.',
   }),
   w12Baja: (): OutMessage => ({
     text: 'Listo: no recibirás más mensajes de TurnoExtra. Para volver, pide el enlace de tu empresa y escribe ALTA.',
@@ -101,11 +103,15 @@ export const msg = {
 
   // --- H8: alta directa por Telegram ------------------------------------------------------------
   w23AskContact: (org: string): OutMessage => ({
-    text: `Para unirte a la lista de ${org} por Telegram, toca «Compartir mi celular». Lo usamos solo para encontrarte en la lista donde te registró la empresa.`,
+    text: `Hola. Vas a unirte a la lista de ${org} por Telegram.
+
+Paso siguiente: toca el botón «Compartir mi celular» que aparece abajo, donde escribes los mensajes. Si no lo ves, toca el icono de cuadritos al lado del campo de texto.
+
+Usamos tu celular solo para encontrarte en la lista donde te registró la empresa; después te pediremos que aceptes recibir ofertas.`,
     requestContact: 'Compartir mi celular',
   }),
   w23bContactNotOwn: (): OutMessage => ({
-    text: 'Necesitamos el celular de tu propia cuenta de Telegram. Tócalo con el botón «Compartir mi celular».',
+    text: 'Ese contacto no es el de tu cuenta. Toca el botón «Compartir mi celular» de abajo (no elijas un contacto de tu agenda).',
     requestContact: 'Compartir mi celular',
   }),
   w23cContactReceived: (): OutMessage => ({ text: 'Recibimos tu celular.', removeKeyboard: true }),

@@ -99,7 +99,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
 
   if (text.startsWith('borrar mis datos')) {
     if (!w) {
-      await reply(msg.w4Help());
+      await reply(msg.w4Help(ev.canal));
       return { handled: 'help' };
     }
     await tx.insert(pendingConfirmations)
@@ -124,7 +124,7 @@ async function process(tx: Tx, deps: EngineDeps, ev: InboundEvent): Promise<Hand
     }
   }
 
-  await reply(msg.w4Help());
+  await reply(msg.w4Help(ev.canal));
   return { handled: 'help' };
 }
 
@@ -136,7 +136,7 @@ async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worke
   if (code) {
     const [o] = await tx.select({ id: orgs.id }).from(orgs).where(eq(orgs.inviteCode, code.toUpperCase()));
     if (!o) {
-      await reply(msg.w4Help());
+      await reply(msg.w4Help(canal));
       return { handled: 'help' };
     }
     orgId = o.id;
@@ -147,7 +147,7 @@ async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worke
     if (pend.length === 1) orgId = pend[0]!.orgId;
   }
   if (!orgId) {
-    await reply(msg.w4Help());
+    await reply(msg.w4Help(canal));
     return { handled: 'help' };
   }
 
@@ -169,14 +169,14 @@ async function alta(tx: Tx, deps: EngineDeps, code: string | undefined, w: Worke
 
 async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Reply, replyAnon: (m: OutMessage) => Promise<void>): Promise<Handled> {
   if (!w) {
-    await reply(msg.w4Help());
+    await reply(msg.w4Help(ev.canal));
     return { handled: 'help' };
   }
   const [kind, arg] = id.split(':');
 
   if (kind === 'OFFER_ACCEPT' || kind === 'OFFER_DECLINE') {
     if (!arg || !UUID.test(arg)) {
-      await reply(msg.w4Help());
+      await reply(msg.w4Help(ev.canal));
       return { handled: 'help' };
     }
     const r = await respondOffer(tx, arg, w.id, kind === 'OFFER_ACCEPT' ? 'accept' : 'decline', ev.canal);
@@ -192,13 +192,13 @@ async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Re
 
   if (kind === 'CONSENT_YES' || kind === 'CONSENT_NO') {
     if (!arg || !UUID.test(arg)) {
-      await reply(msg.w4Help());
+      await reply(msg.w4Help(ev.canal));
       return { handled: 'help' };
     }
     const [o] = await tx.select({ nombre: orgs.nombre }).from(orgs).where(eq(orgs.id, arg));
     const [link] = await tx.select().from(orgWorkers).where(and(eq(orgWorkers.workerId, w.id), eq(orgWorkers.orgId, arg)));
     if (!o || !link) {
-      await reply(msg.w4Help());
+      await reply(msg.w4Help(ev.canal));
       return { handled: 'help' };
     }
     if (link.estado === 'activo') {
@@ -248,7 +248,7 @@ async function button(tx: Tx, ev: InboundEvent, id: string, w: Worker, reply: Re
     return { handled: 'delete_confirmed' };
   }
 
-  await reply(msg.w4Help());
+  await reply(msg.w4Help(ev.canal));
   return { handled: 'help' };
 }
 
@@ -285,7 +285,7 @@ async function telegramAltaStart(tx: Tx, deps: EngineDeps, code: string, ev: Inb
     ? await tx.select({ nombre: orgs.nombre }).from(orgs).where(eq(orgs.inviteCode, code.toUpperCase()))
     : [];
   if (!o) {
-    await reply(msg.w4Help());
+    await reply(msg.w4Help(ev.canal));
     return { handled: 'help' };
   }
   const expiresAt = sql`now() + make_interval(mins => ${TG_ALTA_TTL_MIN})`;

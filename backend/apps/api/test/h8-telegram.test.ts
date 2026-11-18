@@ -151,7 +151,7 @@ describe('alta directa por Telegram', () => {
     const ch = new TelegramChannel({ token: 't', fetchFn });
     await ch.send('1', { text: 'a', requestContact: 'Compartir mi celular' });
     await ch.send('1', { text: 'b', removeKeyboard: true });
-    expect(bodies[0]!.reply_markup).toEqual({ keyboard: [[{ text: 'Compartir mi celular', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
+    expect(bodies[0]!.reply_markup).toEqual({ keyboard: [[{ text: 'Compartir mi celular', request_contact: true }]], resize_keyboard: true, is_persistent: true, input_field_placeholder: 'Toca el botón de abajo' });
     expect(bodies[1]!.reply_markup).toEqual({ remove_keyboard: true });
   });
 });
