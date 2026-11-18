@@ -234,6 +234,16 @@ const routes = [
   }],
   ['GET', /^\/yo\/sesion$/, () => (getPersona() === 'candidato' ? { id: 'c-demo', nombre: 'Ana' } : sinSesion())],
   ['GET', /^\/yo$/, (s) => ({ nombre: 'Ana', turnos: s === 'empty' ? [] : TURNOS_CANDIDATO, canales: CANALES_CANDIDATO, ventanaDisputaDias: 7 })],
+  ['POST', /^\/yo\/disputas$/, (_s, body) => {
+    const t = TURNOS_CANDIDATO.find((x) => x.assignmentId === body?.assignmentId)
+    if (t) { t.estado = 'disputed'; t.disputable = false }
+    return { ok: true }
+  }],
+  ['PUT', /^\/yo\/canales$/, (_s, body) => {
+    const orden = body?.prioridad ?? []
+    CANALES_CANDIDATO.forEach((c) => { const i = orden.indexOf(c.canal); c.prioridad = i >= 0 ? i + 1 : 10 + c.prioridad })
+    return { prioridad: orden }
+  }],
 
   ['GET', /^\/admin\/orgs$/, (s) => ({ orgs: s === 'empty' ? [] : ORGS_ADMIN.map((o) => ({ ...o, roles: (ORG_ROLE_IDS[o.id] ?? []).length })) })],
   ['GET', /^\/admin\/orgs\/[^/]+\/roles$/, (s, _b, path) => ({ roleIds: s === 'empty' ? [] : ORG_ROLE_IDS[path.split('/')[3]] ?? [] })],

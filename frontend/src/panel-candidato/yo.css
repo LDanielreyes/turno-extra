@@ -1,0 +1,149 @@
+/* Mi espacio: placa del candidato (Yo.jsx). Tiquetes de turno, enchufes de canal y palancas con seguro. Móvil primero. */
+
+.yo {
+  position: relative; isolation: isolate; overflow: clip; overflow-clip-margin: 12px;
+  display: grid; gap: 24px; padding: clamp(18px, 3vw, 36px) clamp(14px, 3vw, 36px) 40px;
+  border: 1px solid var(--line); border-radius: 3px; --crop: var(--color-text-muted);
+  background: var(--ink);
+}
+.yo > * { min-width: 0; }
+.yo::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px); background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, transparent 4%, var(--ink) 40%);
+}
+.yo::after {
+  content: ''; position: absolute; z-index: -1; right: -10%; top: -30%; width: 60%; aspect-ratio: 1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 10%, transparent), transparent);
+}
+
+.yo__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px 32px; padding-bottom: 20px; border-bottom: 1px solid var(--hair); }
+.yo__title { display: grid; gap: 14px; }
+.yo h1 { margin: 0; font: 800 clamp(32px, 4vw, 54px)/0.95 var(--font-display); letter-spacing: -0.04em; text-wrap: balance; }
+.yo-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--color-text-muted); }
+.yo-key li { display: inline-flex; align-items: center; gap: 7px; }
+.yo-k { width: 10px; height: 10px; border-radius: 2px; background: var(--paper); }
+.yo-k--next { background: var(--ember); }
+.yo-k--done { background: var(--color-success); }
+.yo-k--bad { background: var(--color-danger); }
+.yo__facts { display: flex; flex-wrap: wrap; margin: 0; }
+.yo__facts > div { display: grid; gap: 2px; padding-right: 22px; margin-right: 22px; border-right: 1px solid var(--hair); }
+.yo__facts > div:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+.yo__facts dt { order: 2; font-size: 12px; color: var(--color-text-muted); }
+.yo__facts dd { margin: 0; font: 700 26px/1.1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.yo__stage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.yo__side { display: grid; gap: 28px; }
+@media (max-width: 900px) { .yo__stage { grid-template-columns: minmax(0, 1fr); } }
+
+.yo-h { margin: 0 0 12px; font: 700 13px/1.2 var(--font-body); letter-spacing: 0.02em; color: var(--color-text-muted); }
+.yo-note { margin: 0 0 14px; font-size: 13.5px; line-height: 1.45; color: var(--color-text-muted); max-width: 46ch; }
+
+/* ---------- tiquetes ---------- */
+.yo-tix-wrap { display: grid; gap: 4px; align-content: start; }
+.yo-tix { display: grid; gap: 14px; margin: 0 0 18px; padding: 0; list-style: none; }
+.yo-tix__item { animation: yo-in 0.45s calc(var(--i, 0) * 60ms) var(--ease-out) backwards; }
+@keyframes yo-in { from { opacity: 0; translate: 0 10px; } }
+
+.yo-tk {
+  position: relative; display: grid; background: var(--paper); color: var(--on-paper); border-radius: 3px;
+  box-shadow: inset 0 0 0 1px var(--paper-line), 0 10px 16px -12px var(--shadow-deep);
+  overflow: hidden;
+}
+.yo-tk::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--paper-line); }
+.yo-tk.is-next::before { background: var(--ember); }
+.yo-tk.is-done::before { background: var(--color-success); }
+.yo-tk.is-bad::before { background: var(--color-danger); }
+.yo-tk__main { position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: stretch; }
+.yo-tk__date {
+  display: grid; place-content: center; justify-items: center; padding: 14px 0 14px 5px;
+  border-right: 2px dashed var(--paper-line); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--on-paper-muted);
+}
+.yo-tk__date b { font: 800 30px/1 var(--font-display); letter-spacing: -0.03em; color: var(--on-paper); font-variant-numeric: tabular-nums; }
+.yo-tk__body { display: grid; gap: 3px; align-content: center; padding: 14px 16px; min-width: 0; }
+.yo-tk__rol { font: 700 18px/1.15 var(--font-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.yo-tk__org { font-size: 13.5px; color: var(--on-paper-muted); overflow-wrap: anywhere; }
+.yo-tk__hrs { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--on-paper); }
+.yo-tk.is-done .yo-tk__body, .yo-tk.is-off .yo-tk__body { opacity: 0.78; }
+
+.yo-tk__seal {
+  position: absolute; right: 12px; top: 12px; rotate: -7deg; padding: 3px 9px; border: 2px solid currentColor; border-radius: 3px;
+  font: 800 11.5px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--on-paper-muted); opacity: 0.85;
+}
+.yo-tk.is-done .yo-tk__seal { color: #17794d; }
+.yo-tk.is-bad .yo-tk__seal { color: #b3392a; }
+.yo-tk__seal.is-drop { animation: yo-stamp 0.5s var(--ease-drop, var(--ease-out)); }
+@keyframes yo-stamp { from { opacity: 0; scale: 1.9; rotate: 0deg; } 60% { opacity: 1; scale: 0.94; } }
+
+.yo-tk__tear {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border: 0; border-top: 2px dashed var(--paper-line);
+  background: transparent; color: var(--ember-deep); font: 700 13.5px var(--font-body); cursor: pointer;
+  transition: background-color 0.15s;
+}
+.yo-tk__tear:hover { background: var(--paper-2); }
+.yo-tk__tear:focus-visible { outline: 2px solid var(--ember-deep); outline-offset: -3px; }
+.yo-dsp { display: grid; gap: 12px; padding: 14px 16px 16px; border-top: 2px dashed var(--paper-line); background: var(--paper-2); animation: yo-in 0.3s var(--ease-out); }
+.yo-dsp__acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.yo-dsp .form__err { margin: 0; }
+
+/* esqueleto con la forma del tiquete */
+.yo-tk.is-ghost { min-height: 84px; background: var(--graphite); box-shadow: inset 0 0 0 1px var(--hair); animation: yo-pulse 1.4s ease-in-out infinite; }
+.yo-tk.is-ghost::before { display: none; }
+.yo-tk--lone { width: min(280px, 100%); margin-bottom: 14px; animation: none; border: 1px dashed var(--hair-strong); box-shadow: none; background: transparent; }
+@keyframes yo-pulse { 50% { opacity: 0.55; } }
+.yo-blank { display: grid; justify-items: center; gap: 4px; padding: 36px 16px; text-align: center; border: 1px dashed var(--hair-strong); border-radius: 3px; }
+.yo-blank strong { font: 700 18px var(--font-display); }
+.yo-blank span:last-child { font-size: 13.5px; color: var(--color-text-muted); }
+
+/* ---------- canales ---------- */
+.yo-card { display: grid; align-content: start; }
+.yo-plugs { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.yo-plug {
+  position: relative; display: grid; grid-template-columns: 26px 20px minmax(0, 1fr) 12px; align-items: center; gap: 12px; width: 100%; min-height: 60px;
+  padding: 10px 14px; text-align: left; border: 1px dashed var(--hair-strong); border-radius: 4px; background: transparent; color: var(--color-text-muted);
+  font: inherit; transition: background-color 0.2s, color 0.2s, border-color 0.2s, translate 0.25s var(--ease-out);
+}
+.yo-plug.is-on { border: 1px solid var(--hair-strong); background: var(--graphite); color: var(--color-text); }
+.yo-plug.is-first { border-color: var(--ember); background: color-mix(in srgb, var(--ember) 10%, var(--graphite)); }
+button.yo-plug { cursor: pointer; }
+button.yo-plug:hover { background: var(--graphite-2); translate: 0 -1px; }
+button.yo-plug:disabled { cursor: progress; opacity: 0.7; }
+.yo-plug:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.yo-plug__n { font: 800 18px var(--font-display); font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.yo-plug.is-first .yo-plug__n { color: var(--ember); }
+.yo-plug__txt { display: grid; gap: 1px; min-width: 0; }
+.yo-plug__txt strong { font: 700 15px var(--font-body); }
+.yo-plug__txt small { font-size: 12.5px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.yo-plug__lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--graphite-2); box-shadow: inset 0 0 0 1.5px var(--hair-strong); }
+.yo-plug.is-on .yo-plug__lamp { background: var(--color-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 22%, transparent); }
+.yo-plug.is-first .yo-plug__lamp { background: var(--ember); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ember) 25%, transparent); }
+.yo-plug.is-moved { animation: yo-plug 0.7s var(--ease-out); }
+@keyframes yo-plug { from { translate: 0 18px; } 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--ember) 30%, transparent); } }
+.yo-plug.is-ghost { display: block; min-height: 60px; border-style: solid; background: var(--graphite); animation: yo-pulse 1.4s ease-in-out infinite; }
+.yo-card .form__err { margin: 10px 0 0; }
+
+/* ---------- palancas ---------- */
+.yo-levers { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.yo-lever { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--hair-strong); border-radius: 4px; background: var(--graphite); }
+.yo-lever.is-armed { border-color: var(--color-danger); }
+.yo-lever__txt { display: grid; gap: 3px; }
+.yo-lever__txt strong { font: 700 15px var(--font-body); }
+.yo-lever__txt span { font-size: 13px; line-height: 1.4; color: var(--color-text-muted); }
+.yo-lever__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--hair-strong); border-radius: 4px;
+  background: transparent; color: var(--color-text); font: 600 14px var(--font-body); cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+}
+.yo-lever__btn:hover { background: var(--graphite-2); border-color: var(--color-text-muted); }
+.yo-lever__btn:disabled { cursor: progress; opacity: 0.7; }
+.yo-lever__btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.yo-lever__confirm { display: grid; gap: 10px; font-size: 13.5px; font-weight: 600; animation: yo-in 0.25s var(--ease-out); }
+.yo-lever__acts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+@media (max-width: 480px) {
+  .yo-tk__main { grid-template-columns: 62px minmax(0, 1fr); }
+  .yo-tk__seal { top: auto; bottom: 10px; }
+  .yo-plug { grid-template-columns: 22px 20px minmax(0, 1fr) 12px; gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yo *, .yo *::before { animation: none !important; transition: none !important; }
+}
