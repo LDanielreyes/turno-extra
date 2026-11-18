@@ -20,7 +20,7 @@ beforeAll(async () => {
   orgA = rows[0]!.id;
   orgB = rows[1]!.id;
   const w = await seed`INSERT INTO workers (nombre) VALUES ('Ana') RETURNING id`;
-  await seed`INSERT INTO org_workers (org_id, worker_id) VALUES (${orgA}, ${w[0]!.id})`;
+  await seed`INSERT INTO org_workers (org_id, worker_id, nombre) VALUES (${orgA}, ${w[0]!.id}, 'Ana')`;
   await seed.end();
   const u = new URL(owner);
   u.username = 'turnoextra_app';

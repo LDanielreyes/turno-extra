@@ -4,7 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/backend/:path*", "destination": "https://REEMPLAZA-CON-TU-API.onrender.com/:path*" },
+    { "source": "/backend/:path*", "destination": "https://turnoextra-api.onrender.com/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
