@@ -19,10 +19,11 @@ const s3 = () => {
 
 /**
  * Almacenamiento simulado para pruebas: con `MOCK_STORAGE=true` los archivos van a una carpeta local (`.mock-storage`)
- * en vez del bucket. Nunca en producción: ahí se ignora y la carga queda "no disponible" si falta el bucket real.
+ * en vez del bucket. Es un opt-in explícito (en Render el disco es efímero: sirve para probar, no para guardar).
+ * Si hay bucket real configurado, el bucket manda y esta variable se ignora.
  */
 const mockDir = () => join(process.env.MOCK_STORAGE_DIR ?? '.mock-storage');
-const mocked = () => process.env.MOCK_STORAGE === 'true' && process.env.NODE_ENV !== 'production' && s3() === null;
+const mocked = () => process.env.MOCK_STORAGE === 'true' && s3() === null;
 const mockPath = (key: string) => join(mockDir(), createHash('sha256').update(key).digest('hex'));
 
 export const storageEnabled = () => s3() !== null || mocked();

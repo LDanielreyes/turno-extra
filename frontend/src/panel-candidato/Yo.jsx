@@ -224,6 +224,15 @@ function DocsAviso() {
   const subir = reqs.filter((r) => !r.documento || r.documento.estado === 'rechazado' || (r.documento.estado === 'aprobado' && !vigente(r)))
   const revision = reqs.filter((r) => r.documento?.estado === 'pendiente')
   if (!subir.length && !revision.length) return null
+  // Sin almacenamiento no hay dónde subir: no se le pide al candidato algo que no puede hacer.
+  if (q.data && !q.data.archivos) {
+    return (
+      <div className="yo-alert" role="status">
+        <Ico name="doc" size={16} />
+        <p><strong>Tu empresa te pide documentos, pero la carga está desactivada por ahora.</strong> Avísale a tu empresa; en cuanto se active podrás subirlos aquí, en «Mis documentos».</p>
+      </div>
+    )
+  }
   const names = [...new Set(subir.map((r) => docLabel(r.tipo)))]
   return (
     <div className={`yo-alert${subir.length ? ' is-todo' : ''}`} role={subir.length ? 'alert' : 'status'}>
