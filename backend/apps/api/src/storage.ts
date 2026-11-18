@@ -1,5 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
@@ -18,11 +19,12 @@ const s3 = () => {
 };
 
 /**
- * Almacenamiento simulado para pruebas: con `MOCK_STORAGE=true` los archivos van a una carpeta local (`.mock-storage`)
+ * Almacenamiento simulado para pruebas: con `MOCK_STORAGE=true` los archivos van a la carpeta temporal del sistema (`turnoextra-mock-storage`)
  * en vez del bucket. Es un opt-in explícito (en Render el disco es efímero: sirve para probar, no para guardar).
  * Si hay bucket real configurado, el bucket manda y esta variable se ignora.
  */
-const mockDir = () => join(process.env.MOCK_STORAGE_DIR ?? '.mock-storage');
+// Carpeta temporal del sistema: en Render la del proyecto es de solo lectura.
+const mockDir = () => process.env.MOCK_STORAGE_DIR ?? join(tmpdir(), 'turnoextra-mock-storage');
 const mocked = () => process.env.MOCK_STORAGE === 'true' && s3() === null;
 const mockPath = (key: string) => join(mockDir(), createHash('sha256').update(key).digest('hex'));
 
