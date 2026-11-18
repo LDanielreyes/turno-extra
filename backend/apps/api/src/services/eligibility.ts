@@ -1,1 +1,1 @@
-export { eligibleWorkers, type Eligible } from '@turnoextra/channels';
+export { eligibleWorkers, shiftFit, type Eligible, type ShiftFit } from '@turnoextra/channels';

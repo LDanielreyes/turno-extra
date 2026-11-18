@@ -36,3 +36,22 @@ export async function eligibleWorkers(tx: Tx, orgId: string, shiftId: string): P
   const rows = (res as unknown as { rows?: Eligible[] }).rows ?? (res as unknown as Eligible[]);
   return rows.map((r) => ({ workerId: r.workerId, nombre: r.nombre, favorito: r.favorito }));
 }
+
+export type ShiftFit = { workerId: string; ocupado: boolean; asignado: boolean; tope: boolean };
+
+/**
+ * Condiciones que dependen del horario de un turno, para cada persona activa de la org:
+ * choque con otro turno confirmado (con descanso), asignación previa y tope semanal. Corre dentro de `withOrg`.
+ */
+export async function shiftFit(tx: Tx, orgId: string, shiftId: string): Promise<ShiftFit[]> {
+  const res = await tx.execute(sql`
+    SELECT ow.worker_id AS "workerId",
+      worker_is_busy(ow.worker_id, s.inicio, s.fin, o.descanso_min_h) AS ocupado,
+      EXISTS (SELECT 1 FROM assignments a WHERE a.shift_id = s.id AND a.worker_id = ow.worker_id) AS asignado,
+      (worker_week_hours(ow.worker_id, s.inicio) + extract(epoch FROM (s.fin - s.inicio)) / 3600 > o.tope_semanal_h) AS tope
+    FROM shifts s
+    JOIN orgs o ON o.id = s.org_id
+    JOIN org_workers ow ON ow.org_id = s.org_id
+    WHERE s.id = ${shiftId} AND s.org_id = ${orgId} AND ow.estado = 'activo'`);
+  return ((res as unknown as { rows?: ShiftFit[] }).rows ?? (res as unknown as ShiftFit[]));
+}

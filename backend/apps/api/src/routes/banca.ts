@@ -1,9 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
-import { audit, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
+import { audit, shifts, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
 import type { Guards } from '../auth/guards.js';
 import { normalizeCoPhone, maskPhone } from '../phone.js';
+import { shiftFit } from '../services/eligibility.js';
 import { getFile, storageEnabled } from '../storage.js';
 
 const uuid = z.string().uuid();
@@ -66,13 +67,15 @@ export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
     });
   });
 
-  app.get('/orgs/:orgId/workers', { preHandler: pre }, async (req) => {
+  app.get('/orgs/:orgId/workers', { preHandler: pre }, async (req, reply) => {
     const orgId = org(req);
     const q = z
       .object({
         estado: z.enum(['pendiente', 'activo', 'baja', 'baja_org']).optional(),
         roleId: uuid.optional(),
         favorito: z.enum(['true', 'false']).optional(),
+        // Con un turno, la elegibilidad se evalúa contra su rol y su horario.
+        shiftId: uuid.optional(),
       })
       .parse(req.query);
     return withOrg(db, orgId, async (tx) => {
@@ -114,14 +117,64 @@ export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
             .where(and(eq(shiftOffers.orgId, orgId), inArray(shiftOffers.workerId, ids), isNotNull(shiftOffers.respondedCanal)))
             .orderBy(shiftOffers.workerId, desc(shiftOffers.respondedAt))
         : [];
+      // Elegibilidad general (sin mirar un turno concreto): persona activa y documentos obligatorios de su rol
+      // aprobados y vigentes. Descanso y tope semanal dependen del horario y se evalúan al abrir cada turno.
+      let shift: { roleId: string; fin: Date } | undefined;
+      let fits: Awaited<ReturnType<typeof shiftFit>> = [];
+      if (q.shiftId) {
+        [shift] = await tx.select({ roleId: shifts.roleId, fin: shifts.fin }).from(shifts).where(and(eq(shifts.id, q.shiftId), eq(shifts.orgId, orgId)));
+        if (!shift) return reply.status(404).send({ error: 'not_found', message: 'No encontrado' });
+        fits = await shiftFit(tx, orgId, q.shiftId);
+      }
+      const roleIds = [...new Set([...rows.map((r) => r.roleId), shift?.roleId].filter((x): x is string => !!x))];
+      const reqs = roleIds.length
+        ? await tx
+            .select({ roleId: roleRequirements.roleId, tipo: roleRequirements.tipoDocumento, vigencia: roleRequirements.vigenciaRequerida })
+            .from(roleRequirements)
+            .where(and(inArray(roleRequirements.roleId, roleIds), eq(roleRequirements.obligatorio, true)))
+        : [];
+      const docs = ids.length
+        ? await tx
+            .select({ workerId: workerDocuments.workerId, tipo: workerDocuments.tipoDocumento, estado: workerDocuments.estado, venceAt: workerDocuments.venceAt })
+            .from(workerDocuments)
+            .where(and(eq(workerDocuments.orgId, orgId), inArray(workerDocuments.workerId, ids)))
+        : [];
+      // Vigencia: hoy, o el día en que termina el turno (hora de Bogotá).
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(shift?.fin ?? new Date());
+      const motivosDe = (w: (typeof rows)[number]) => {
+        if (w.estado === 'pendiente') return [{ codigo: 'sin_aceptar' }];
+        if (w.estado !== 'activo') return [{ codigo: 'baja' }];
+        const out: { codigo: string; tipo?: string }[] = [];
+        const fit = fits.find((f) => f.workerId === w.workerId);
+        if (shift && w.roleId !== shift.roleId) out.push({ codigo: 'otro_rol' });
+        if (fit?.asignado) out.push({ codigo: 'ya_asignado' });
+        for (const r of reqs.filter((x) => x.roleId === (shift?.roleId ?? w.roleId))) {
+          const mine = docs.filter((d) => d.workerId === w.workerId && d.tipo === r.tipo);
+          const valid = (d: (typeof mine)[number]) => !r.vigencia || (!!d.venceAt && d.venceAt >= today);
+          if (mine.some((d) => d.estado === 'aprobado' && valid(d))) continue;
+          const codigo = mine.some((d) => d.estado === 'aprobado') ? 'doc_vencido'
+            : mine.some((d) => d.estado === 'pendiente') ? 'doc_pendiente'
+            : mine.length ? 'doc_rechazado' : 'doc_falta';
+          out.push({ codigo, tipo: r.tipo });
+        }
+        if (fit?.ocupado) out.push({ codigo: 'ocupado' });
+        if (fit?.tope) out.push({ codigo: 'tope_semanal' });
+        return out;
+      };
       return {
-        workers: rows.map(({ celular, workerId, ...r }) => ({
+        workers: rows.map((row) => {
+          const { celular, workerId, ...r } = row;
+          const motivos = motivosDe(row);
+          return {
           ...r,
+          motivos,
+          elegible: motivos.length === 0,
           celular: maskPhone(celular),
           canales: chans.filter((c) => c.workerId === workerId && c.habilitado).map((c) => c.canal),
           respondioPor: last.find((l) => l.workerId === workerId)?.canal ?? null,
           respondioAt: last.find((l) => l.workerId === workerId)?.at ?? null,
-        })),
+          };
+        }),
       };
     });
   });

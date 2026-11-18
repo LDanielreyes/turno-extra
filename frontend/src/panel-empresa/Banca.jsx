@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
 import { api, errorText } from '../shared/api'
-import { fmtDate } from '../shared/format'
+import { fmtDate, fmtRange } from '../shared/format'
 import { Btn } from '../shared/ui'
 import Crops from '../shared/Crops'
 import { orgKey, roleName, useOrg, useRoles } from './org'
@@ -14,7 +14,23 @@ import './banca.css'
 // marcarla favorita, el sello cae sobre el documento revisado y la tarjeta se endereza al reinvitar.
 const CHANNELS = ['whatsapp', 'telegram', 'email']
 const ESTADOS = [['todos', 'Todas'], ['activo', 'Activas'], ['pendiente', 'Pendientes'], ['fuera', 'Salieron']]
+const ELEG = [['todas', 'Todas'], ['si', 'Elegibles'], ['no', 'No elegibles']]
 const GONE = ['baja', 'baja_org']
+const docName = (t) => (t ?? '').replace(/_/g, ' ')
+// Por qué una persona no recibe ofertas hoy; el descanso y el tope semanal se evalúan por turno.
+const MOTIVO = {
+  sin_aceptar: () => 'Aún no acepta',
+  baja: () => 'Está de baja',
+  doc_falta: (m) => `Falta ${docName(m.tipo)}`,
+  doc_pendiente: (m) => `Por revisar: ${docName(m.tipo)}`,
+  doc_rechazado: (m) => `Rechazado: ${docName(m.tipo)}`,
+  doc_vencido: (m) => `Vencido: ${docName(m.tipo)}`,
+  otro_rol: () => 'Es de otro rol',
+  ya_asignado: () => 'Ya está en este turno',
+  ocupado: () => 'Choca con otro turno o su descanso',
+  tope_semanal: () => 'Pasaría el tope semanal de horas',
+}
+const motivoText = (m) => (MOTIVO[m.codigo] ?? (() => m.codigo))(m)
 const STEP = 48
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
@@ -22,12 +38,16 @@ export default function Banca() {
   const { orgId } = useOrg()
   const qc = useQueryClient()
   const roles = useRoles()
-  const q = useQuery({ queryKey: orgKey(orgId, 'workers'), queryFn: () => api(`/orgs/${orgId}/workers`) })
+  const [turno, setTurno] = useState('')
+  const q = useQuery({ queryKey: orgKey(orgId, 'workers', turno), queryFn: () => api(`/orgs/${orgId}/workers${turno ? `?shiftId=${turno}` : ''}`) })
+  const sq = useQuery({ queryKey: orgKey(orgId, 'shifts'), queryFn: () => api(`/orgs/${orgId}/shifts`) })
   const refresh = () => qc.invalidateQueries({ queryKey: orgKey(orgId, 'workers') })
+  const turnos = (sq.data?.shifts ?? []).filter((s) => s.estado === 'abierto' && +new Date(s.fin) >= Date.now()).sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio))
   const [open, setOpen] = useState(null)
   const [flash, setFlash] = useState(null)
   const [term, setTerm] = useState('')
   const [estado, setEstado] = useState('todos')
+  const [eleg, setEleg] = useState('todas')
   const [rol, setRol] = useState('')
   const [canal, setCanal] = useState('')
   const [onlyFav, setOnlyFav] = useState(false)
@@ -49,12 +69,13 @@ export default function Banca() {
   const needle = norm(term.trim())
   const view = (workers ?? []).filter((w) =>
     (estado === 'todos' || (estado === 'fuera' ? GONE.includes(w.estado) : w.estado === estado)) &&
+    (eleg === 'todas' || (eleg === 'si' ? w.elegible : !w.elegible)) &&
     (!rol || w.roleId === rol) &&
     (!canal || (canal === 'ninguno' ? !(w.canales ?? []).length : (w.canales ?? []).includes(canal))) &&
     (!onlyFav || w.favorito) &&
     (!needle || norm(`${w.nombre} ${roleName(roles.data, w.roleId)}`).includes(needle)))
-  const filtered = needle || estado !== 'todos' || rol || canal || onlyFav
-  const clear = () => { setTerm(''); setEstado('todos'); setRol(''); setCanal(''); setOnlyFav(false) }
+  const filtered = needle || estado !== 'todos' || eleg !== 'todas' || rol || canal || onlyFav
+  const clear = () => { setTerm(''); setEstado('todos'); setEleg('todas'); setRol(''); setCanal(''); setOnlyFav(false) }
 
   return (
     <section className="bn">
@@ -72,6 +93,8 @@ export default function Banca() {
         {workers && (
           <dl className="bn__facts">
             <div><dt>{n((w) => w.estado === 'activo') === 1 ? 'activa' : 'activas'}</dt><dd>{n((w) => w.estado === 'activo')}</dd></div>
+            <div><dt>{n((w) => w.elegible) === 1 ? 'elegible' : 'elegibles'}</dt><dd>{n((w) => w.elegible)}</dd></div>
+            <div><dt>no {n((w) => w.estado === 'activo' && !w.elegible) === 1 ? 'elegible' : 'elegibles'} (activas)</dt><dd>{n((w) => w.estado === 'activo' && !w.elegible)}</dd></div>
             <div><dt>sin aceptar</dt><dd>{n((w) => w.estado === 'pendiente')}</dd></div>
             <div><dt>{n((w) => w.favorito) === 1 ? 'favorita' : 'favoritas'}</dt><dd>{n((w) => w.favorito)}</dd></div>
           </dl>
@@ -88,6 +111,15 @@ export default function Banca() {
             <div className="bn-seg" role="radiogroup" aria-label="Estado">
               {ESTADOS.map(([v, l]) => (
                 <button key={v} type="button" role="radio" aria-checked={estado === v} className={estado === v ? 'is-on' : ''} onClick={() => setEstado(v)}>{l}</button>
+              ))}
+            </div>
+            <select className="bn-select bn-select--turno" aria-label="Turno para evaluar elegibilidad" value={turno} onChange={(e) => setTurno(e.target.value)}>
+              <option value="">Elegibilidad general</option>
+              {turnos.map((s) => <option key={s.id} value={s.id}>{roleName(roles.data, s.roleId)} · {fmtRange(s.inicio, s.fin)}</option>)}
+            </select>
+            <div className="bn-seg" role="radiogroup" aria-label="Elegibilidad">
+              {ELEG.map(([v, l]) => (
+                <button key={v} type="button" role="radio" aria-checked={eleg === v} className={eleg === v ? 'is-on' : ''} onClick={() => setEleg(v)}>{l}</button>
               ))}
             </div>
             <select className="bn-select" aria-label="Rol" value={rol} onChange={(e) => setRol(e.target.value)}>
@@ -113,7 +145,7 @@ export default function Banca() {
               {q.isPending
                 ? Array.from({ length: 6 }, (_, i) => <li key={i} className="bn-card is-skel" style={{ '--d': `${i * 0.06}s` }}><div className="bn-card__paper" /></li>)
                 : view.slice(0, limit).map((w, i) => (
-                  <Card key={w.id} w={w} i={i} roles={roles.data} roleList={roleList} orgId={orgId}
+                  <Card key={w.id} shift={!!turno} w={w} i={i} roles={roles.data} roleList={roleList} orgId={orgId}
                     isOpen={open === w.id} flash={flash === w.id}
                     onOpen={() => setOpen(w.id)} onClose={() => setOpen(null)}
                     onFav={() => fav.mutate({ id: w.id, favorito: !w.favorito })} favBusy={fav.isPending && fav.variables?.id === w.id}
@@ -140,6 +172,18 @@ export default function Banca() {
 }
 
 // Luces de canal. Encendida = recibe ofertas ahí; aro de brasa = por ahí respondió la última vez.
+function Eleg({ w, shift }) {
+  const ms = w.motivos ?? []
+  return w.elegible
+    ? <span className="bn-eleg is-ok"><Ico name="check" size={12} />{shift ? 'Elegible para este turno' : 'Elegible para postulaciones'}</span>
+    : (
+      <span className="bn-eleg is-no">
+        <span className="bn-eleg__h"><Ico name="x" size={12} />No elegible</span>
+        <span className="bn-eleg__why">{ms.map(motivoText).join(' · ')}</span>
+      </span>
+    )
+}
+
 function Lights({ w }) {
   const on = new Set(w.canales ?? [])
   return (
@@ -160,7 +204,7 @@ function Lights({ w }) {
 
 const STAMP = { pendiente: 'Sin aceptar', baja: 'Se dio de baja', baja_org: 'Salió' }
 
-function Card({ w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, onFav, favBusy, onReinvite, reinviteBusy, onSaved }) {
+function Card({ shift, w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, onFav, favBusy, onReinvite, reinviteBusy, onSaved }) {
   const gone = GONE.includes(w.estado)
   const cls = `bn-card is-${w.estado}${gone ? ' is-gone' : ''}${isOpen ? ' is-open' : ''}${flash ? ' is-flash' : ''}${w.favorito ? ' is-fav' : ''}`
   const rn = roleName(roles, w.roleId)
@@ -174,12 +218,13 @@ function Card({ w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, on
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle className="bn-pin__head" cx="12" cy="9" r="6" /><path className="bn-pin__needle" d="M12 15v6" /></svg>
         </button>
         {isOpen
-          ? <Editor w={w} roleList={roleList} orgId={orgId} onClose={onClose} onSaved={onSaved} />
+          ? <Editor shift={shift} w={w} roleList={roleList} orgId={orgId} onClose={onClose} onSaved={onSaved} />
           : (
             <button type="button" className="bn-face" aria-expanded="false" onClick={onOpen}
               aria-label={`${w.nombre}, ${rn}, ${STAMP[w.estado] ?? 'activa'}. Abrir tarjeta`}>
               <strong className="bn-name">{w.nombre}</strong>
               <span className="bn-phone">{w.celular}</span>
+              <Eleg w={w} shift={shift} />
               <span className="bn-face__foot">
                 <Lights w={w} />
                 <span className="bn-since">desde {fmtDate(w.createdAt)}</span>
@@ -198,7 +243,7 @@ function Card({ w, i, roles, roleList, orgId, isOpen, flash, onOpen, onClose, on
   )
 }
 
-function Editor({ w, roleList, orgId, onClose, onSaved }) {
+function Editor({ shift, w, roleList, orgId, onClose, onSaved }) {
   const [nombre, setNombre] = useState(w.nombre)
   const [roleId, setRoleId] = useState(w.roleId)
   const ref = useRef(null)
@@ -224,6 +269,7 @@ function Editor({ w, roleList, orgId, onClose, onSaved }) {
           {roleList.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
         </select>
       </label>
+      <Eleg w={w} shift={shift} />
       <Docs orgId={orgId} workerId={w.id} />
       {save.error && <p className="bn-err" role="alert">{errorText(save.error)}</p>}
       <div className="bn-edit__foot">

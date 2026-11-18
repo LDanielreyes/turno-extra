@@ -138,6 +138,8 @@ const WORKERS = PEOPLE.map(([nombre, favorito], i) => ({
   id: `w-${i}`, nombre, favorito, roleId: i % 4 === 3 ? 'r-bartender' : 'r-mesero',
   celular: `+57 3** *** ${String(10 + i * 7).padStart(2, '0')} ${String(30 + i * 3).padStart(2, '0')}`,
   estado: i === 11 ? 'pendiente' : i === 10 ? 'baja' : 'activo',
+  elegible: i !== 11 && i !== 10 && i !== 5,
+  motivos: i === 11 ? [{ codigo: 'sin_aceptar' }] : i === 10 ? [{ codigo: 'baja' }] : i === 5 ? [{ codigo: 'doc_vencido', tipo: 'carnet_manipulacion_alimentos' }] : [],
   createdAt: new Date(Date.now() - (i * 9 + 2) * 86400e3).toISOString(),
   // mismo contrato que /orgs/:id/workers: canales habilitados; el de la ronda en vivo va primero
   canales: i === 11 ? [] : [...new Set([PEOPLE[i][3], 'whatsapp', ...(i % 3 === 0 ? ['telegram'] : []), ...(i % 4 === 2 ? ['email'] : [])])],
