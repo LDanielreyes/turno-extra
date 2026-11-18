@@ -248,3 +248,20 @@ describe('panel /yo', () => {
     expect((await owner<{ estado: string }>(sql`SELECT estado FROM org_workers WHERE worker_id = ${ana.id}`)).every((x) => x.estado !== 'baja')).toBe(true);
   });
 });
+
+describe('documentos del candidato', () => {
+  it('ve lo que pide su rol y qué le falta; sin almacenamiento configurado no se puede subir', async () => {
+    const ana = await mkWorker('Ana documentos');
+    const { cookie } = await login(ana);
+    const r = await w.api('GET', '/yo/documentos', { cookie });
+    expect(r.statusCode).toBe(200);
+    const org = r.json().organizaciones.find((o: { orgId: string }) => o.orgId === w.A.orgId);
+    expect(org.requisitos).toEqual([expect.objectContaining({ tipo: 'carnet_manipulacion_alimentos', obligatorio: true, documento: null })]);
+    const up = await w.app.inject({
+      method: 'POST', url: `/yo/documentos?orgId=${w.A.orgId}&tipo=carnet_manipulacion_alimentos&vence=2030-01-01`,
+      headers: { cookie, origin: env.CORS_ORIGINS[0], 'content-type': 'application/pdf' }, payload: Buffer.from('%PDF-1.4 prueba'),
+    });
+    expect(up.statusCode).toBe(503);
+    expect((await w.api('GET', '/yo/documentos', {})).statusCode).toBe(401);
+  });
+});

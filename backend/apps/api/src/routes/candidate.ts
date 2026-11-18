@@ -1,12 +1,13 @@
-import { randomInt, timingSafeEqual } from 'node:crypto';
+import { randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import {
-  assignments, audit, candidateLoginCodes, disputes, orgWorkers, orgs, roles, shifts, workerChannels, workers, withSuper, type Db,
+  assignments, audit, candidateLoginCodes, disputes, orgWorkers, orgs, roleRequirements, roles, shifts, workerChannels, workerDocuments, workers, withSuper, type Db,
 } from '@turnoextra/db';
 import { DISPUTE_WINDOW_DAYS, MIN_MOTIVO, deleteWorkerData, enqueue, msg, openDispute, pickChannel, workerBaja, type OutMessage } from '@turnoextra/channels';
 import { normalizeCoPhone } from '../phone.js';
+import { FILE_TYPES, MAX_FILE_BYTES, deleteFiles, putFile, sniff, storageEnabled } from '../storage.js';
 import {
   CODE_COOLDOWN_MS, CODE_TTL_MS, MAX_CODE_ATTEMPTS, clearCookie, createCandidateGuard, hashCode, makeSessionToken, sessionCookie,
 } from '../auth/candidate.js';
@@ -140,6 +141,76 @@ export function candidateRoutes(
     });
   });
 
+  // --- Documentos ---------------------------------------------------------------------------------
+  // El candidato sube sus documentos; la empresa solo los revisa. El tipo sale de los requisitos del rol que
+  // tiene en cada organización, así coincide siempre con lo que la elegibilidad exige.
+  app.addContentTypeParser([...FILE_TYPES], { parseAs: 'buffer', bodyLimit: MAX_FILE_BYTES }, (_req, body, done) => done(null, body));
+
+  app.get('/yo/documentos', me, async (req) => {
+    const id = req.candidate!.id;
+    return withSuper(db, async (tx) => {
+      const links = await tx
+        .select({ orgId: orgWorkers.orgId, org: orgs.nombre, roleId: orgWorkers.roleId, rol: roles.nombre })
+        .from(orgWorkers)
+        .innerJoin(orgs, eq(orgs.id, orgWorkers.orgId))
+        .innerJoin(roles, eq(roles.id, orgWorkers.roleId))
+        .where(and(eq(orgWorkers.workerId, id), inArray(orgWorkers.estado, ['pendiente', 'activo'])));
+      if (!links.length) return { organizaciones: [], archivos: storageEnabled() };
+      const reqs = await tx.select().from(roleRequirements).where(inArray(roleRequirements.roleId, links.map((l) => l.roleId!)));
+      const docs = await tx.select().from(workerDocuments).where(eq(workerDocuments.workerId, id)).orderBy(desc(workerDocuments.createdAt));
+      return {
+        archivos: storageEnabled(),
+        organizaciones: links.map((l) => ({
+          orgId: l.orgId, org: l.org, rol: l.rol,
+          requisitos: reqs.filter((r) => r.roleId === l.roleId).map((r) => {
+            const d = docs.find((x) => x.orgId === l.orgId && x.tipoDocumento === r.tipoDocumento);
+            return {
+              tipo: r.tipoDocumento, obligatorio: r.obligatorio, vigenciaRequerida: r.vigenciaRequerida,
+              documento: d ? { id: d.id, estado: d.estado, venceAt: d.venceAt, tieneArchivo: !!d.archivoKey } : null,
+            };
+          }),
+        })),
+      };
+    });
+  });
+
+  app.post('/yo/documentos', { ...mutating, config: { rateLimit: { max: 10, timeWindow: '1 minute' } }, bodyLimit: MAX_FILE_BYTES }, async (req, reply) => {
+    if (!storageEnabled()) return reply.status(503).send({ error: 'storage_unavailable', message: 'La carga de archivos no está disponible por ahora' });
+    const id = req.candidate!.id;
+    const q = z.object({ orgId: z.string().uuid(), tipo: z.string().regex(/^[a-z0-9_]+$/).max(60), vence: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(req.query);
+    const body = Buffer.isBuffer(req.body) ? req.body : null;
+    const mime = body && sniff(body);
+    if (!body || !mime) return reply.status(415).send({ error: 'invalid_file', message: 'Sube una foto (JPG o PNG) o un PDF de hasta 5 MB' });
+    return withSuper(db, async (tx) => {
+      const [link] = await tx
+        .select({ roleId: orgWorkers.roleId })
+        .from(orgWorkers)
+        .where(and(eq(orgWorkers.workerId, id), eq(orgWorkers.orgId, q.orgId), inArray(orgWorkers.estado, ['pendiente', 'activo'])));
+      const [rq] = link?.roleId
+        ? await tx.select().from(roleRequirements).where(and(eq(roleRequirements.roleId, link.roleId), eq(roleRequirements.tipoDocumento, q.tipo)))
+        : [];
+      if (!rq) return reply.status(422).send({ error: 'document_not_required', message: 'Ese documento no se pide para tu rol' });
+      const today = new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 10); // America/Bogota
+      if (rq.vigenciaRequerida && !q.vence) return reply.status(422).send({ error: 'expiry_required', message: 'Indica la fecha de vencimiento' });
+      if (q.vence && q.vence < today) return reply.status(422).send({ error: 'expiry_past', message: 'Ese documento ya está vencido' });
+      const docId = randomUUID();
+      const key = `${q.orgId}/${id}/${docId}`;
+      await putFile(key, body, mime);
+      const [d] = await tx
+        .insert(workerDocuments)
+        .values({ id: docId, orgId: q.orgId, workerId: id, tipoDocumento: q.tipo, venceAt: q.vence ?? null, archivoKey: key, archivoTipo: mime })
+        .returning({ id: workerDocuments.id });
+      // Al volver a subir se reemplazan los intentos sin aprobar; el aprobado sigue valiendo hasta que revisen el nuevo.
+      const old = await tx
+        .delete(workerDocuments)
+        .where(and(eq(workerDocuments.orgId, q.orgId), eq(workerDocuments.workerId, id), eq(workerDocuments.tipoDocumento, q.tipo), ne(workerDocuments.estado, 'aprobado'), ne(workerDocuments.id, docId)))
+        .returning({ key: workerDocuments.archivoKey });
+      await deleteFiles(old.flatMap((o) => (o.key ? [o.key] : [])));
+      await audit(tx, { orgId: q.orgId, actorId: actor(id), accion: 'document.uploaded', entidad: 'document', entidadId: d!.id });
+      return reply.status(201).send({ id: d!.id, estado: 'pendiente' });
+    });
+  });
+
   app.post('/yo/disputas', mutating, async (req, reply) => {
     const id = req.candidate!.id;
     const b = z.object({ assignmentId: z.string().uuid(), motivo: z.string().trim().max(500) }).parse(req.body);
@@ -167,7 +238,9 @@ export function candidateRoutes(
     const id = req.candidate!.id;
     await withSuper(db, async (tx) => {
       const ch = await pickChannel(tx, id);
+      const files = await tx.select({ key: workerDocuments.archivoKey }).from(workerDocuments).where(eq(workerDocuments.workerId, id));
       await deleteWorkerData(tx, id, { actorId: actor(id) });
+      await deleteFiles(files.flatMap((f) => (f.key ? [f.key] : [])));
       if (ch) await enqueue(tx, { canal: ch.canal, to: ch.identificador, msg: msg.w18Deleted(), workerId: null });
     });
     return reply.header('set-cookie', clearCookie(secure)).send({ borrado: true });

@@ -131,11 +131,8 @@ add('get', '/orgs/{orgId}/workers', {
 });
 add('patch', '/orgs/{orgId}/workers/{id}', { tag: B, who: 'gerente', summary: 'Editar nombre, rol o favorito', params: [orgId, id('id', 'org_workers.id')], body: obj({ favorito: bool(true), nombre: str('Carlos R.'), roleId: uuidS() }, []) });
 add('post', '/orgs/{orgId}/workers/{id}/reinvitar', { tag: B, who: 'gerente', summary: 'Reinvitar a quien salió (baja / baja_org)', params: [orgId, id('id', 'org_workers.id')] });
-add('post', '/orgs/{orgId}/workers/{id}/documents', {
-  tag: B, who: 'gerente', summary: 'Registrar un documento (tipo y vencimiento)', params: [orgId, id('id', 'org_workers.id')], status: 201,
-  body: obj({ tipoDocumento: str('carnet_manipulacion', { pattern: '^[a-z0-9_]+$' }), venceAt: str('2027-06-30', { format: 'date', nullable: true }) }, ['tipoDocumento']),
-});
-add('get', '/orgs/{orgId}/workers/{id}/documents', { tag: B, who: 'gerente', summary: 'Documentos de una persona', params: [orgId, id('id', 'org_workers.id')] });
+add('get', '/orgs/{orgId}/workers/{id}/documents', { tag: B, who: 'gerente', summary: 'Documentos de una persona y requisitos de su rol', params: [orgId, id('id', 'org_workers.id')] });
+add('get', '/orgs/{orgId}/documents/{docId}/archivo', { tag: B, who: 'gerente', summary: 'Ver el archivo de un documento (imagen o PDF)', params: [orgId, id('docId')] });
 add('patch', '/orgs/{orgId}/documents/{docId}', { tag: B, who: 'gerente', summary: 'Aprobar o rechazar un documento', params: [orgId, id('docId')], body: obj({ estado: str('aprobado', { enum: ['aprobado', 'rechazado'] }) }) });
 
 const S = 'Empresa · turnos';
@@ -200,6 +197,8 @@ add('post', '/candidato/salir', { tag: C, who: 'público', summary: 'Cerrar la s
 add('get', '/yo/sesion', { tag: C, who: 'candidato', summary: 'Sesión del candidato' });
 add('get', '/yo', { tag: C, who: 'candidato', summary: 'Mis turnos, canales y datos' });
 add('put', '/yo/canales', { tag: C, who: 'candidato', summary: 'Ordenar mis canales ya habilitados (el primero es el prioritario)', body: obj({ prioridad: { type: 'array', items: str('whatsapp', { enum: ['whatsapp', 'telegram', 'email'] }) } }) });
+add('get', '/yo/documentos', { tag: C, who: 'candidato', summary: 'Documentos que piden mis roles y su estado' });
+add('post', '/yo/documentos', { tag: C, who: 'candidato', summary: 'Subir un documento: cuerpo = archivo (image/jpeg, image/png o application/pdf, máx. 5 MB); query orgId, tipo y vence', status: 201 });
 add('post', '/yo/disputas', { tag: C, who: 'candidato', summary: 'Disputar una inasistencia', status: 201, body: obj({ assignmentId: uuidS(), motivo: str('Estuve en el turno completo, me vio el jefe de sala.', { minLength: 10, maxLength: 500 }) }) });
 add('post', '/yo/baja', { tag: C, who: 'candidato', summary: 'BAJA global (mismo servicio que el comando del chat)', body: obj({}, []) });
 add('post', '/yo/borrar', { tag: C, who: 'candidato', summary: 'BORRAR MIS DATOS (definitivo)', body: obj({}, []) });

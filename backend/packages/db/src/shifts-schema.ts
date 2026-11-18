@@ -15,6 +15,9 @@ export const workerDocuments = pgTable(
     workerId: uuid('worker_id').notNull().references(() => workers.id),
     tipoDocumento: text('tipo_documento').notNull(),
     venceAt: date('vence_at', { mode: 'string' }),
+    /** Archivo en el bucket privado `documentos` (clave) y su tipo MIME. */
+    archivoKey: text('archivo_key'),
+    archivoTipo: text('archivo_tipo'),
     estado: text('estado').notNull().default('pendiente'),
     revisadoPor: text('revisado_por'),
     revisadoAt: timestamp('revisado_at', { withTimezone: true }),

@@ -67,10 +67,9 @@ async function mkWorker(nombre: string, org = w.A): Promise<Person> {
   const code = (await w.api('GET', `/orgs/${org.orgId}/invitacion`, { cookie: org.cookie })).json().codigo as string;
   const ask = await say({ phone }, `ALTA ${code}`);
   await say({ phone }, { button: ask.replies[0]!.buttons![0]!.id });
-  const d = await w.api('POST', `/orgs/${org.orgId}/workers/${linkId}/documents`, {
-    cookie: org.cookie, body: { tipoDocumento: 'carnet_manipulacion_alimentos', venceAt: '2030-01-01' },
-  });
-  await w.api('PATCH', `/orgs/${org.orgId}/documents/${d.json().id}`, { cookie: org.cookie, body: { estado: 'aprobado' } });
+  // El candidato sube el documento desde su panel; aquí se siembra y la empresa lo aprueba.
+  const [d] = await owner<{ id: string }>(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, vence_at) SELECT org_id, worker_id, 'carnet_manipulacion_alimentos', '2030-01-01' FROM org_workers WHERE id = ${linkId} RETURNING id`);
+  await w.api('PATCH', `/orgs/${org.orgId}/documents/${d!.id}`, { cookie: org.cookie, body: { estado: 'aprobado' } });
   return { id, phone };
 }
 

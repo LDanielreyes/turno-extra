@@ -242,21 +242,25 @@ function Docs({ orgId, workerId }) {
   const q = useQuery({ queryKey: key, queryFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`) })
   const refresh = () => qc.invalidateQueries({ queryKey: key })
   const review = useMutation({ mutationFn: ({ id, estado }) => api(`/orgs/${orgId}/documents/${id}`, { method: 'PATCH', body: { estado } }), onSuccess: refresh })
-  const [f, setF] = useState({ tipo: '', vence: '' })
-  const tipo = f.tipo.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60)
-  const add = useMutation({
-    mutationFn: () => api(`/orgs/${orgId}/workers/${workerId}/documents`, { method: 'POST', body: { tipoDocumento: tipo, venceAt: f.vence || null } }),
-    onSuccess: () => { setF({ tipo: '', vence: '' }); refresh() },
-  })
+  // El archivo vive en un bucket privado: se pide con la sesión y se abre desde memoria, sin enlace público.
+  const view = async (id) => {
+    const w = window.open('', '_blank')
+    try {
+      const blob = await (await api(`/orgs/${orgId}/documents/${id}/archivo`, { raw: true })).blob()
+      if (w) w.location.href = URL.createObjectURL(blob)
+    } catch { w?.close() }
+  }
+  const docs = q.data?.documents ?? []
+  const missing = (q.data?.requisitos ?? []).filter((r) => !docs.some((d) => d.tipoDocumento === r.tipo))
 
   return (
     <div className="bn-docs">
       {q.isPending ? <div className="bn-slip is-skel" /> : q.isError ? <p className="bn-err">{errorText(q.error)}</p> : (
-        q.data.documents.length === 0
-          ? <p className="bn-docs__none">Sin documentos</p>
+        docs.length === 0 && missing.length === 0
+          ? <p className="bn-docs__none">Este rol no pide documentos</p>
           : (
             <ul className="bn-slips">
-              {q.data.documents.map((d, j) => {
+              {docs.map((d, j) => {
                 const name = d.tipoDocumento.replace(/_/g, ' ')
                 const busy = review.isPending && review.variables?.id === d.id
                 return (
@@ -270,22 +274,24 @@ function Docs({ orgId, workerId }) {
                       </span>
                     )}
                     <span className="bn-slip__acts">
+                      {d.tieneArchivo && <button type="button" className="bn-sealbtn" aria-label={`Ver archivo de ${name}`} title="Ver archivo" onClick={() => view(d.id)}><Ico name="doc" size={14} /></button>}
                       <button type="button" className="bn-sealbtn is-ok" disabled={busy || d.estado === 'aprobado'} aria-label={`Aprobar ${name}`} title="Aprobar" onClick={() => review.mutate({ id: d.id, estado: 'aprobado' })}><Ico name="check" size={14} /></button>
                       <button type="button" className="bn-sealbtn is-bad" disabled={busy || d.estado === 'rechazado'} aria-label={`Rechazar ${name}`} title="Rechazar" onClick={() => review.mutate({ id: d.id, estado: 'rechazado' })}><Ico name="x" size={14} /></button>
                     </span>
                   </li>
                 )
               })}
+              {missing.map((r) => (
+                <li key={r.tipo} className="bn-slip is-missing">
+                  <span className="bn-slip__staple" aria-hidden="true" />
+                  <span className="bn-slip__name">{r.tipo.replace(/_/g, ' ')}</span>
+                  <span className="bn-slip__when">falta · lo sube la persona desde su panel</span>
+                </li>
+              ))}
             </ul>
           )
       )}
-      <form className="bn-slip is-new" onSubmit={(e) => { e.preventDefault(); if (tipo) add.mutate() }}>
-        <Ico name="doc" size={14} />
-        <input aria-label="Tipo de documento" placeholder="Agregar documento" maxLength={60} value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })} />
-        <input type="date" aria-label="Vence (opcional)" title="Vence (opcional)" value={f.vence} onChange={(e) => setF({ ...f, vence: e.target.value })} />
-        <button type="submit" className="bn-slip__go" disabled={!tipo || add.isPending} aria-busy={add.isPending || undefined}>Grapar</button>
-      </form>
-      {(review.error || add.error) && <p className="bn-err" role="alert">{errorText(review.error || add.error)}</p>}
+      {review.error && <p className="bn-err" role="alert">{errorText(review.error)}</p>}
     </div>
   )
 }

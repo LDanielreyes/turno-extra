@@ -48,6 +48,22 @@ export async function api(path, { method = 'GET', body, raw = false, signal } = 
   return parse(res)
 }
 
+// Sube un archivo como cuerpo crudo (el backend valida el tipo por su firma, no por el nombre).
+export async function upload(path, file) {
+  if (USE_MOCKS) throw new ApiError(503, 'storage_unavailable', 'La carga de archivos no está disponible en modo simulación')
+  let res
+  try {
+    res = await fetch(`${API_URL}${path}`, { method: 'POST', credentials: 'include', headers: { 'content-type': file.type }, body: file })
+  } catch {
+    throw new ApiError(0, 'network', 'No hay conexión con el servidor')
+  }
+  if (!res.ok) {
+    const data = await parse(res).catch(() => ({}))
+    throw new ApiError(res.status, data?.error ?? data?.code, data?.message, data)
+  }
+  return parse(res)
+}
+
 // Better Auth vive en /api/auth/*. Con cuerpo es POST; sin cuerpo, GET.
 export const auth = (path, body) =>
   api(`/api/auth${path}`, { method: body === undefined ? 'GET' : 'POST', body })

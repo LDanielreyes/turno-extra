@@ -147,3 +147,24 @@ button.yo-plug:disabled { cursor: progress; opacity: 0.7; }
 @media (prefers-reduced-motion: reduce) {
   .yo *, .yo *::before { animation: none !important; transition: none !important; }
 }
+
+/* documentos */
+.yo-docs { margin-bottom: 14px; }
+.yo-docs__org { margin: 0 0 8px; font: 600 13px var(--font-body); }
+.yo-docs__org small { font-weight: 400; color: var(--color-text-muted); }
+.yo-docs__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.yo-doc { padding: 10px 14px; border: 1px dashed var(--hair-strong); border-radius: 4px; border-left: 3px solid var(--hair-strong); }
+.yo-doc.is-ok { border-left-color: #17794d; }
+.yo-doc.is-bad { border-left-color: #b3392a; }
+.yo-doc.is-wait { border-left-color: var(--color-accent); }
+.yo-doc__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.yo-doc__txt { flex: 1 1 140px; display: grid; gap: 2px; min-width: 0; }
+.yo-doc__txt strong { font-size: 13.5px; text-transform: capitalize; }
+.yo-doc__txt small { font-size: 12px; color: var(--color-text-muted); }
+.yo-doc__state { font: 600 11px var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; }
+.yo-doc.is-ok .yo-doc__state { color: #17794d; }
+.yo-doc.is-bad .yo-doc__state { color: #b3392a; }
+.yo-doc__btn { min-height: 32px; padding: 0 12px; border: 1px solid var(--hair-strong); border-radius: 3px; background: transparent; color: var(--color-text); font: 500 12.5px var(--font-body); cursor: pointer; }
+.yo-doc__btn:hover { border-color: var(--color-accent); }
+.yo-doc__form { display: grid; gap: 8px; margin-top: 10px; justify-items: start; }
+.yo-doc__form input { max-width: 100%; font: 400 13px var(--font-body); color: var(--color-text); }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../shared/api'
+import { api, upload } from '../shared/api'
 import { useSession } from '../shared/session'
 import { fmtTime } from '../shared/format'
 import { Btn, ErrorState, Field, FormError } from '../shared/ui'
@@ -58,6 +58,7 @@ export default function Yo() {
           <Turnos loading={q.isPending} upcoming={upcoming} past={past} ventana={d?.ventanaDisputaDias} />
           <aside className="yo__side">
             <Canales loading={q.isPending} canales={d?.canales ?? []} />
+            <Documentos />
             <Datos />
           </aside>
         </div>
@@ -203,6 +204,77 @@ function Canales({ loading, canales }) {
       </ol>
       <FormError error={save.error} />
     </section>
+  )
+}
+
+/* ---------------------------------------------------------------- documentos */
+
+const ESTADO_DOC = { pendiente: 'En revisión', aprobado: 'Aprobado', rechazado: 'Rechazado' }
+const fechaDoc = (iso) => { const d = day(`${String(iso).slice(0, 10)}T12:00:00`); return d ? `${d.getDate()} ${MES[d.getMonth()]} ${d.getFullYear()}` : '' }
+const hoy = () => new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 10)
+
+// Lo que cada organización te pide según tu rol. Tú subes el archivo; la empresa lo revisa.
+function Documentos() {
+  const q = useQuery({ queryKey: ['yo', 'documentos'], queryFn: () => api('/yo/documentos') })
+  const orgs = q.data?.organizaciones ?? []
+  return (
+    <section className="yo-card" aria-labelledby="yo-dc">
+      <h2 id="yo-dc" className="yo-h">Mis documentos</h2>
+      {q.isPending ? <span className="yo-plug is-ghost" /> : q.isError ? <FormError error={q.error} /> : !orgs.length ? (
+        <p className="yo-note">Cuando una empresa te agregue a su banca, aquí verás los documentos que pide tu rol.</p>
+      ) : (
+        <>
+          <p className="yo-note">Sube una foto o PDF (hasta 5 MB). Sin los documentos obligatorios aprobados y vigentes no te llegan ofertas de esa empresa.</p>
+          {!q.data.archivos && <p className="yo-note">La carga de archivos no está disponible por ahora.</p>}
+          {orgs.map((o) => (
+            <div key={o.orgId} className="yo-docs">
+              <h3 className="yo-docs__org">{o.org} <small>· {o.rol}</small></h3>
+              <ul className="yo-docs__list">
+                {o.requisitos.map((r) => <Requisito key={r.tipo} orgId={o.orgId} r={r} enabled={q.data.archivos} />)}
+              </ul>
+            </div>
+          ))}
+        </>
+      )}
+    </section>
+  )
+}
+
+function Requisito({ orgId, r, enabled }) {
+  const qc = useQueryClient()
+  const d = r.documento
+  const [open, setOpen] = useState(false)
+  const [file, setFile] = useState(null)
+  const [vence, setVence] = useState('')
+  const expired = d?.estado === 'aprobado' && d.venceAt && String(d.venceAt).slice(0, 10) < hoy()
+  const estado = expired ? 'Vencido' : d ? ESTADO_DOC[d.estado] : 'Falta'
+  const tone = expired || !d || d.estado === 'rechazado' ? 'bad' : d.estado === 'aprobado' ? 'ok' : 'wait'
+  const send = useMutation({
+    mutationFn: () => upload(`/yo/documentos?${new URLSearchParams({ orgId, tipo: r.tipo, ...(vence ? { vence } : {}) })}`, file),
+    onSuccess: async () => { setOpen(false); setFile(null); setVence(''); await qc.invalidateQueries({ queryKey: ['yo', 'documentos'] }) },
+  })
+  const ready = file && (!r.vigenciaRequerida || vence)
+  return (
+    <li className={`yo-doc is-${tone}`}>
+      <div className="yo-doc__row">
+        <div className="yo-doc__txt">
+          <strong>{r.tipo.replace(/_/g, ' ')}</strong>
+          <small>{d?.venceAt ? `vence ${fechaDoc(d.venceAt)}` : r.vigenciaRequerida ? 'requiere vencimiento' : 'sin vencimiento'}{r.obligatorio ? '' : ' · opcional'}</small>
+        </div>
+        <span className="yo-doc__state">{estado}</span>
+        {enabled && (!d || d.estado !== 'pendiente') && (
+          <button type="button" className="yo-doc__btn" aria-expanded={open} onClick={() => { send.reset(); setOpen(!open) }}>{d ? 'Subir de nuevo' : 'Subir'}</button>
+        )}
+      </div>
+      {open && (
+        <form className="yo-doc__form" onSubmit={(e) => { e.preventDefault(); if (ready) send.mutate() }}>
+          <input type="file" accept="image/jpeg,image/png,application/pdf" aria-label={`Archivo de ${r.tipo.replace(/_/g, ' ')}`} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          {r.vigenciaRequerida && <input type="date" min={hoy()} aria-label="Fecha de vencimiento" title="Fecha de vencimiento" value={vence} onChange={(e) => setVence(e.target.value)} />}
+          <FormError error={send.error} />
+          <Btn type="submit" size="sm" variant="primary" loading={send.isPending} disabled={!ready}>Enviar</Btn>
+        </form>
+      )}
+    </li>
   )
 }
 

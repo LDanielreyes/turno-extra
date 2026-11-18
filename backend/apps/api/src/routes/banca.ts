@@ -1,9 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
-import { audit, orgWorkers, orgRoles, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
+import { audit, orgWorkers, orgRoles, roleRequirements, roles, shiftOffers, workerChannels, workerDocuments, workers, withOrg, type Db } from '@turnoextra/db';
 import type { Guards } from '../auth/guards.js';
 import { normalizeCoPhone, maskPhone } from '../phone.js';
+import { getFile, storageEnabled } from '../storage.js';
 
 const uuid = z.string().uuid();
 const notFound = (reply: FastifyReply) => reply.status(404).send({ error: 'not_found', message: 'No encontrado' });
@@ -151,50 +152,46 @@ export function bancaRoutes(app: FastifyInstance, deps: { db: Db; guards: Guards
     });
   });
 
-  // Documentos: la empresa los registra (o el candidato en su nombre) y los aprueba o rechaza.
-  app.post('/orgs/:orgId/workers/:id/documents', { preHandler: pre }, async (req, reply) => {
-    const orgId = org(req);
-    const id = idParam(req, 'id');
-    if (!id) return notFound(reply);
-    const body = z
-      .object({
-        tipoDocumento: z.string().regex(/^[a-z0-9_]+$/).max(60),
-        venceAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().default(null),
-      })
-      .parse(req.body);
-    return withOrg(db, orgId, async (tx) => {
-      const [ow] = await tx
-        .select({ workerId: orgWorkers.workerId })
-        .from(orgWorkers)
-        .where(and(eq(orgWorkers.id, id), eq(orgWorkers.orgId, orgId)));
-      if (!ow) return notFound(reply);
-      const [d] = await tx
-        .insert(workerDocuments)
-        .values({ orgId, workerId: ow.workerId, tipoDocumento: body.tipoDocumento, venceAt: body.venceAt })
-        .returning({ id: workerDocuments.id });
-      await audit(tx, { orgId, actorId: req.user!.id, accion: 'document.created', entidad: 'document', entidadId: d!.id });
-      return reply.status(201).send({ id: d!.id, estado: 'pendiente' });
-    });
-  });
-
+  // Documentos: los sube el candidato desde su panel (routes/candidate.ts); la empresa solo los revisa.
   app.get('/orgs/:orgId/workers/:id/documents', { preHandler: pre }, async (req, reply) => {
     const orgId = org(req);
     const id = idParam(req, 'id');
     if (!id) return notFound(reply);
     return withOrg(db, orgId, async (tx) => {
       const [ow] = await tx
-        .select({ workerId: orgWorkers.workerId })
+        .select({ workerId: orgWorkers.workerId, roleId: orgWorkers.roleId })
         .from(orgWorkers)
         .where(and(eq(orgWorkers.id, id), eq(orgWorkers.orgId, orgId)));
       if (!ow) return notFound(reply);
+      const requisitos = ow.roleId
+        ? await tx.select({ tipo: roleRequirements.tipoDocumento, obligatorio: roleRequirements.obligatorio, vigenciaRequerida: roleRequirements.vigenciaRequerida }).from(roleRequirements).where(eq(roleRequirements.roleId, ow.roleId))
+        : [];
       const docs = await tx
         .select()
         .from(workerDocuments)
         .where(and(eq(workerDocuments.orgId, orgId), eq(workerDocuments.workerId, ow.workerId)));
       return {
-        documents: docs.map((d) => ({ id: d.id, tipoDocumento: d.tipoDocumento, venceAt: d.venceAt, estado: d.estado, revisadoAt: d.revisadoAt })),
+        documents: docs.map((d) => ({ id: d.id, tipoDocumento: d.tipoDocumento, venceAt: d.venceAt, estado: d.estado, revisadoAt: d.revisadoAt, tieneArchivo: !!d.archivoKey })),
+        requisitos,
       };
     });
+  });
+
+  // El archivo se sirve a través de la API (sesión + pertenencia a la org); el bucket nunca se expone.
+  app.get('/orgs/:orgId/documents/:docId/archivo', { preHandler: pre }, async (req, reply) => {
+    const orgId = org(req);
+    const docId = idParam(req, 'docId');
+    if (!docId || !storageEnabled()) return notFound(reply);
+    const [d] = await withOrg(db, orgId, (tx) =>
+      tx.select({ key: workerDocuments.archivoKey, tipo: workerDocuments.archivoTipo }).from(workerDocuments).where(and(eq(workerDocuments.id, docId), eq(workerDocuments.orgId, orgId))));
+    const file = d?.key ? await getFile(d.key) : null;
+    if (!d || !file) return notFound(reply);
+    return reply
+      .header('content-type', d.tipo ?? 'application/octet-stream')
+      .header('content-disposition', 'inline')
+      .header('cache-control', 'private, no-store')
+      .header('x-content-type-options', 'nosniff')
+      .send(file);
   });
 
   app.patch('/orgs/:orgId/documents/:docId', { preHandler: pre }, async (req, reply) => {

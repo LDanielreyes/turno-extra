@@ -266,3 +266,6 @@
   .bn-card.is-flash .bn-saved { opacity: 0; }
   .bn-card__paper { transition: none; }
 }
+
+.bn-slip.is-missing { border-style: dashed; opacity: 0.75; }
+.bn-slip.is-missing .bn-slip__when { color: #b3392a; }

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { sql } from 'drizzle-orm';
+import { rowsOf } from '@turnoextra/channels';
 import { createWorld, type World } from './world.js';
 
 let w: World;
@@ -63,13 +64,9 @@ describe('banca', () => {
 });
 
 describe('documentos', () => {
-  it('se registra, queda pendiente y la empresa lo aprueba con trazabilidad', async () => {
-    const d = await w.api('POST', `/orgs/${w.A.orgId}/workers/${workerId}/documents`, {
-      cookie: w.A.cookie, body: { tipoDocumento: 'carnet_manipulacion_alimentos', venceAt: '2030-01-01' },
-    });
-    expect(d.statusCode).toBe(201);
-    docId = d.json().id;
-    expect(d.json().estado).toBe('pendiente');
+  it('queda pendiente y la empresa lo aprueba con trazabilidad', async () => {
+    // El candidato sube el documento desde su panel (h7-docs); la empresa solo lo revisa.
+    docId = (await w.t.asOwner(async (o) => rowsOf<{ id: string }>(await o.execute(sql`INSERT INTO worker_documents (org_id, worker_id, tipo_documento, vence_at) SELECT org_id, worker_id, 'carnet_manipulacion_alimentos', '2030-01-01' FROM org_workers WHERE id = ${workerId} RETURNING id`))))[0]!.id;
     const ap = await w.api('PATCH', `/orgs/${w.A.orgId}/documents/${docId}`, { cookie: w.A.cookie, body: { estado: 'aprobado' } });
     expect(ap.statusCode).toBe(200);
     const list = await w.api('GET', `/orgs/${w.A.orgId}/workers/${workerId}/documents`, { cookie: w.A.cookie });
